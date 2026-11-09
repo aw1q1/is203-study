@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Sections — Subnetting + أنشطة السكاشن</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+  .mono{direction:ltr;text-align:left;font:600 15px/1.7 Consolas,monospace;white-space:pre;overflow-x:auto;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+  .in{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:600 16px Consolas,monospace;direction:ltr;width:100%;max-width:230px}
+  .in:focus{outline:2px solid var(--accent)}
+  .sel{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .sel label{display:flex;gap:6px;align-items:center;font-weight:600}
+  .sel select{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit;direction:ltr}
+  .nb{color:var(--c-plan);font-weight:800}
+  .hb{color:var(--c-ana);font-weight:800}
+  .ipf{direction:ltr;display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin:12px 0}
+  .ipf span.o{padding:8px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--card2);font:800 26px Consolas,monospace}
+  .ipf span.o.n{border-color:var(--c-plan);background:rgba(var(--c-plan-rgb),.18)}
+  .ipf span.o.h{border-color:var(--c-ana);background:rgba(var(--c-ana-rgb),.18)}
+  .ipf span.d{font:800 24px "Segoe UI",sans-serif;color:var(--muted)}
+  .bitrow{display:flex;gap:6px;direction:ltr;justify-content:center;flex-wrap:wrap;margin:8px 0}
+  .bitrow>div{text-align:center}
+  .bitrow button{width:40px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:800 18px Consolas,monospace;cursor:pointer}
+  .bitrow button.one{border-color:var(--accent);background:rgba(var(--accent-rgb),.22)}
+  .bitrow small{display:block;text-align:center;color:var(--muted);font-size:11px}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:10px 0}
+  .pgrid label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:14.5px}
+  .pgrid .in{max-width:none}
+  .pgrid .in.good{border-color:var(--ok);background:rgba(var(--ok-rgb),.16)}
+  .pgrid .in.bad{border-color:var(--bad);background:rgba(var(--bad-rgb),.14)}
+  .qip{direction:ltr;text-align:center;font:800 30px Consolas,monospace;padding:12px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:10px 0}
+  .tscroll .tbl td,.tscroll .tbl th{white-space:nowrap}
+  .legend{font-size:14px;color:var(--muted);margin:2px 0 8px}
+  .src{font-size:13.5px}
+</style>
+</head>
+<body data-lecture="sec">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Sections 🧪</b><small class="en plain">Subnetting · OSI activity · Packet Tracer · Fundamentals</small></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0/13</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<div class="layout">
+<nav class="nav" id="nav" aria-label="محطات الصفحة"></nav>
+<main>
+
+<!-- =====================================================  1 · BIG PICTURE -->
+<section class="station" data-icon="🗺️" data-title="الصورة الكبيرة">
+  <h2>السكاشن 🧪 <span class="en plain" style="font-size:18px">Sections</span></h2>
+  <p class="lead">٥ ملفات من المعيدين: أساسيات وأنشطة، وبعدها <b class="en">IP addressing + Subnetting</b> اللي <b>مش في سلايدات الدكتور</b>. الصفحة دي <b>مضافة لوحدها</b> ومبتغيّرش في صفحات المحاضرات. <span class="muted">(⏱️ المحطات 4 لـ 8 هي الأهم، حوالي ٤٥ دقيقة تقدير مني)</span></p>
+
+  <div class="card">
+    <table class="tbl" style="margin:0">
+      <tr><th>الملف</th><th>فيه إيه</th><th>المحطة</th></tr>
+      <tr class="ph-plan"><td class="en">Section 1 (+ Part 2)</td><td>أساسيات الشبكات، الأجهزة، الوسائط، الـ topologies + أنشطة وكويز ٢٠ سؤال</td><td>2</td></tr>
+      <tr class="ph-ana"><td class="en">Section 2</td><td>أنشطة الـ OSI + <b>IP, Classes, Subnet mask, Binary</b> + أنشطة</td><td>3 · 4 · 5 · 6</td></tr>
+      <tr class="ph-des"><td class="en">Section 3</td><td><span class="en">Packet Tracer</span> (كابلات، تهيئة PC وRouter، أنشطة subnetting)</td><td>9</td></tr>
+      <tr class="ph-imp"><td class="en">Section 4</td><td><b>IP Wastage, CIDR, Class C Subnetting, VLSM</b></td><td>7 · 8</td></tr>
+    </table>
+  </div>
+
+  <div class="note warn">⚠️ <b>ليه الصفحة دي مهمة:</b> محاضرات الدكتور (الصفحات اللي قبلها) مفيهاش الـ <span class="en">subnetting</span>، لكن السكاشن وفصل ٥ من الكتاب فيهم. وحسب ملاحظة الميدتيرمات السابقة في الصفحة الرئيسية: <span class="en">Class A / B / C</span> و<span class="en">IPv6 = 128 bit</span> والـ <span class="en">private IP</span> اتسألوا قبل كده.</div>
+
+  <h3 class="sec">خريطة الصفحة <small>(اضغط على أي مربع تروحله)</small></h3>
+  <div class="grid g3">
+    <button type="button" class="tile ph-plan" data-go="2"><span class="emo">📘</span><b>أساسيات + أجهزة + Topologies</b><small>Section 1 · كويز ٢٠ سؤال</small></button>
+    <button type="button" class="tile ph-ana" data-go="3"><span class="emo">🧩</span><b>نشاط الـ OSI</b><small>Section 2 · ٢٠ سيناريو</small></button>
+    <button type="button" class="tile ph-des" data-go="4"><span class="emo">🔢</span><b class="en">IP · Binary · Classes</b><small>⭐ مهم</small></button>
+    <button type="button" class="tile ph-imp" data-go="5"><span class="emo">🎭</span><b class="en">Subnet Mask + Calculator</b><small>⭐ مهم</small></button>
+    <button type="button" class="tile ph-plan" data-go="6"><span class="emo">🏋️</span><b>تدريب (Activities)</b><small>أسئلة عشوائية بتصحيح</small></button>
+    <button type="button" class="tile ph-ana" data-go="7"><span class="emo">✂️</span><b class="en">Subnetting</b><small>Borrowed bits · Block size ⭐</small></button>
+    <button type="button" class="tile ph-des" data-go="8"><span class="emo">💸</span><b class="en">Wastage · CIDR · VLSM</b><small>Section 4</small></button>
+    <button type="button" class="tile ph-imp" data-go="9"><span class="emo">🛠️</span><b class="en">Packet Tracer</b><small>Section 3</small></button>
+    <button type="button" class="tile ph-plan" data-go="13"><span class="emo">🧾</span><b>الملخص + القوانين</b><small>قابل للطباعة</small></button>
+  </div>
+
+  <div class="card">
+    <h4>🎯 بعد الصفحة دي المفروض تقدر:</h4>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li>تحدد الـ <span class="en">class</span> من أول <span class="en">octet</span> وتحفظ الـ <span class="en">default mask</span> وعدد الـ <span class="en">hosts</span> لكل class.</li>
+      <li>تحسب <b>Network / Broadcast / First / Last / Hosts</b> لأي <span class="en">IP/prefix</span> بإيدك.</li>
+      <li>تقسّم شبكة (<span class="en">subnetting</span>): <span class="en">borrowed bits, number of subnets, block size, mask</span>.</li>
+      <li>تشرح الـ <span class="en">IP wastage</span> والفرق بين <span class="en">classful</span> و<span class="en">CIDR</span> وتعمل <span class="en">VLSM</span>.</li>
+      <li>تحل أنشطة الـ <span class="en">OSI</span> وتفرّق بين الكابلات والـ <span class="en">topologies</span> والأجهزة.</li>
+    </ul>
+  </div>
+
+  <div class="note src">📚 <b>المصدر:</b> صور سلايدات السكاشن (م. تقى مجدي: <span class="en">Section 1</span>، م. عبدالله حلمي: الباقي) + فصل ٥ من الكتاب (الـ classes والـ subnet mask والـ <span class="en">subnetting</span>). قريت السلايدات كصور، فلو لقيت رقم مختلف عن السلايد يبقى السلايد هو الأصل. كل الأرقام الحسابية اتأكدت بكود. <b>Activity 4</b> (محطة 6) مش محلولة في السلايد: <b>حليتها أنا</b>. 💡 <b>رموز:</b> 📖 = إضافة من الكتاب · 🧠 = توضيح مني (فهم عام، مش في المصادر) · ⚠️ = تعارض أو انتباه.</div>
+</section>
+
+<!-- =====================================================  2 · SECTION 1 -->
+<section class="station" data-icon="📘" data-title="Section 1: أساسيات + أجهزة">
+  <h2>Section 1: الأساسيات والأجهزة والـ Topologies 📘</h2>
+  <p class="lead">أغلبها موجود في المحاضرات (L1, L3, L4)، فالمحطة دي مراجعة سريعة + أنشطة المعيد. <span class="muted">(⏱️ ١٥ دقيقة)</span></p>
+
+  <div data-tabs="basic">
+    <div class="seg ph-plan">
+      <button type="button" data-tab="basic">🌐 الأساسيات</button>
+      <button type="button" data-tab="dev">🔌 الأجهزة</button>
+      <button type="button" data-tab="media">🧵 الوسائط</button>
+      <button type="button" data-tab="topo">🕸️ Topologies</button>
+    </div>
+
+    <div class="pane" data-pane="basic">
+      <div class="card">
+        <ul style="margin:0;padding-inline-start:22px">
+          <li><b class="en">Computer network</b> = مجموعة أجهزة (<b>اتنين على الأقل</b>) متوصلة بـ <span class="en">communication links</span>، بتشارك موارد وبيانات.</li>
+          <li><b>ليه بنستخدمها:</b> <span class="en">Resource sharing</span> (printer، storage، Internet) · <span class="en">Data sharing</span> · <span class="en">Communication</span> (email، messaging، video calls) · <span class="en">Remote access</span>.</li>
+          <li><b>المكونات الرئيسية:</b> <span class="en">End devices (nodes)</span> زي laptop وphone وprinter · <span class="en">Intermediary devices</span> زي router وswitch وhub وaccess point وmodem وfirewall · <span class="en">Transmission media</span> (سلكي زي fiber، لاسلكي زي Wi-Fi وBluetooth).</li>
+          <li><b>مكونات الاتصال:</b> <span class="en">Sender → Transmission medium → Receiver</span> + <span class="en">Protocol</span> (= قواعد مشتركة؛ من غيرها <span class="en">communication may fail</span>).</li>
+        </ul>
+      </div>
+      <div class="grid g2">
+        <div class="card tint ph-plan" style="margin:0"><h4><span class="en">Point-to-Point</span></h4><p style="margin:0">لينك <b>مخصص بين جهازين بالظبط</b>، وكل سعة اللينك بتاعتهم.</p></div>
+        <div class="card tint ph-ana" style="margin:0"><h4><span class="en">Multipoint</span></h4><p style="margin:0">لينك واحد أو جهاز مركزي <b>مشترك بين عدة أجهزة</b>، والسعة متقسّمة بينهم.</p></div>
+      </div>
+      <table class="tbl">
+        <tr><th>النوع</th><th>المدى</th><th>أمثلة</th></tr>
+        <tr class="ph-plan"><td class="en">PAN</td><td>كام متر</td><td>ساعة + موبايل + سماعة بلوتوث</td></tr>
+        <tr class="ph-ana"><td class="en">LAN</td><td>منطقة صغيرة</td><td>بيت · مكتب · <span class="en">computer lab</span></td></tr>
+        <tr class="ph-des"><td class="en">MAN</td><td>على مستوى مدينة</td><td>توصيل مواقع جوه المدينة</td></tr>
+        <tr class="ph-imp"><td class="en">WAN</td><td>منطقة جغرافية كبيرة</td><td>مدن / دول</td></tr>
+        <tr class="t-warn"><td class="en">The Internet</td><td>الكوكب كله</td><td>شبكة الشبكات</td></tr>
+      </table>
+      <div class="card">
+        <h4>🔀 <span class="en">Router</span> ضد <span class="en">Switch</span> <span class="muted" style="font-weight:400">(حيلة المعيد)</span></h4>
+        <p style="margin:0"><b class="en">Router</b> = <b>BETWEEN</b> networks، بيستخدم <b class="en">IP addressing</b>، مثال: شبكة البيت ↔ الإنترنت. <b class="en">Switch</b> = <b>WITHIN</b> a local network، بيستخدم <b class="en">MAC addresses</b>، مثال: أجهزة الـ lab. <br><b class="en">Client–Server</b>: الـ client بيطلب داتا أو خدمة، والـ server بيعالج الطلب ويرجّع الرد. المسار المبسّط: <span class="en">Laptop → Access Point / Home network → Router → ISP (modem) → Web server</span>.</p>
+      </div>
+    </div>
+
+    <div class="pane" data-pane="dev">
+      <p class="muted">اضغط على الكارت تقلبه.</p>
+      <div class="grid g3">
+        <div class="flip ph-plan"><div class="f"><span class="emo">🔌</span><b class="en">NIC</b><small>اضغط</small></div><div class="b"><span class="en">Network Interface Card</span>: الهاردوير جوه الجهاز اللي بيخليه يتوصل بالشبكة.</div></div>
+        <div class="flip ph-ana"><div class="f"><span class="emo">📡</span><b class="en">Repeater</b><small>اضغط</small></div><div class="b">بيستقبل إشارة ضعيفة و<b>يجدّدها</b> (regenerates) عشان تمشي مسافة أطول.</div></div>
+        <div class="flip ph-des"><div class="f"><span class="emo">📢</span><b class="en">Hub</b><small>اضغط</small></div><div class="b">جهاز بسيط بيبعت أي داتا داخلة <b>لكل الأجهزة المتوصلة</b>.</div></div>
+        <div class="flip ph-imp"><div class="f"><span class="emo">🔀</span><b class="en">Switch</b><small>اضغط</small></div><div class="b">بيوصّل أجهزة في الـ <b>LAN</b> وبيبعت الداتا <b>بس للجهاز المقصود</b> (بالـ MAC address).</div></div>
+        <div class="flip ph-plan"><div class="f"><span class="emo">🌐</span><b class="en">Router</b><small>اضغط</small></div><div class="b">بيوصّل <b>شبكات مختلفة</b> (زي شبكة البيت والإنترنت) وبيختار المسار اللي الداتا تمشي فيه (بالـ IP).</div></div>
+        <div class="flip ph-ana"><div class="f"><span class="emo">📶</span><b class="en">Modem</b><small>اضغط</small></div><div class="b">بيحوّل الإشارات بين خط الـ <span class="en">ISP</span> وشكل تقدر الشبكة تستخدمه.</div></div>
+        <div class="flip ph-des"><div class="f"><span class="emo">📲</span><b class="en">Access Point</b><small>اضغط</small></div><div class="b">بيخلّي أجهزة الـ <b>Wi-Fi</b> تنضم للشبكة.</div></div>
+        <div class="flip ph-imp"><div class="f"><span class="emo">⚖️</span><b class="en">Load Balancer</b><small>اضغط</small></div><div class="b">بيوزّع الـ traffic على <b>عدة servers</b>.</div></div>
+        <div class="flip ph-plan"><div class="f"><span class="emo">🖥️</span><b class="en">Server / Client</b><small>اضغط</small></div><div class="b"><b>Server</b>: بيدّي خدمات وداتا وتطبيقات. <b>Client</b>: بيطلب داتا أو خدمة من الـ server.</div></div>
+      </div>
+    </div>
+
+    <div class="pane" data-pane="media">
+      <div class="grid g2">
+        <div class="card tint ph-plan" style="margin:0"><h4>🧵 <span class="en">Guided (Wired)</span></h4>
+          <ul style="margin:0;padding-inline-start:20px">
+            <li><b class="en">Twisted pair</b>: أزواج أسلاك نحاس معزولة ملفوفة على بعض لتقليل الـ <span class="en">EMI</span> والـ <span class="en">crosstalk</span>. <b class="en">UTP</b> (غير مغلّف) هو العادي في Ethernet LAN، و<b class="en">STP</b> فيه <b>foil</b> حماية.</li>
+            <li><b class="en">Fiber optic</b>: خيوط زجاج/بلاستيك بتنقل الداتا كنبضات ضوء، bandwidth عالي جداً ومحصّن ضد الضوضاء الكهربية.</li>
+            <li><b class="en">Coaxial</b>: موصّل نحاس + عزل + ضفيرة معدنية، لتلفزيون الكابل والإنترنت.</li>
+          </ul></div>
+        <div class="card tint ph-ana" style="margin:0"><h4>📡 <span class="en">Unguided (Wireless)</span></h4>
+          <ul style="margin:0;padding-inline-start:20px">
+            <li><b class="en">Radio waves</b>: <span class="en">omnidirectional</span> وبتخترق الحيطان؛ موبايل وWi-Fi وBluetooth.</li>
+            <li><b class="en">Microwaves</b>: تردد عالي، <span class="en">line-of-sight</span> واتجاهية، لمسافات طويلة بين أبراج أو أقمار صناعية.</li>
+            <li><b class="en">Infrared</b>: تردد عالي جداً، مدى قصير، <b>مبتخترقش</b> الحواجز؛ ريموت كنترول.</li>
+          </ul></div>
+      </div>
+      <h3 class="sec">جدول مقارنة الكابلات <small>(من سلايد المعيد)</small></h3>
+      <div class="tscroll"><table class="tbl" style="min-width:640px;direction:rtl">
+        <tr><th></th><th class="en">UTP</th><th class="en">STP</th><th class="en">Coaxial</th><th class="en">Fiber</th></tr>
+        <tr><td>التركيب</td><td>أزواج نحاس ملفوفة، من غير shield</td><td>أزواج + foil/braid shield</td><td>نحاس + عزل + braid shield</td><td>زجاج (core + cladding) بينقل ضوء</td></tr>
+        <tr><td>السرعة</td><td class="en">up to 10 Gbps</td><td class="en">up to 10 Gbps</td><td class="en">hundreds of Mbps – 1 Gbps+</td><td class="en">10 – 100+ Gbps</td></tr>
+        <tr><td>أقصى مسافة</td><td class="en">100 m</td><td class="en">100 m</td><td>مئات الأمتار</td><td>لحد عشرات الكيلومترات</td></tr>
+        <tr><td>التكلفة</td><td>قليلة</td><td>متوسطة</td><td>متوسطة</td><td>عالية</td></tr>
+        <tr><td>التداخل</td><td>متوسط (بيتأثر بالضوضاء)</td><td>قليل (الـ shield بيصدّ)</td><td>قليل</td><td>مفيش (immune)</td></tr>
+        <tr><td>الـ connector</td><td class="en">RJ-45</td><td class="en">RJ-45 (shielded)</td><td class="en">F-type, BNC</td><td class="en">SC, LC</td></tr>
+        <tr><td>استخدام</td><td>LANs البيوت والمكاتب</td><td>مصانع ومراكز بيانات</td><td>تلفزيون الكابل + إنترنت</td><td>backbones, ISPs, كابلات تحت البحر</td></tr>
+      </table></div>
+      <div class="note warn">⚠️ الأرقام في الجدول ده <b>تقريبية</b> (السلايد نفسه بيقول typical values) وممكن تختلف عن سلايدات الدكتور (<span class="en">Lecture 3</span> / <span class="en">Extra 1</span>) في صفحة <span class="en">L3</span>. <b>لو السؤال من محاضرات الدكتور جاوب بسلايداته.</b></div>
+    </div>
+
+    <div class="pane" data-pane="topo">
+      <table class="tbl">
+        <tr><th>الـ Topology</th><th>الوصف</th><th>لو حاجة اتعطلت</th></tr>
+        <tr class="ph-plan"><td class="en">Bus</td><td>كل الأجهزة على <b>كابل مشترك واحد (backbone)</b>، وكل جهاز يشوف الداتا لو ليه.</td><td>الـ backbone اتقطع في النص ← الشبكة تنقسم نصين ومحدش يكلّم التاني.</td></tr>
+        <tr class="ph-ana"><td class="en">Star</td><td>كل جهاز متوصل بجهاز مركزي (switch أو hub)، وكل الـ traffic بيعدي منه.</td><td>الـ switch المركزي وقع ← <b>كل الأجهزة</b> تفقد الاتصال.</td></tr>
+        <tr class="ph-des"><td class="en">Ring</td><td>كل جهاز متوصل بجارين بالظبط في حلقة، والداتا بتلف في اتجاه واحد (أو اتنين في dual ring).</td><td>كابل اتقطع في one-way ring ← الشبكة <b>بتقف</b>. الـ dual ring يقدر يعيد التوجيه.</td></tr>
+        <tr class="ph-imp"><td class="en">Mesh</td><td>كل جهاز متوصل بأجهزة كتير، وفيه مسارات متعددة. <b>Full mesh</b> = كل جهاز بكل جهاز. <b>Partial mesh</b> = بعض الأجهزة بس.</td><td>لينك وقع ← الداتا بتلف من <b>مسارات تانية</b> (موثوق جداً، لكن غالي).</td></tr>
+        <tr class="ph-plan"><td class="en">Tree</td><td>هرمي بيجمع بين star وbus: جذر متوصل بمستويات أقل زي فروع الشجرة.</td><td>—</td></tr>
+        <tr class="ph-ana"><td class="en">Hybrid</td><td>خليط من اتنين أو أكتر (زي كذا star متوصلين بـ bus أو mesh). الشركات والكامبسات الكبيرة بتستخدمه.</td><td>—</td></tr>
+      </table>
+      <p class="hint">الأنشطة: <b>A = Ring · B = Star · C = Mesh · D = Bus · E = Hybrid · F = Tree</b> (Activity 1). مفتاح Activity 3: <span class="en">Bus–D · Star–B · Ring–F · Mesh–A · Tree–C · Hybrid–E</span>.</p>
+    </div>
+  </div>
+
+  <h3 class="sec">🎯 كويز Section 1 <small>(الـ ٢٠ سؤال من السلايد، مع تعديل بسيط في الصياغة)</small></h3>
+  <div data-deck="s1quiz"></div>
+  <h3 class="sec">🎯 نشاط: Wired ولا Wireless؟ وأنهي كابل؟</h3>
+  <div data-deck="s1media"></div>
+  <h3 class="sec">🎯 نشاط: الـ Topologies</h3>
+  <div data-deck="s1topo"></div>
+</section>
+
+<!-- =====================================================  3 · OSI -->
+<section class="station" data-icon="🧩" data-title="Section 2: نشاط الـ OSI">
+  <h2>Section 2: أنشطة الـ <span class="en">OSI</span> 🧩</h2>
+  <p class="lead">الشرح الكامل في <a href="lecture2.html" style="color:var(--accent)">صفحة Lecture 2</a>. هنا اللي في سلايدات المعيد + الأنشطة. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <div class="note"><b class="en">OSI</b> = <span class="en">Open Systems Interconnection</span>: إطار <b>مفاهيمي</b> (مش مكونات فيزيائية) بيقسّم الاتصال لـ <b>7 طبقات</b>، لكل طبقة وظيفة، وكل طبقة بتتعامل مع اللي فوقيها وتحتيها بس.</div>
+
+  <div class="tscroll"><table class="tbl" style="min-width:680px;direction:rtl">
+    <tr><th>#</th><th>الطبقة</th><th>الوظيفة الأساسية</th><th>أمثلة / Protocols</th><th>الـ Data unit</th></tr>
+    <tr class="ph-plan"><td>7</td><td class="en">Application</td><td>خدمات الشبكة للتطبيقات مباشرة</td><td class="en">HTTP/HTTPS, FTP, SMTP, IMAP/POP3, DNS, DHCP, SNMP</td><td class="en">Data</td></tr>
+    <tr class="ph-ana"><td>6</td><td class="en">Presentation</td><td>ترجمة، تشفير، ضغط، وتنسيق الداتا</td><td class="en">TLS/SSL, JPEG, MPEG, ASCII, UTF-8, GIF</td><td class="en">Data</td></tr>
+    <tr class="ph-des"><td>5</td><td class="en">Session</td><td>فتح وإدارة وإنهاء الـ sessions</td><td class="en">NetBIOS, RPC, SIP, SMB</td><td class="en">Data</td></tr>
+    <tr class="ph-imp"><td>4</td><td class="en">Transport</td><td>توصيل end-to-end بين التطبيقات: segmentation، reliability، flow/error control، port numbers</td><td class="en">TCP, UDP, SCTP</td><td class="en"><b>Segment</b></td></tr>
+    <tr class="ph-plan"><td>3</td><td class="en">Network</td><td>عناوين منطقية (IP) وتوجيه بين الشبكات (routing)</td><td class="en">IP (IPv4/IPv6), ICMP, IGMP, OSPF, RIP, IPsec</td><td class="en"><b>Packet</b></td></tr>
+    <tr class="ph-ana"><td>2</td><td class="en">Data Link</td><td>توصيل node-to-node بالـ frames وعناوين MAC، وكشف الأخطاء (CRC/FCS)، والتحكم في الوصول للوسط (CSMA/CD, CSMA/CA)</td><td class="en">Ethernet (802.3), Wi-Fi (802.11), PPP, HDLC</td><td class="en"><b>Frame</b></td></tr>
+    <tr class="ph-des"><td>1</td><td class="en">Physical</td><td>بيبعت <b>raw bits</b> عبر وسط فيزيائي (إشارات كهربية / ضوئية / راديو)</td><td class="en">twisted pair, fiber, wireless, RJ-45</td><td class="en"><b>Bits</b></td></tr>
+  </table></div>
+
+  <div class="grid g2">
+    <div class="card tint ph-imp" style="margin:0"><h4><span class="en">TCP</span> ضد <span class="en">UDP</span></h4>
+      <table class="tbl" style="margin:0">
+        <tr><th></th><th class="en">TCP</th><th class="en">UDP</th></tr>
+        <tr><td>Connection</td><td class="en">Yes</td><td class="en">No</td></tr>
+        <tr><td>Reliability</td><td class="en">High (ACK, retransmit)</td><td class="en">Low (no ACK)</td></tr>
+        <tr><td>Speed</td><td>أبطأ</td><td>أسرع</td></tr>
+        <tr><td>Order</td><td>متحفظ</td><td>مش مضمون</td></tr>
+        <tr><td>Header</td><td class="en">20+ bytes</td><td class="en">8 bytes</td></tr>
+        <tr><td>أمثلة</td><td class="en">HTTP, HTTPS, FTP, SMTP</td><td class="en">DNS, VoIP, streaming, gaming</td></tr>
+      </table></div>
+    <div class="card tint ph-ana" style="margin:0"><h4>📦 شكل الـ <span class="en">Ethernet frame</span> <span class="muted" style="font-weight:400">(Data Link)</span></h4>
+      <div class="mono" style="font-size:13.5px">| Dest MAC | Src MAC | Type/Len | Data (Payload) | FCS |
+|  6 bytes | 6 bytes |  2 bytes | 46–1500 bytes  | 4 B |</div>
+      <p style="margin:0">الـ <b class="en">FCS</b> (4 bytes = 32 bit) حقل كشف الأخطاء في آخر الـ frame، وبيستخدم عادةً <span class="en">CRC-32</span>. بيتعمل بـ <b>Parity</b> أو <b>Checksum</b> أو <b class="en">CRC</b>.</p></div>
+  </div>
+  <p class="hint">رحلة الرسالة: المرسل بيعمل <b class="en">encapsulation</b> من 7 لـ 1 (Data ← Segment ← Packet ← Frame ← Bits)، والمستقبل بيعمل <b class="en">decapsulation</b> من 1 لـ 7.</p>
+
+  <h3 class="sec">🎯 اختار الطبقة <small>(Activity 1 + 2 من السلايد + أسئلة من جداول الشرح)</small></h3>
+  <div data-deck="osiact"></div>
+  <p class="hint">⚠️ إجابة سيناريو «ملف بيتنقل بين جهازين على نفس الـ local network» في السلايد = <span class="en">Data Link</span>. ممكن حد يقول <span class="en">Application</span> (نقل ملفات)، بس اتبع إجابة السلايد.</p>
+</section>
+
+<!-- =====================================================  4 · IP + BINARY + CLASSES -->
+<section class="station" data-icon="🔢" data-title="IP · Binary · Classes ⭐">
+  <h2>الـ <span class="en">IP Address</span> والـ <span class="en">Binary</span> والـ <span class="en">Classes</span> ⭐</h2>
+  <p class="lead">عنوان الجهاز على الشبكة، وإزاي الـ class بيتحدد من أول رقم. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <div class="card">
+    <div class="ipf"><span class="o n">192</span><span class="d">.</span><span class="o n">168</span><span class="d">.</span><span class="o n">1</span><span class="d">.</span><span class="o h">1</span></div>
+    <p class="legend" style="text-align:center">مثال <span class="en">192.168.1.1</span>: الـ ٣ octets الأولى <span class="nb">network</span> (في /24) والأخير <span class="hb">host</span></p>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li><b class="en">IPv4</b> = <b>32 bit</b> = <b>4 octets</b> × 8 bits. كل octet من <b>0 لـ 255</b>.</li>
+      <li>بيتقسم لجزء <b class="en">network</b> (بيحدد الشبكة) وجزء <b class="en">host</b> (بيحدد الجهاز).</li>
+      <li>بيعمل: يعرّف الجهاز على الشبكة · يوصّل الداتا للوجهة الصح · يخلّي الأجهزة تتكلم مع بعض.</li>
+      <li>مثال <b class="en">private IP</b> في السلايد: <span class="en">192.168.1.1</span> (جوه الشبكة المحلية). الـ <b class="en">public IP</b> هو اللي بيتستخدم على الإنترنت.</li>
+      <li>📖 <b>الكتاب:</b> <span class="en">IPv4</span> = 32 bit (حوالي 4.3 مليار عنوان). <span class="en">IPv6</span> = <b>128-bit</b> hexadecimal وعناوينه «شبه غير محدودة».</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🔢 الـ Binary: كل <span class="en">octet</span> = 8 bits <small>(جرّب)</small></h3>
+  <div class="card" id="binCard">
+    <p style="margin-top:0">كل bit قيمته ضعف اللي بعده: <span class="en">128 · 64 · 32 · 16 · 8 · 4 · 2 · 1</span>. الـ 1 = شغّال والـ 0 = مقفول، والرقم = مجموع القيم الشغالة. اضغط على أي bit أو اكتب رقم.</p>
+    <div class="sel"><label>رقم من 0 لـ 255: <input class="in" id="binN" type="number" min="0" max="255" value="192" style="max-width:110px"></label></div>
+    <div class="bitrow" id="binBits"></div>
+    <div class="verdict" id="binV"></div>
+    <p class="hint" style="margin:8px 0 0">مثال السلايد: <span class="en">192 = 128 + 64 = 11000000</span> · <span class="en">168 = 10101000</span> · <span class="en">1 = 00000001</span> · <span class="en">192.168.1.1 = 11000000.10101000.00000001.00000001</span>.</p>
+  </div>
+
+  <h3 class="sec">📊 الـ <span class="en">Classes</span> <small>(احفظ الجدول ده)</small></h3>
+  <div class="tscroll"><table class="tbl" style="min-width:700px;direction:rtl">
+    <tr><th>Class</th><th>أول octet</th><th>أول bits</th><th>Default mask</th><th>Network / Host bits</th><th>عدد الشبكات</th><th>Hosts لكل شبكة</th><th>الاستخدام</th></tr>
+    <tr class="ph-plan"><td class="en">A</td><td class="en">1 – 126</td><td class="en">0</td><td class="en">255.0.0.0 (/8)</td><td class="en">8 / 24</td><td class="en">126 = 2⁷ − 2</td><td class="en">16,777,214 = 2²⁴ − 2</td><td>شبكات كبيرة جداً</td></tr>
+    <tr class="ph-ana"><td class="en">B</td><td class="en">128 – 191</td><td class="en">10</td><td class="en">255.255.0.0 (/16)</td><td class="en">16 / 16</td><td class="en">16,384 = 2¹⁴</td><td class="en">65,534 = 2¹⁶ − 2</td><td>شبكات متوسطة</td></tr>
+    <tr class="ph-des"><td class="en">C</td><td class="en">192 – 223</td><td class="en">110</td><td class="en">255.255.255.0 (/24)</td><td class="en">24 / 8</td><td class="en">2,097,152 = 2²¹</td><td class="en">254 = 2⁸ − 2</td><td>شبكات صغيرة</td></tr>
+    <tr class="ph-imp"><td class="en">D</td><td class="en">224 – 239</td><td class="en">1110</td><td class="en">N/A</td><td>—</td><td>—</td><td>—</td><td class="en">Multicast</td></tr>
+    <tr class="t-warn"><td class="en">E</td><td class="en">240 – 255</td><td class="en">1111</td><td class="en">N/A</td><td>—</td><td>—</td><td>—</td><td class="en">Experimental / Reserved</td></tr>
+  </table></div>
+  <ul>
+    <li>أمثلة السلايد: <span class="en">A: 10.1.2.3 · B: 172.16.5.10 · C: 192.168.1.25 · D: 230.1.1.1 · E: 245.10.10.10</span>.</li>
+    <li>الـ <b>0</b> والـ <b>127</b> في أول octet <b>محجوزين</b> (علشان كده Class A بتبدأ من 1 لـ 126، والعدد 126 مش 128). 🧠 الـ 127 هو الـ <span class="en">loopback</span>.</li>
+    <li>📖 الكتاب: Class B بتبدأ <span class="en">10000000</span> لحد <span class="en">10111111</span> (= 128 لـ 191)، وClass A هي اللي فيها <b>أكبر عدد hosts</b> لكل شبكة، وClass C فيها أكبر عدد شبكات.</li>
+    <li>🧠 حيلة: بص على <b>أول bits</b>: <b>0</b> = A · <b>10</b> = B · <b>110</b> = C · <b>1110</b> = D · <b>1111</b> = E.</li>
+  </ul>
+
+  <h3 class="sec">🎯 تدريب: الـ Class</h3>
+  <div data-deck="cls"></div>
+</section>
+
+<!-- =====================================================  5 · MASK + CALCULATOR -->
+<section class="station" data-icon="🎭" data-title="Subnet Mask + حاسبة ⭐">
+  <h2>الـ <span class="en">Subnet Mask</span> وحاسبة الـ <span class="en">IP</span> ⭐</h2>
+  <p class="lead">القناع اللي بيفصل الـ network عن الـ host، وإزاي تطلّع Network و Broadcast و First و Last و Hosts. <span class="muted">(⏱️ ١٥ دقيقة)</span></p>
+
+  <div class="card">
+    <ul style="margin:0;padding-inline-start:22px">
+      <li><b class="en">Subnet mask</b> = رقم <b>32 bit</b> بيتستخدم مع الـ IP: الـ <b>1s</b> = جزء الـ <span class="nb">network</span>، والـ <b>0s</b> = جزء الـ <span class="hb">host</span>.</li>
+      <li><b class="en">/24</b> معناها: أول 24 bit = 1s (مثال: <span class="en">255.255.255.0</span>، network 24 / host 8).</li>
+      <li>الـ router بيعمل <b class="en">AND</b> بين الـ IP والـ mask عشان يطلّع الـ <b>network address</b>.</li>
+      <li>أمثلة <span class="en">CIDR</span> من السلايد: <span class="en">/8 = 255.0.0.0</span> (network 8 / host 24) · <span class="en">/16 = 255.255.0.0</span> · <span class="en">/24 = 255.255.255.0</span> · <span class="en">/30 = 255.255.255.252</span> (network 30 / host 2).</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🧮 الحاسبة <small>(توضيح مني، بتوريك الخطوات)</small></h3>
+  <div class="card calc" id="calCard">
+    <div class="sel">
+      <label>IP: <input class="in" id="calIp" value="192.168.1.70" spellcheck="false" aria-label="IP address"></label>
+      <label>Prefix: <select id="calP" aria-label="prefix"></select></label>
+    </div>
+    <div class="btnrow" id="calEx">
+      <button type="button" class="btn ghost" data-ex="10.25.1.10/8">10.25.1.10 /8</button>
+      <button type="button" class="btn ghost" data-ex="172.16.5.20/16">172.16.5.20 /16</button>
+      <button type="button" class="btn ghost" data-ex="192.168.1.10/24">192.168.1.10 /24</button>
+      <button type="button" class="btn ghost" data-ex="192.168.1.70/26">192.168.1.70 /26</button>
+      <button type="button" class="btn ghost" data-ex="172.16.8.110/27">172.16.8.110 /27</button>
+    </div>
+    <div class="res-row" id="calRes"></div>
+    <p class="legend" style="margin-top:12px"><span class="nb">أزرق = network bits</span> · <span class="hb">برتقالي = host bits</span></p>
+    <div class="mono" id="calBin"></div>
+    <h4>🧠 الطريقة بإيدك:</h4>
+    <ol class="steps ph-plan" id="calSteps"></ol>
+  </div>
+
+  <h3 class="sec">📋 خطوات السلايد (Class A / B / C — Worked Example)</h3>
+  <ol class="steps ph-ana">
+    <li><b>حدّد الـ network والـ host</b> من الـ mask (عدد الـ 1s = network bits).</li>
+    <li><b>Network address</b> = اجعل كل الـ <b>host bits = 0</b>.</li>
+    <li><b>Broadcast address</b> = اجعل كل الـ <b>host bits = 1</b>.</li>
+    <li><b>Maximum hosts</b> = <span class="en">2<sup>h</sup> − 2</span> حيث <span class="en">h = 32 − prefix</span> (بتشيل الـ network والـ broadcast).</li>
+    <li><b>First usable</b> = network + 1.</li>
+    <li><b>Last usable</b> = broadcast − 1.</li>
+  </ol>
+  <div class="tscroll"><table class="tbl" style="min-width:600px;direction:ltr">
+    <tr><th>IP / prefix</th><th>Network</th><th>Broadcast</th><th>Max hosts</th><th>First</th><th>Last</th></tr>
+    <tr class="ph-plan"><td>10.25.1.10 /8</td><td>10.0.0.0</td><td>10.255.255.255</td><td>2²⁴ − 2 = 16,777,214</td><td>10.0.0.1</td><td>10.255.255.254</td></tr>
+    <tr class="ph-ana"><td>172.16.5.20 /16</td><td>172.16.0.0</td><td>172.16.255.255</td><td>2¹⁶ − 2 = 65,534</td><td>172.16.0.1</td><td>172.16.255.254</td></tr>
+    <tr class="ph-des"><td>192.168.1.10 /24</td><td>192.168.1.0</td><td>192.168.1.255</td><td>2⁸ − 2 = 254</td><td>192.168.1.1</td><td>192.168.1.254</td></tr>
+  </table></div>
+
+  <div class="note">📖 <b>الكتاب (فكرة الـ AND في الـ routing):</b> المصدر على شبكة <span class="en">129.113.200.0</span>. الوجهة <span class="en">129.113.200.120</span> AND <span class="en">255.255.255.0</span> = <span class="en">129.113.200.0</span> ← <b>نفس الـ subnet</b>. الوجهة <span class="en">129.113.191.121</span> AND نفس الـ mask = <span class="en">129.113.191.0</span> ← <b>subnet مختلف</b> فلازم يعدي على router. الـ router بيدوّر على الـ network portion في الـ <span class="en">routing table</span>.</div>
+
+  <h3 class="sec">🎯 تدريب: الـ Mask والـ AND</h3>
+  <div data-deck="mask"></div>
+</section>
+
+<!-- =====================================================  6 · PRACTICE -->
+<section class="station" data-icon="🏋️" data-title="تدريب (Activities)">
+  <h2>تدريب على أسئلة السكاشن 🏋️</h2>
+  <p class="lead">اختار نوع السؤال، احسب بإيدك، واكتب الإجابات، وبعدها اضغط تحقق. نفس شكل أنشطة السلايد (Activity 1–4). <span class="muted">(⏱️ ١٥ دقيقة)</span></p>
+
+  <div class="card" id="prCard">
+    <div class="btnrow" id="prModes">
+      <button type="button" class="btn" data-m="A">Class A (/8)</button>
+      <button type="button" class="btn" data-m="B">Class B (/16)</button>
+      <button type="button" class="btn" data-m="C">Class C (/24)</button>
+      <button type="button" class="btn primary" data-m="S">Subnetted (/25–/30)</button>
+    </div>
+    <div class="qip" id="prQ">—</div>
+    <div class="pgrid" id="prG">
+      <label>Subnet mask<input class="in" data-k="mask" placeholder="255.255.255.0" spellcheck="false"></label>
+      <label>Network address<input class="in" data-k="net" spellcheck="false"></label>
+      <label>Broadcast address<input class="in" data-k="bc" spellcheck="false"></label>
+      <label>First usable<input class="in" data-k="first" spellcheck="false"></label>
+      <label>Last usable<input class="in" data-k="last" spellcheck="false"></label>
+      <label>Maximum hosts<input class="in" data-k="hosts" placeholder="254" spellcheck="false"></label>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="prCheck">✔ تحقق</button>
+      <button type="button" class="btn" id="prShow">👁 اعرض الحل</button>
+      <button type="button" class="btn ghost" id="prNew">🔁 سؤال جديد</button>
+    </div>
+    <div class="verdict" id="prV">اختار نوع السؤال من فوق.</div>
+  </div>
+
+  <h3 class="sec">✅ Activity 4 — Subnetting Challenge <small>(مش محلولة في السلايد، حليتها أنا)</small></h3>
+  <div class="tscroll"><table class="tbl" style="min-width:640px;direction:ltr">
+    <tr><th>IP / prefix</th><th>Mask</th><th>Network</th><th>Broadcast</th><th>First</th><th>Last</th><th>Hosts</th></tr>
+    <tr class="ph-plan"><td>192.168.1.70 /26</td><td>255.255.255.192</td><td>192.168.1.64</td><td>192.168.1.127</td><td>192.168.1.65</td><td>192.168.1.126</td><td>62</td></tr>
+    <tr class="ph-ana"><td>192.168.5.130 /25</td><td>255.255.255.128</td><td>192.168.5.128</td><td>192.168.5.255</td><td>192.168.5.129</td><td>192.168.5.254</td><td>126</td></tr>
+    <tr class="ph-des"><td>172.16.8.110 /27</td><td>255.255.255.224</td><td>172.16.8.96</td><td>172.16.8.127</td><td>172.16.8.97</td><td>172.16.8.126</td><td>30</td></tr>
+    <tr class="ph-imp"><td>10.25.4.200 /28</td><td>255.255.255.240</td><td>10.25.4.192</td><td>10.25.4.207</td><td>10.25.4.193</td><td>10.25.4.206</td><td>14</td></tr>
+  </table></div>
+  <div class="note">طريقة سريعة لـ <span class="en">192.168.1.70 /26</span>: الـ block = 256 − 192 = <b>64</b> ← الـ subnets بتبدأ 0 / 64 / 128 / 192 ← الـ 70 وقعت بين 64 و127 ← network = <span class="en">.64</span> وbroadcast = <span class="en">.127</span> (الـ block اللي بعده − 1).</div>
+  <p class="hint">أنشطة 1 لـ 3 (Class A / B / C) محلولة على السلايدات (صفحات 33–38 في Section 2) والحاسبة والتدريب بيغطوا نفس النوع.</p>
+</section>
+
+<!-- =====================================================  7 · SUBNETTING -->
+<section class="station" data-icon="✂️" data-title="Subnetting ⭐">
+  <h2><span class="en">Subnetting</span> ⭐ <span class="en plain" style="font-size:18px">Borrowed bits · Block size</span></h2>
+  <p class="lead">تقسيم شبكة كبيرة لشبكات فرعية أصغر. <span class="muted">(⏱️ ١٥ دقيقة)</span></p>
+
+  <div class="card">
+    <p style="margin-top:0"><b>الفكرة:</b> بنستلف (<span class="en">borrow</span>) bits من جزء الـ host ونحولها لـ network bits، فيطلع عندنا subnets أكتر وكل واحد hosts أقل. مثال السلايد: <span class="en">200.150.20.0 /26</span> (Class C، الـ default /24).</p>
+    <ol class="steps ph-des">
+      <li><b>الـ network والـ host:</b> /26 = <b>26</b> network bits + <b>6</b> host bits.</li>
+      <li><b>Borrowed bits</b> <span class="en">n = new prefix − default prefix = 26 − 24 = 2</span>.</li>
+      <li><b>عدد الـ subnets</b> = <span class="en">2<sup>n</sup> = 2² = 4</span>.</li>
+      <li><b>Hosts لكل subnet</b> = <span class="en">2<sup>h</sup> − 2 = 2⁶ − 2 = 62</span>.</li>
+      <li><b>Block size (Magic number)</b> = <span class="en">256 − 192 = 64</span> ← كل subnet بيبدأ بعد 64 عنوان في الـ octet الأخير: 0 / 64 / 128 / 192.</li>
+      <li><b>الـ mask</b> /26 = <span class="en">255.255.255.192</span>.</li>
+      <li><b>اكتب الـ subnets</b> (network ← first ← last ← broadcast).</li>
+    </ol>
+  </div>
+
+  <div class="tscroll"><table class="tbl" style="min-width:600px;direction:ltr">
+    <tr><th>#</th><th>Network</th><th>Mask</th><th>First</th><th>Last</th><th>Broadcast</th><th>Hosts</th></tr>
+    <tr class="ph-plan"><td>1</td><td>200.150.20.0</td><td>255.255.255.192</td><td>200.150.20.1</td><td>200.150.20.62</td><td>200.150.20.63</td><td>62</td></tr>
+    <tr class="ph-ana"><td>2</td><td>200.150.20.64</td><td>255.255.255.192</td><td>200.150.20.65</td><td>200.150.20.126</td><td>200.150.20.127</td><td>62</td></tr>
+    <tr class="ph-des"><td>3</td><td>200.150.20.128</td><td>255.255.255.192</td><td>200.150.20.129</td><td>200.150.20.190</td><td>200.150.20.191</td><td>62</td></tr>
+    <tr class="ph-imp"><td>4</td><td>200.150.20.192</td><td>255.255.255.192</td><td>200.150.20.193</td><td>200.150.20.254</td><td>200.150.20.255</td><td>62</td></tr>
+  </table></div>
+
+  <h3 class="sec">الأمثلة التلاتة في السلايد</h3>
+  <div class="tscroll"><table class="tbl" style="min-width:560px;direction:ltr">
+    <tr><th>Network</th><th>Borrowed bits</th><th>Subnets</th><th>Hosts / subnet</th><th>Block</th><th>Mask</th></tr>
+    <tr class="ph-plan"><td>200.150.20.0 /26</td><td>2</td><td>2² = 4</td><td>2⁶ − 2 = 62</td><td>64</td><td>255.255.255.192</td></tr>
+    <tr class="ph-ana"><td>192.168.10.0 /28</td><td>4</td><td>2⁴ = 16</td><td>2⁴ − 2 = 14</td><td>16</td><td>255.255.255.240</td></tr>
+    <tr class="ph-des"><td>205.11.143.0 /30</td><td>6</td><td>2⁶ = 64</td><td>2² − 2 = 2</td><td>4</td><td>255.255.255.252</td></tr>
+  </table></div>
+
+  <h3 class="sec">🧮 جدول الـ Subnets <small>(توضيح مني)</small></h3>
+  <div class="card calc" id="subCard">
+    <div class="sel">
+      <label>Network: <input class="in" id="subIp" value="200.150.20.0" spellcheck="false" aria-label="network"></label>
+      <label>الـ prefix الحالي: <select id="subBp"><option value="8">/8</option><option value="16">/16</option><option value="24" selected>/24</option></select></label>
+      <label>الـ prefix الجديد: <select id="subNp"></select></label>
+    </div>
+    <div class="res-row" id="subRes"></div>
+    <div class="tscroll" style="margin-top:12px"><table class="tbl ctbl sm" id="subTbl" style="min-width:560px"></table></div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Subnetting</h3>
+  <div data-deck="subnet"></div>
+</section>
+
+<!-- =====================================================  8 · WASTAGE / CIDR / VLSM -->
+<section class="station" data-icon="💸" data-title="Wastage · CIDR · VLSM">
+  <h2><span class="en">IP Wastage</span> و <span class="en">CIDR</span> و <span class="en">VLSM</span> 💸</h2>
+  <p class="lead">ليه بنقسّم الشبكة أصلاً؟ عشان منهدرش العناوين. (Section 4) <span class="muted">(⏱️ ١٥ دقيقة)</span></p>
+
+  <div class="grid g2">
+    <div class="card tint t-bad" style="margin:0"><h4>❌ <span class="en">Classful</span> → بيهدر عناوين</h4>
+      <p>قسمين، كل واحد فيه <b>5 أجهزة</b> (4 PC + interface للـ router). بنستخدم <b>شبكتين مختلفتين</b> بالـ default mask:</p>
+      <ul style="margin:0;padding-inline-start:20px">
+        <li><b>Dept A</b> = Class C <span class="en">192.168.1.0/24</span>: usable 254، مستخدم 5 ← <b>249 مهدرين</b>.</li>
+        <li><b>Dept B</b> = Class A <span class="en">10.0.0.0/8</span>: usable 16,777,214، مستخدم 5 ← <b>16,777,209 مهدرين</b>.</li>
+        <li><b>إجمالي الهدر = 16,777,458</b> من 16,777,468 usable.</li>
+      </ul></div>
+    <div class="card tint t-ok" style="margin:0"><h4>✅ <span class="en">Classless (CIDR)</span> → أوفر</h4>
+      <p>نفس الـ Class C <span class="en">192.168.1.0/24</span> بنقسّمه لـ subnetين بـ prefix أطول:</p>
+      <ul style="margin:0;padding-inline-start:20px">
+        <li>5 أجهزة ← <span class="en">2<sup>h</sup> − 2 ≥ 5</span> ← <b>h = 3</b> ← prefix = 32 − 3 = <b>/29</b> (mask <span class="en">255.255.255.248</span>، <span class="en">2³−2 = 6</span> usable).</li>
+        <li>Subnet 1: <span class="en">192.168.1.0/29</span> (.1 – .6، bc .7) · Subnet 2: <span class="en">192.168.1.8/29</span> (.9 – .14، bc .15). الـ step = 8.</li>
+        <li>usable إجمالي 12، مستخدم 10 ← <b>مهدر 2 بس</b>.</li>
+      </ul></div>
+  </div>
+
+  <div class="card">
+    <h4><span class="en">CIDR</span> = <span class="en">Classless Inter-Domain Routing</span></h4>
+    <p style="margin:0">طريقة مرنة لتخصيص الـ IP بتستبدل الـ classes الثابتة (A, B, C) بـ <b>variable-length prefixes</b> (/24, /27, /29...). فوايده: <b>Efficient IP allocation</b> (أقل هدر) · <b>Flexible subnetting</b> (subnets بأحجام مختلفة) · <b>Better network management</b> · <b>Route aggregation</b> (دمج routes في route ملخّص واحد فيقلّ حجم الـ routing table).</p>
+    <div class="tscroll"><table class="tbl" style="min-width:420px;margin-bottom:0;direction:ltr">
+      <tr><th>Prefix</th><th>/24</th><th>/25</th><th>/26</th><th>/27</th><th>/28</th><th>/29</th><th>/30</th></tr>
+      <tr><td>Mask (آخر octet)</td><td>.0</td><td>.128</td><td>.192</td><td>.224</td><td>.240</td><td>.248</td><td>.252</td></tr>
+      <tr><td>Block</td><td>256</td><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td></tr>
+      <tr><td>Usable hosts</td><td>254</td><td>126</td><td>62</td><td>30</td><td>14</td><td>6</td><td>2</td></tr>
+    </table></div>
+  </div>
+
+  <h3 class="sec">🧮 كام جهاز؟ ← أنهي prefix؟ <small>(توضيح مني)</small></h3>
+  <div class="card calc">
+    <div class="sel"><label>عدد الأجهزة المطلوبة: <input class="in" id="hpN" type="number" min="1" max="1000000" value="20" style="max-width:130px"></label></div>
+    <div class="res-row" id="hpRes"></div>
+    <p class="hint" style="margin:8px 0 0">القاعدة: أصغر <span class="en">h</span> بحيث <span class="en">2<sup>h</sup> − 2 ≥ عدد الأجهزة</span> (احسب الـ router interface كجهاز لو السؤال قال كده)، وبعدين <span class="en">prefix = 32 − h</span>.</p>
+  </div>
+
+  <h3 class="sec">🧱 الـ <span class="en">VLSM</span> <small>(نشاط Section 4)</small></h3>
+  <div class="card">
+    <p style="margin-top:0"><b class="en">VLSM</b> (Variable Length Subnet Mask) = تقسّم نفس الشبكة لـ subnets <b>بأحجام مختلفة</b> حسب احتياج كل قسم. الخطوات:</p>
+    <ol class="steps ph-imp">
+      <li>رتّب الأقسام <b>من الأكبر للأصغر</b> (عدد الأجهزة).</li>
+      <li>لكل قسم: أصغر prefix يكفيه (<span class="en">2<sup>h</sup> − 2 ≥ hosts</span>).</li>
+      <li>أول subnet يبدأ من أول الشبكة، وكل subnet بعده يبدأ <b>بعد آخر broadcast</b>.</li>
+      <li>وزّع العناوين: الـ router interface = <b>first usable</b> في كل subnet، والباقي للأجهزة، وتأكد إن مفيش overlap.</li>
+    </ol>
+    <p class="hint" style="margin:0">مثال السلايد: <span class="en">205.11.143.0/24</span> ← Sales 30 hosts ← <b>/27</b> <span class="en">(205.11.143.0)</span> · HR 20 hosts ← <b>/27</b> <span class="en">(205.11.143.32)</span> · IT 12 hosts ← <b>/28</b> <span class="en">(205.11.143.64)</span>. الـ router: <span class="en">G0/0 .1 (Sales) · G0/2 .33 (HR) · G0/1 .65 (IT)</span>.</p>
+  </div>
+  <div class="card calc" id="vlCard">
+    <div class="sel">
+      <label>Network: <input class="in" id="vlIp" value="205.11.143.0" spellcheck="false" aria-label="network"></label>
+      <label>Prefix: <select id="vlBp"><option value="16">/16</option><option value="24" selected>/24</option></select></label>
+    </div>
+    <div class="grid g2" id="vlRows" style="gap:8px;margin-bottom:8px">
+      <div class="sel" style="margin:0"><input class="in vlN" value="Sales" style="max-width:130px" aria-label="dept"><input class="in vlH" type="number" min="0" value="30" style="max-width:90px" aria-label="hosts"></div>
+      <div class="sel" style="margin:0"><input class="in vlN" value="HR" style="max-width:130px" aria-label="dept"><input class="in vlH" type="number" min="0" value="20" style="max-width:90px" aria-label="hosts"></div>
+      <div class="sel" style="margin:0"><input class="in vlN" value="IT" style="max-width:130px" aria-label="dept"><input class="in vlH" type="number" min="0" value="12" style="max-width:90px" aria-label="hosts"></div>
+      <div class="sel" style="margin:0"><input class="in vlN" value="" placeholder="قسم 4 (اختياري)" style="max-width:130px" aria-label="dept"><input class="in vlH" type="number" min="0" value="" style="max-width:90px" aria-label="hosts"></div>
+    </div>
+    <div class="tscroll"><table class="tbl ctbl sm" id="vlTbl" style="min-width:600px"></table></div>
+    <div class="verdict" id="vlV" hidden></div>
+  </div>
+
+  <div class="note">🧠 <b>/31 و /32</b> (Research task في السلايد، والإجابة من فهمي العام مش من المصادر): <span class="en">/31</span> = عنوانين بس، بتتستخدم في وصلات <span class="en">point-to-point</span> بين router وrouter (بالقانون العادي <span class="en">2¹ − 2 = 0</span>، لكن الاستخدام العملي بيسمح بالعنوانين). <span class="en">/32</span> = عنوان واحد بس لجهاز واحد (زي loopback أو host route).</div>
+
+  <h3 class="sec">🎯 تدريب: Wastage و CIDR و VLSM</h3>
+  <div data-deck="wast"></div>
+</section>
+
+<!-- =====================================================  9 · PACKET TRACER -->
+<section class="station" data-icon="🛠️" data-title="Section 3: Packet Tracer">
+  <h2>Section 3: <span class="en">Packet Tracer</span> 🛠️</h2>
+  <p class="lead">عملي، بس ممكن يتسأل منه نظري (الكابلات، الـ gateway، الأوامر). <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <div class="grid g3">
+    <div class="card tint ph-plan" style="margin:0"><h4><span class="en">Straight-through</span></h4><p style="margin:0">بيوصّل <b>أنواع مختلفة</b> من الأجهزة (PC ↔ Switch، Router ↔ Switch). نفس الـ standard على الطرفين (<span class="en">T568B–T568B</span>).</p></div>
+    <div class="card tint ph-ana" style="margin:0"><h4><span class="en">Crossover</span></h4><p style="margin:0">بيوصّل <b>نفس النوع</b> (PC ↔ PC، Switch ↔ Switch، Router ↔ Router). <span class="en">T568A</span> على طرف و<span class="en">T568B</span> على التاني، فالـ transmit والـ receive بيتبدلوا (pins 1↔3، 2↔6).</p></div>
+    <div class="card tint ph-des" style="margin:0"><h4><span class="en">Console</span></h4><p style="margin:0">لتهيئة الجهاز <b>بس</b> (مش للاتصال العادي): من الـ serial port (RS-232) في الـ PC لـ <span class="en">console port</span> في الـ router/switch. في Packet Tracer اختار كابل «Console».</p></div>
+  </div>
+  <p class="hint">الـ UTP فيه 8 أسلاك في 4 أزواج ملفوفة، والـ connector هو <span class="en">RJ-45</span>. ألوان <span class="en">T568B</span> (1→8): أبيض/برتقالي، برتقالي، أبيض/أخضر، أزرق، أبيض/أزرق، أخضر، أبيض/بني، بني. و<span class="en">T568A</span> بتبدل الأخضر والبرتقالي.</p>
+
+  <h3 class="sec">السيناريوهات التلاتة</h3>
+  <table class="tbl">
+    <tr><th>السيناريو</th><th>الإعداد</th><th>الـ Gateway؟</th></tr>
+    <tr class="ph-plan"><td>1</td><td><span class="en">192.168.1.0/24</span>: 3 PCs على switch واحد (<span class="en">192.168.1.10 / .11 / .12</span>، mask <span class="en">255.255.255.0</span>)</td><td><b>مش محتاج</b>: كلهم نفس الشبكة ومتوصلين بـ switch.</td></tr>
+    <tr class="ph-ana"><td>2</td><td>نفس الشبكة، switchين متوصلين ببعض (3 PCs على كل switch)</td><td><b>مش محتاج</b>: لسه نفس الشبكة.</td></tr>
+    <tr class="ph-des"><td>3</td><td>شبكتين: <span class="en">192.168.1.0/24</span> و<span class="en">192.168.2.0/24</span> بينهم <b>Router (Cisco 2911)</b>. <span class="en">Gi0/0 = 192.168.1.1</span> و<span class="en">Gi0/1 = 192.168.2.1</span></td><td><b>محتاج:</b> الـ gateway لكل PC = الـ router interface اللي في شبكته.</td></tr>
+  </table>
+
+  <h3 class="sec">🖥️ أوامر الـ Router</h3>
+  <div class="mono">Router&gt; enable
+Router# configure terminal
+Router(config)# interface gigabitEthernet 0/0
+Router(config-if)# ip address 192.168.1.1 255.255.255.0
+Router(config-if)# no shutdown
+Router(config-if)# exit
+Router(config)# interface gigabitEthernet 0/1
+Router(config-if)# ip address 192.168.2.1 255.255.255.0
+Router(config-if)# no shutdown
+Router(config-if)# exit
+Router(config)# end</div>
+  <table class="tbl">
+    <tr><th>الأمر</th><th>بيعمل إيه</th></tr>
+    <tr><td class="en">ip address IP MASK</td><td>بيحط IP والـ mask على الـ interface</td></tr>
+    <tr><td class="en">no shutdown</td><td>بيشغّل الـ interface (من غيره يفضل down)</td></tr>
+    <tr><td class="en">show ip interface brief</td><td>بيعرض حالة الـ interfaces والـ IPs (لازم up / up)</td></tr>
+    <tr><td class="en">show ip route</td><td>بيعرض الـ routing table (الشبكات المتوصلة مباشرة بتبقى <span class="en">C</span>)</td></tr>
+    <tr><td class="en">ping IP</td><td>من الـ PC (Command Prompt) لاختبار الاتصال</td></tr>
+  </table>
+
+  <h3 class="sec">✂️ نشاط الـ Subnetting (Class B و Class A)</h3>
+  <p>قسم شبكة لـ <b>2 subnets متساويين</b> (Dept A و Dept B على router) ← <b>بنستلف bit واحد</b> فالـ prefix يزيد 1.</p>
+  <div class="tscroll"><table class="tbl" style="min-width:600px;direction:ltr">
+    <tr><th>الشبكة</th><th>New prefix / mask</th><th>Hosts</th><th>Subnet 1</th><th>Subnet 2</th></tr>
+    <tr class="ph-plan"><td>172.16.0.0 /16 (Class B)</td><td>/17 · 255.255.128.0</td><td>2¹⁵ − 2 = 32,766</td><td>172.16.0.0/17<br>172.16.0.1 – 172.16.127.254<br>bc 172.16.127.255</td><td>172.16.128.0/17<br>172.16.128.1 – 172.16.255.254<br>bc 172.16.255.255</td></tr>
+    <tr class="ph-ana"><td>10.0.0.0 /8 (Class A)</td><td>/9 · 255.128.0.0</td><td>2²³ − 2 = 8,388,606</td><td>10.0.0.0/9<br>10.0.0.1 – 10.127.255.254<br>bc 10.127.255.255</td><td>10.128.0.0/9<br>10.128.0.1 – 10.255.255.254<br>bc 10.255.255.255</td></tr>
+  </table></div>
+
+  <h3 class="sec">🎯 تدريب: Packet Tracer</h3>
+  <div data-deck="pt"></div>
+</section>
+
+<!-- =====================================================  10 · TRAPS -->
+<section class="station" data-icon="⚠️" data-title="فخاخ الامتحان">
+  <h2>فخاخ الامتحان ⚠️</h2>
+  <p class="lead">الجمل دي هي اللي بتتعمل منها <span class="en">True/False</span> (وفي الميدتيرم السابقة كان المطلوب «صحّح الغلط»). قرر: صح ولا غلط؟ <span class="muted">(⏱️ ٦ دقايق)</span></p>
+  <div data-deck="traps"></div>
+</section>
+
+<!-- =====================================================  11 · FLASHCARDS -->
+<section class="station" data-icon="🧠" data-title="Flashcards">
+  <h2>Flashcards 🧠</h2>
+  <p class="lead">فكّر في الإجابة الأول، وبعدين اقلب الكارت. علّم اللي عرفته ✅ واللي لسه 🔁 — وراجع الأخير بس. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+  <div data-flash="main"></div>
+  <p class="hint" style="text-align:center;margin-top:10px">⌨️ مسطرة (Space) تقلب · الأسهم تنقل بين الكروت</p>
+</section>
+
+<!-- =====================================================  12 · QUIZ -->
+<section class="station" data-icon="📝" data-title="الكويز النهائي">
+  <h2>الكويز النهائي 📝</h2>
+  <p class="lead">10 أسئلة <span class="en">MCQ</span> بتصحيح فوري (بأرقام مختلفة عن السلايدات)، وبعدها 3 أسئلة <span class="en">Essay</span>. <span class="muted">(⏱️ ١٥ دقيقة)</span></p>
+
+  <h3 class="sec">① MCQ</h3>
+  <div data-deck="mcq"></div>
+
+  <h3 class="sec">② Essay</h3>
+  <div class="card essay" data-essay="e1">
+    <h3>سؤال 1</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">The network 192.168.10.0/24 must be divided into 4 equal subnets. Find the new prefix, the subnet mask, the block size, the number of usable hosts per subnet, and list the four subnets (network, first and last usable address, broadcast).</p>
+    <textarea placeholder="اكتب إجابتك هنا (بتتحفظ في المتصفح بس)…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e2">
+    <h3>سؤال 2</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Using VLSM, design the addressing of the network 192.168.50.0/24 for three departments: A needs 50 hosts, B needs 20 hosts and C needs 10 hosts. Give the prefix, network address, usable range and broadcast of each subnet.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e3">
+    <h3>سؤال 3</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Explain IP address wastage when classful addressing is used, and show how CIDR / subnetting reduces it, using two departments of 5 devices each as an example.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+</section>
+
+<!-- =====================================================  13 · SUMMARY -->
+<section class="station summary" data-icon="⚡" data-title="الملخص + القوانين">
+  <h2>الملخص والقوانين ⚡ <span class="en plain" style="font-size:18px">Sections</span></h2>
+  <p class="lead noprint">اللي تراجعه الليلة اللي قبل الامتحان. <button type="button" class="btn" onclick="window.print()">🖨️ اطبع / احفظ PDF</button></p>
+
+  <h3 class="sec">🧮 القوانين</h3>
+  <table class="tbl">
+    <tr><th>المطلوب</th><th>القانون</th></tr>
+    <tr class="ph-plan"><td>Host bits</td><td class="en">h = 32 − prefix</td></tr>
+    <tr class="ph-plan"><td>Usable hosts</td><td class="en">2^h − 2 &nbsp;(بتشيل network + broadcast)</td></tr>
+    <tr class="ph-ana"><td>Network address</td><td>كل الـ host bits = <b>0</b> (أو IP <span class="en">AND</span> mask)</td></tr>
+    <tr class="ph-ana"><td>Broadcast address</td><td>كل الـ host bits = <b>1</b></td></tr>
+    <tr class="ph-ana"><td>First / Last usable</td><td class="en">network + 1 / broadcast − 1</td></tr>
+    <tr class="ph-des"><td>Borrowed bits</td><td class="en">n = new prefix − default prefix (A:8, B:16, C:24)</td></tr>
+    <tr class="ph-des"><td>عدد الـ subnets</td><td class="en">2^n</td></tr>
+    <tr class="ph-des"><td>Block size</td><td class="en">256 − (mask octet) &nbsp;· subnets بتبدأ من مضاعفاته</td></tr>
+    <tr class="ph-imp"><td>Prefix لـ N أجهزة</td><td class="en">smallest h with 2^h − 2 ≥ N ⇒ prefix = 32 − h</td></tr>
+    <tr class="ph-imp"><td>VLSM</td><td>الأكبر الأول، كل subnet بعد آخر broadcast</td></tr>
+    <tr class="t-warn"><td>IP wastage</td><td>usable − المستخدم فعلاً</td></tr>
+  </table>
+
+  <h3 class="sec">📊 الـ Classes والـ prefixes</h3>
+  <div class="tscroll"><table class="tbl" style="min-width:520px;direction:rtl">
+    <tr><th>Class</th><th>أول octet</th><th>أول bits</th><th>Mask</th><th>Hosts</th></tr>
+    <tr class="ph-plan"><td class="en">A</td><td class="en">1–126</td><td class="en">0</td><td class="en">/8 · 255.0.0.0</td><td class="en">16,777,214</td></tr>
+    <tr class="ph-ana"><td class="en">B</td><td class="en">128–191</td><td class="en">10</td><td class="en">/16 · 255.255.0.0</td><td class="en">65,534</td></tr>
+    <tr class="ph-des"><td class="en">C</td><td class="en">192–223</td><td class="en">110</td><td class="en">/24 · 255.255.255.0</td><td class="en">254</td></tr>
+    <tr class="ph-imp"><td class="en">D / E</td><td class="en">224–239 / 240–255</td><td class="en">1110 / 1111</td><td>—</td><td>Multicast / Experimental</td></tr>
+  </table></div>
+  <div class="tscroll"><table class="tbl" style="min-width:420px;direction:ltr">
+    <tr><th>Prefix</th><th>/25</th><th>/26</th><th>/27</th><th>/28</th><th>/29</th><th>/30</th></tr>
+    <tr><td>Mask</td><td>.128</td><td>.192</td><td>.224</td><td>.240</td><td>.248</td><td>.252</td></tr>
+    <tr><td>Block</td><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td></tr>
+    <tr><td>Hosts</td><td>126</td><td>62</td><td>30</td><td>14</td><td>6</td><td>2</td></tr>
+  </table></div>
+  <div class="note">0 و127 محجوزين في أول octet · IPv4 = 32 bit (4 octets) · IPv6 = 128 bit · الـ private مثال: <span class="en">192.168.1.1</span> · الـ router بيستخدم الـ <b>network portion</b> في الـ routing table.</div>
+
+  <h3 class="sec">🧩 OSI و Data units</h3>
+  <table class="tbl">
+    <tr><th>الطبقة</th><th>Data unit</th><th>مفتاح</th></tr>
+    <tr><td class="en">7 Application</td><td class="en">Data</td><td class="en">HTTP, FTP, SMTP, DNS, DHCP</td></tr>
+    <tr><td class="en">6 Presentation</td><td class="en">Data</td><td>ترجمة / تشفير / ضغط</td></tr>
+    <tr><td class="en">5 Session</td><td class="en">Data</td><td>فتح / إدارة / إنهاء session</td></tr>
+    <tr><td class="en">4 Transport</td><td class="en">Segment</td><td class="en">TCP (reliable, 20+ B) · UDP (fast, 8 B) · ports</td></tr>
+    <tr><td class="en">3 Network</td><td class="en">Packet</td><td>IP + routing</td></tr>
+    <tr><td class="en">2 Data Link</td><td class="en">Frame</td><td>MAC + FCS (CRC) + CSMA/CD</td></tr>
+    <tr><td class="en">1 Physical</td><td class="en">Bits</td><td>cables / signals / RJ-45</td></tr>
+  </table>
+
+  <h3 class="sec">📘 Section 1 باختصار</h3>
+  <table class="tbl">
+    <tr><th>الموضوع</th><th>الخلاصة</th></tr>
+    <tr><td>Router ضد Switch</td><td><b>Router</b> بين الشبكات (IP) · <b>Switch</b> جوه الـ LAN (MAC) · <b>Hub</b> بيبعت للكل · <b>Repeater</b> بيجدّد الإشارة</td></tr>
+    <tr><td>الأنواع</td><td class="en">PAN (متر) · LAN · MAN (مدينة) · WAN · Internet</td></tr>
+    <tr><td>الاتصال</td><td><span class="en">Point-to-point</span> = جهازين بس · <span class="en">Multipoint</span> = أكتر من جهاز</td></tr>
+    <tr><td>الكابلات</td><td>UTP (رخيص، LAN) · STP (ضوضاء) · Coaxial (كابل TV) · Fiber (مسافات طويلة)</td></tr>
+    <tr><td>Topologies</td><td>Bus (backbone يقع = ينقسم) · Star (center يقع = كله يقع) · Ring (one-way يقف) · Mesh (مسارات بديلة)</td></tr>
+  </table>
+
+  <h3 class="sec">⚠️ الفخاخ</h3>
+  <div class="note bad">
+    ❌ usable hosts = 2<sup>h</sup> (هي 2<sup>h</sup> − 2) &nbsp;·&nbsp; ❌ network address = host bits كلها 1 (دي الـ broadcast) &nbsp;·&nbsp; ❌ Class A تبدأ من 0 أو تشمل 127 (من 1 لـ 126) &nbsp;·&nbsp; ❌ /26 block = 32 (هو 64) &nbsp;·&nbsp; ❌ /27 hosts = 32 (هي 30) &nbsp;·&nbsp; ❌ VLSM تبدأ بالأصغر (بالأكبر) &nbsp;·&nbsp; ❌ CIDR = default masks ثابتة (variable length) &nbsp;·&nbsp; ❌ Switch بيوصّل شبكات مختلفة (ده Router) &nbsp;·&nbsp; ❌ UDP = 20 byte header وreliable (ده TCP؛ UDP = 8 bytes) &nbsp;·&nbsp; ❌ gateway لازم في نفس الشبكة (مش لازم، بس مع router بين شبكتين)
+  </div>
+</section>
+
+</main>
+</div>
+
+<p class="hint noprint" style="max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 14px">📚 مصدر الصفحة دي بالتحديد: سلايدات السكاشن (م. تقى مجدي وم. عبدالله حلمي) + فصل ٥ من الكتاب، وهي <b>إضافة منفصلة</b> عن محاضرات الدكتور. الجزء ده مش بيغيّر في صفحات المحاضرات.</p>
+
+<script>
+window.DATA = {
+  decks: {
+    /* ---------- Section 1 quiz (20) ---------- */
+    s1quiz: {
+      cols: 1, shuffleOpts: true,
+      cards: [
+        { q: '1. What is a computer network?', opts: ['A group of interconnected devices that communicate and share data or resources', 'A single computer', 'A programming language', 'An operating system'], a: 0, why: 'الـ network = مجموعة أجهزة متوصلة بتتواصل وبتشارك داتا وموارد.' },
+        { q: '2. Which of the following is an example of resource sharing?', opts: ['Sharing a printer', 'Changing a password', 'Installing an application', 'Writing code'], a: 0, why: 'مشاركة الـ printer = <b>resource sharing</b>.' },
+        { q: '3. Which component sends the data?', opts: ['Sender', 'Receiver', 'Protocol', 'Medium'], a: 0, why: 'المكونات: <b>Sender</b> (يبعت) ← Medium ← Receiver، والـ Protocol = القواعد.' },
+        { q: '4. What is the transmission medium?', opts: ['The path through which data travels', 'The device receiving data', 'The rules of communication', 'The server'], a: 0, why: 'الـ medium = <b>المسار اللي الداتا بتعدي فيه</b>.' },
+        { q: '5. Which type of network is commonly used inside a computer lab?', opts: ['LAN', 'MAN', 'WAN', 'Internet'], a: 0, why: 'الـ lab = منطقة صغيرة = <b>LAN</b>.' },
+        { q: '6. Which network covers a city-scale area?', opts: ['MAN', 'LAN', 'WAN', 'Local network'], a: 0, why: '<b>MAN</b> = على مستوى مدينة.' },
+        { q: '7. Which network can connect networks across different countries?', opts: ['WAN', 'LAN', 'MAN', 'Local network'], a: 0, why: '<b>WAN</b> = منطقة جغرافية كبيرة (مدن / دول).' },
+        { q: '8. Which device connects devices within a LAN?', opts: ['Switch', 'Router', 'Modem', 'Server'], a: 0, why: '<b>Switch</b> = WITHIN a local network.' },
+        { q: '9. Which device connects different networks?', opts: ['Router', 'Switch', 'Access Point', 'Printer'], a: 0, why: '<b>Router</b> = BETWEEN networks.' },
+        { q: '10. A switch mainly uses which type of address to forward Ethernet frames?', opts: ['MAC address', 'IP address', 'Email address', 'URL'], a: 0, why: 'الـ switch بيستخدم <b>MAC</b>، والـ router بيستخدم <b>IP</b>.' },
+        { q: '11. A student connects a laptop to Wi-Fi and opens a university website. Which description best represents the roles?', opts: ['Laptop/browser = client; university web server = server', 'Laptop = server; website = client', 'Router = client; laptop = server', 'Switch = server; browser = router'], a: 0, why: 'الـ <b>client</b> بيطلب (laptop/browser)، والـ <b>server</b> بيرد (web server).' },
+        { q: '12. A lab has 30 computers that need to communicate with one another. Which device is primarily used to connect them inside the LAN?', opts: ['Switch', 'Router', 'Modem', 'Web server'], a: 0, why: 'جوه الـ LAN ← <b>Switch</b>.' },
+        { q: '13. The same lab now needs to communicate with networks outside the lab. Which networking function is needed to connect the LAN to another network?', opts: ['Routing', 'Printing', 'File naming', 'Screen sharing'], a: 0, why: 'الاتصال ببرّه الـ LAN = <b>Routing</b> (router).' },
+        { q: '14. Two devices are on the same Wi-Fi network and can talk to each other, but the website they need cannot be reached. Which part of the path would you investigate first?', opts: ['The connection from the local network toward the router/ISP', 'The keyboard', 'The monitor', 'The file name'], a: 0, why: 'الأجهزة بتتكلم محلياً، فالمشكلة في <b>الطريق من الشبكة المحلية للـ router/ISP</b>.' },
+        { q: '15. Group A says a university computer lab is a WAN because the university has an Internet connection. Group B says the lab itself is a LAN. Which statement is more consistent?', opts: ['Group B, because the lab is a small local area network', 'Group A, because every network with Internet is a WAN', 'Both must be wrong', 'A lab can never be classified as a network'], a: 0, why: 'التصنيف بيعتمد على <b>حجم المنطقة</b>: الـ lab صغير = LAN.' },
+        { q: '16. A student sends a file from Laptop A to Laptop B over Wi-Fi. Identify the sender, transmission medium and receiver.', opts: ['A = sender, Wi-Fi = medium, B = receiver', 'B = sender, Wi-Fi = receiver, A = medium', 'Wi-Fi = sender, A = receiver, B = medium', 'A = protocol, B = medium, Wi-Fi = receiver'], a: 0, why: 'المرسل A، الوسط Wi-Fi، المستقبل B.' },
+        { q: '17. A browser asks a website for a page, and the website sends the requested page back. Which sequence describes the interaction?', opts: ['Request → Response', 'Response → Request', 'Server → Protocol → Request only', 'Switch → Client → Printer'], a: 0, why: 'الـ client يبعت <b>Request</b> والـ server يرد <b>Response</b>.' },
+        { q: '18. A company has offices in several cities and wants to connect them. Which network category best matches the geographical scope?', opts: ['WAN', 'LAN', 'MAN', 'Single-device network'], a: 0, why: 'مدن متعددة = منطقة جغرافية كبيرة = <b>WAN</b>.' },
+        { q: '19. A group designs a lab network using only a switch. The computers can communicate inside the LAN, but the design has no device/function connecting the LAN to other networks. What important requirement is missing for Internet access?', opts: ['A routing function toward another network', 'Another printer', 'A second keyboard', 'A new protocol for typing'], a: 0, why: 'الـ switch وحده مش كفاية للإنترنت، لازم <b>routing function / router</b>.' },
+        { q: '20. A student says: “The router and switch are the same because both connect devices.” What is the key distinction?', opts: ['A router connects separate networks, while a switch connects devices within a LAN', 'A router is only for printers, while a switch is only for phones', 'A switch connects countries, while a router connects one computer', 'There is no difference'], a: 0, why: 'الفرق: <b>Router بين شبكات</b>، <b>Switch جوه LAN</b>.' }
+      ]
+    },
+
+    /* ---------- wired/wireless + best cable ---------- */
+    s1media: {
+      cols: 2, shuffleOpts: true,
+      cards: [
+        { q: 'Twisted pair cable is…', opts: ['Wired', 'Wireless'], a: 0, why: 'كابل = <b>Wired</b>.' },
+        { q: 'Wi-Fi is…', opts: ['Wireless', 'Wired'], a: 0, why: '<b>Wireless</b>.' },
+        { q: 'Fiber optic cable is…', opts: ['Wired', 'Wireless'], a: 0, why: '<b>Wired</b> (guided).' },
+        { q: 'Bluetooth is…', opts: ['Wireless', 'Wired'], a: 0, why: '<b>Wireless</b>.' },
+        { q: 'Coaxial cable is…', opts: ['Wired', 'Wireless'], a: 0, why: '<b>Wired</b>.' },
+        { q: 'Satellite is…', opts: ['Wireless', 'Wired'], a: 0, why: '<b>Wireless</b>.' },
+        { q: 'A cellular tower (4G / 5G) is…', opts: ['Wireless', 'Wired'], a: 0, why: '<b>Wireless</b> (radio).' },
+        { q: 'An undersea internet cable is…', opts: ['Wired', 'Wireless'], a: 0, why: '<b>Wired</b> (fiber).' },
+        { q: 'Connect 4 computers in a small office. The distance is short and the budget is low. Best cable?', opts: ['UTP', 'STP', 'Coaxial', 'Fiber optic'], a: 0, why: '<b>UTP</b>: رخيص ومناسب للمسافات القصيرة.' },
+        { q: 'Run cables near heavy machines that create a lot of electrical noise. Best cable?', opts: ['STP', 'UTP', 'Coaxial', 'Fiber optic'], a: 0, why: '<b>STP</b>: الـ shield بيصدّ الضوضاء الكهربية.' },
+        { q: 'Bring cable TV and internet to homes in a neighborhood. Best cable?', opts: ['Coaxial', 'UTP', 'STP', 'Fiber optic'], a: 0, why: '<b>Coaxial</b>: standard لتلفزيون الكابل والإنترنت.' },
+        { q: 'Link two cities with a very fast connection over many kilometers. Best cable?', opts: ['Fiber optic', 'UTP', 'STP', 'Coaxial'], a: 0, why: '<b>Fiber</b>: سرعة عالية جداً ومسافات بالكيلومترات.' },
+        { q: 'Which connector is used with UTP?', opts: ['RJ-45', 'SC / LC', 'F-type / BNC', 'USB-C'], a: 0, why: 'الـ UTP = <b>RJ-45</b>. (SC/LC للـ fiber، F-type/BNC للـ coax.)' },
+        { q: 'Which cable type is immune to electrical interference?', opts: ['Fiber optic', 'UTP', 'Coaxial', 'STP'], a: 0, why: 'الـ fiber بينقل <b>ضوء</b>، فمحصّن ضد الضوضاء الكهربية.' }
+      ]
+    },
+
+    /* ---------- topologies ---------- */
+    s1topo: {
+      cols: 2, shuffleOpts: true,
+      cards: [
+        { q: 'All devices share a single backbone cable.', opts: ['Bus', 'Star', 'Ring', 'Mesh'], a: 0, why: '<b>Bus</b>.' },
+        { q: 'All devices connect to one central switch.', opts: ['Star', 'Bus', 'Ring', 'Tree'], a: 0, why: '<b>Star</b>.' },
+        { q: 'Each device connects to exactly two neighbors, forming a closed loop.', opts: ['Ring', 'Mesh', 'Bus', 'Hybrid'], a: 0, why: '<b>Ring</b>.' },
+        { q: 'Every device connects to every other device: very reliable but expensive.', opts: ['Full mesh', 'Star', 'Ring', 'Tree'], a: 0, why: '<b>Full mesh</b>.' },
+        { q: 'A hierarchy of switches, like the branches of a tree.', opts: ['Tree', 'Bus', 'Ring', 'Star'], a: 0, why: '<b>Tree</b> (بيجمع star + bus).' },
+        { q: 'A combination of two or more topologies.', opts: ['Hybrid', 'Star', 'Bus', 'Ring'], a: 0, why: '<b>Hybrid</b>.' },
+        { q: 'In a bus topology the backbone cable breaks in the middle. Can the PCs on the left still talk to the PCs on the right?', opts: ['No: the network splits in two', 'Yes: through the switch', 'Yes: through another path', 'Only broadcast works'], a: 0, why: 'الـ backbone اتقطع ← <b>الشبكة بتنقسم نصين</b>.' },
+        { q: 'In a star topology the central switch fails. Can any PC still communicate with another PC?', opts: ['No: all PCs lose the connection', 'Yes: they use the bus', 'Yes: through a mesh', 'Only the nearest PC'], a: 0, why: 'كل الـ traffic بيعدي من الـ switch، فلو وقع <b>الكل يفقد الاتصال</b>.' },
+        { q: 'One cable between two PCs breaks in a simple one-way ring. Does the ring keep working?', opts: ['No: a one-way ring stops (a dual ring can reroute)', 'Yes: it ignores the failure', 'Yes: it becomes a bus', 'Only the first PC stops'], a: 0, why: 'الـ one-way ring بيقف، والـ <b>dual ring</b> يقدر يعيد التوجيه.' },
+        { q: 'One link between two PCs fails in a mesh topology. Can those two PCs still communicate?', opts: ['Yes: data reroutes through other paths', 'No: communication stops', 'Only after a reboot', 'Only with a hub'], a: 0, why: 'الـ mesh فيه <b>مسارات متعددة</b>، فالداتا بتلف من طريق تاني.' }
+      ]
+    },
+
+    /* ---------- OSI activity ---------- */
+    osiact: {
+      cols: 2,
+      opts: ['1. Physical', '2. Data Link', '3. Network', '4. Transport', '5. Session', '6. Presentation', '7. Application'],
+      cards: [
+        { q: 'A user opens a web browser to visit www.google.com.', a: 6, why: 'متصفح / خدمة ويب ← <b>Application</b>.' },
+        { q: 'A user sends an email using an email application.', a: 6, why: 'تطبيق إيميل ← <b>Application</b>.' },
+        { q: 'A user enters a URL in a web browser to access a website.', a: 6, why: '<b>Application</b>.' },
+        { q: 'A domain name (www.example.com) is translated into an IP address using DNS.', a: 6, why: 'الـ DNS بروتوكول <b>Application</b> (ليه في جدول الطبقة 7).' },
+        { q: 'A file is compressed before being sent over the network.', a: 5, why: 'ضغط / تشفير / تنسيق ← <b>Presentation</b>.' },
+        { q: 'Data is encrypted before being sent over the network.', a: 5, why: 'التشفير ← <b>Presentation</b>.' },
+        { q: 'A session is established between two applications to keep the communication active.', a: 4, why: 'فتح وإدارة session ← <b>Session</b>.' },
+        { q: 'A file is being transferred between two computers using TCP.', a: 3, why: 'TCP ← <b>Transport</b>.' },
+        { q: 'TCP ensures reliable delivery of data between two devices.', a: 3, why: '<b>Transport</b>.' },
+        { q: 'A firewall blocks TCP port 443, preventing a web application from establishing a connection.', a: 3, why: 'الـ TCP و<b>port numbers</b> ← Transport.' },
+        { q: 'A router forwards a packet from a local network to a different network using IP addresses.', a: 2, why: 'IP + routing ← <b>Network</b>.' },
+        { q: 'A switch uses MAC addresses to forward frames to the correct device on the local network.', a: 1, why: 'MAC + frames ← <b>Data Link</b>.' },
+        { q: 'A file is being transferred between two computers on the same local network.', a: 1, why: 'إجابة السلايد: <b>Data Link</b> (نفس الـ local network). ⚠️ لو حد قال Application فده منطقي برضه، بس اتبع السلايد.' },
+        { q: 'Data is transmitted as electrical signals through a copper cable.', a: 0, why: 'إشارات كهربية على كابل ← <b>Physical</b>.' },
+        { q: 'A mobile device connects to a Wi-Fi access point using wireless signals.', a: 0, why: 'إشارات لاسلكية ← <b>Physical</b>.' },
+        { q: 'The data unit (PDU) called a <b>Segment</b> belongs to which layer?', a: 3, why: 'Segment ← <b>Transport</b>.' },
+        { q: 'The data unit called a <b>Packet</b> belongs to which layer?', a: 2, why: 'Packet ← <b>Network</b>.' },
+        { q: 'The data unit called a <b>Frame</b> belongs to which layer?', a: 1, why: 'Frame ← <b>Data Link</b>.' },
+        { q: 'The data unit called <b>Bits</b> belongs to which layer?', a: 0, why: 'Bits ← <b>Physical</b>.' },
+        { q: 'Protocols: TLS/SSL, JPEG, MPEG, ASCII, UTF-8', a: 5, why: 'دي أمثلة <b>Presentation</b> في سلايد المعيد.' },
+        { q: 'Protocols: Ethernet (802.3), Wi-Fi (802.11), PPP, HDLC', a: 1, why: 'أمثلة <b>Data Link</b>.' },
+        { q: 'Protocols: IP (IPv4/IPv6), ICMP, IGMP, OSPF, RIP, IPsec', a: 2, why: 'أمثلة <b>Network</b>.' }
+      ]
+    },
+
+    /* ---------- classes ---------- */
+    cls: {
+      cols: 3,
+      opts: ['Class A', 'Class B', 'Class C', 'Class D', 'Class E'],
+      cards: [
+        { q: '10.25.1.10', a: 0, why: 'أول octet = 10 (بين 1 و126) ← <b>A</b>.' },
+        { q: '172.16.5.20', a: 1, why: '172 (بين 128 و191) ← <b>B</b>.' },
+        { q: '192.168.1.25', a: 2, why: '192 (بين 192 و223) ← <b>C</b>.' },
+        { q: '230.1.1.1', a: 3, why: '230 (بين 224 و239) ← <b>D</b> (Multicast).' },
+        { q: '245.10.10.10', a: 4, why: '245 (240 – 255) ← <b>E</b> (Experimental).' },
+        { q: '100.16.3.77', a: 0, why: '100 ≤ 126 ← <b>A</b>.' },
+        { q: '134.30.9.200', a: 1, why: '134 ← <b>B</b>.' },
+        { q: '203.0.113.45', a: 2, why: '203 ← <b>C</b>.' },
+        { q: '126.0.0.1', a: 0, why: '126 هو آخر رقم في Class A (127 محجوز).' },
+        { q: '191.255.0.1', a: 1, why: '191 هو آخر رقم في Class B.' },
+        { q: '223.1.1.1', a: 2, why: '223 هو آخر رقم في Class C.' },
+        { q: 'أول octet بيبدأ بـ bit = <b>0</b>', a: 0, why: '<b>A</b>: أول bit صفر.' },
+        { q: 'أول bits = <b>10</b> (من 10000000 لـ 10111111)', a: 1, why: '<b>B</b>.' },
+        { q: 'أول bits = <b>110</b>', a: 2, why: '<b>C</b>.' },
+        { q: 'Default mask <b>255.255.0.0</b>', a: 1, why: '/16 ← <b>B</b>.' },
+        { q: 'Default mask <b>255.255.255.0</b>', a: 2, why: '/24 ← <b>C</b>.' },
+        { q: 'أكبر عدد <b>hosts</b> لكل شبكة (16,777,214)', a: 0, why: '<b>A</b>: 24 host bits.' },
+        { q: 'عدد الشبكات = 2¹⁴ = 16,384', a: 1, why: '<b>B</b>.' },
+        { q: 'عدد الشبكات = 2²¹ = 2,097,152 وحوالي 254 host لكل شبكة', a: 2, why: '<b>C</b>.' },
+        { q: 'بتتستخدم للـ <b>Multicast</b>', a: 3, why: '<b>D</b>.' }
+      ]
+    },
+
+    /* ---------- mask + AND ---------- */
+    mask: {
+      cols: 1, shuffleOpts: true,
+      cards: [
+        { q: 'The subnet mask of a /24 network is:', opts: ['255.255.255.0', '255.255.0.0', '255.0.0.0', '255.255.255.252'], a: 0, why: '/24 = أول 24 bit = 1s = <b>255.255.255.0</b>.' },
+        { q: 'The subnet mask of a /16 network is:', opts: ['255.255.0.0', '255.255.255.0', '255.0.0.0', '255.255.240.0'], a: 0, why: '/16 = <b>255.255.0.0</b>.' },
+        { q: 'In a subnet mask, the binary 1s represent:', opts: ['The network part', 'The host part', 'The broadcast address', 'The gateway'], a: 0, why: 'الـ 1s = <b>network</b>، الـ 0s = host.' },
+        { q: 'Which operation does a router perform between an IP address and the subnet mask to find the network address?', opts: ['Bitwise AND', 'Bitwise OR', 'Addition', 'Division'], a: 0, why: '<b>AND</b> (الكتاب).' },
+        { q: 'IP 192.168.1.10 with mask 255.255.255.0. What is the network address?', opts: ['192.168.1.0', '192.168.1.255', '192.168.0.0', '192.168.1.1'], a: 0, why: 'صفّر الـ host octet ← <b>192.168.1.0</b>.' },
+        { q: 'Broadcast address of 172.16.5.20/16:', opts: ['172.16.255.255', '172.16.5.255', '172.16.0.0', '172.255.255.255'], a: 0, why: 'الـ host = آخر octetين ← 1s ← <b>172.16.255.255</b>.' },
+        { q: 'First usable address of 10.25.1.10/8:', opts: ['10.0.0.1', '10.25.1.1', '10.0.0.0', '10.255.255.254'], a: 0, why: 'network + 1 = <b>10.0.0.1</b>.' },
+        { q: 'Last usable address of 192.168.1.25/24:', opts: ['192.168.1.254', '192.168.1.255', '192.168.1.253', '192.168.1.100'], a: 0, why: 'broadcast − 1 = <b>192.168.1.254</b>.' },
+        { q: 'Maximum number of hosts in a Class B network:', opts: ['65,534', '65,536', '254', '16,777,214'], a: 0, why: '2¹⁶ − 2 = <b>65,534</b>.' },
+        { q: 'Host 129.113.200.111 sends to 129.113.200.120 (mask 255.255.255.0). Same subnet?', opts: ['Yes: both ANDed give 129.113.200.0', 'No: they need a router', 'Only with a switch', 'Not enough information'], a: 0, why: 'الاتنين AND mask = 129.113.200.0 ← <b>نفس الـ subnet</b> (مثال الكتاب).' }
+      ]
+    },
+
+    /* ---------- subnetting ---------- */
+    subnet: {
+      cols: 1, shuffleOpts: true,
+      cards: [
+        { q: '200.150.20.0/26 is a Class C network (default /24). How many bits are borrowed?', opts: ['2', '4', '6', '26'], a: 0, why: '26 − 24 = <b>2</b>.' },
+        { q: 'How many subnets does 200.150.20.0/26 give?', opts: ['4', '2', '8', '64'], a: 0, why: '2² = <b>4</b>.' },
+        { q: 'Block size (magic number) of /26:', opts: ['64', '32', '128', '62'], a: 0, why: '256 − 192 = <b>64</b>.' },
+        { q: 'Usable hosts per subnet in a /26:', opts: ['62', '64', '60', '126'], a: 0, why: '2⁶ − 2 = <b>62</b>.' },
+        { q: 'Subnet mask of /28:', opts: ['255.255.255.240', '255.255.255.248', '255.255.255.224', '255.255.255.252'], a: 0, why: '/28 ← آخر octet = 240 ← <b>255.255.255.240</b>.' },
+        { q: '192.168.10.0/28: how many subnets and how many usable hosts per subnet?', opts: ['16 subnets, 14 hosts', '16 subnets, 16 hosts', '14 subnets, 16 hosts', '8 subnets, 30 hosts'], a: 0, why: 'n = 4 ← 2⁴ = 16 subnets. h = 4 ← 2⁴ − 2 = <b>14</b> hosts.' },
+        { q: '205.11.143.0/30: number of subnets and hosts per subnet:', opts: ['64 subnets, 2 hosts', '30 subnets, 4 hosts', '4 subnets, 62 hosts', '64 subnets, 4 hosts'], a: 0, why: 'n = 6 ← 2⁶ = 64. h = 2 ← 2² − 2 = <b>2</b>.' },
+        { q: 'Network address of the 3rd subnet of 200.150.20.0/26:', opts: ['200.150.20.128', '200.150.20.64', '200.150.20.192', '200.150.20.130'], a: 0, why: 'subnets: 0, 64, <b>128</b>, 192.' },
+        { q: 'Last usable address of the 2nd subnet (200.150.20.64/26):', opts: ['200.150.20.126', '200.150.20.127', '200.150.20.128', '200.150.20.63'], a: 0, why: 'الـ broadcast = .127 ← last = <b>.126</b>.' },
+        { q: 'You need 8 equal subnets from a /24. The new prefix is:', opts: ['/27', '/26', '/28', '/25'], a: 0, why: '2ⁿ = 8 ← n = 3 ← 24 + 3 = <b>/27</b>.' },
+        { q: '192.168.7.100/26: which subnet does the address belong to?', opts: ['192.168.7.64 – 192.168.7.127', '192.168.7.0 – 192.168.7.63', '192.168.7.96 – 192.168.7.127', '192.168.7.100 – 192.168.7.163'], a: 0, why: 'block = 64 ← 100 بين 64 و127.' },
+        { q: 'Subnets in a /25 network (block size):', opts: ['Start at 0 and 128', 'Start at 0 and 64', 'Start at 0 and 32', 'Start at 0 and 256'], a: 0, why: '256 − 128 = <b>128</b> ← 0 و128.' }
+      ]
+    },
+
+    /* ---------- wastage / CIDR / VLSM ---------- */
+    wast: {
+      cols: 1, shuffleOpts: true,
+      cards: [
+        { q: 'Two departments with 5 devices each use a Class C and a Class A network with default masks. This leads to:', opts: ['A huge waste of IP addresses', 'No waste at all', 'A shortage of addresses', 'Faster routing'], a: 0, why: 'الـ default masks بتدّي عناوين أكتر بكتير من اللازم ← <b>IP wastage</b> (16,777,458).' },
+        { q: 'CIDR stands for:', opts: ['Classless Inter-Domain Routing', 'Class Identification and Domain Routing', 'Central IP Domain Registry', 'Classful Internet Data Routing'], a: 0, why: '<b>Classless Inter-Domain Routing</b>.' },
+        { q: 'CIDR uses:', opts: ['Variable-length prefixes (/24, /27, /29…)', 'Fixed default masks only', 'Only Class A addresses', 'MAC addresses'], a: 0, why: 'الـ CIDR = <b>variable-length prefixes</b> بدل الـ classes الثابتة.' },
+        { q: '5 devices (4 PCs + 1 router interface) need one subnet. Which prefix is the best?', opts: ['/29', '/30', '/28', '/24'], a: 0, why: '2^h − 2 ≥ 5 ← h = 3 ← <b>/29</b> (6 usable).' },
+        { q: 'A department needs 30 hosts. The smallest suitable prefix is:', opts: ['/27', '/28', '/26', '/29'], a: 0, why: '2⁵ − 2 = 30 ← h = 5 ← <b>/27</b>.' },
+        { q: 'A department needs 100 hosts. The smallest suitable prefix is:', opts: ['/25', '/26', '/24', '/27'], a: 0, why: '2⁷ − 2 = 126 ≥ 100 ← h = 7 ← <b>/25</b>.' },
+        { q: 'A department needs 12 hosts. The smallest suitable prefix is:', opts: ['/28', '/27', '/29', '/26'], a: 0, why: '2⁴ − 2 = 14 ≥ 12 ← h = 4 ← <b>/28</b>.' },
+        { q: 'In VLSM, which department do you allocate first?', opts: ['The one needing the most hosts', 'The one needing the fewest hosts', 'Any, order does not matter', 'The one with the longest name'], a: 0, why: 'بنبدأ <b>بالأكبر</b> (الأكبر الأول).' },
+        { q: 'Which is NOT a benefit of CIDR?', opts: ['It makes every network use the default class mask', 'Efficient IP allocation', 'Flexible subnetting', 'Route aggregation'], a: 0, why: 'الـ CIDR بيلغي الاعتماد على الـ default masks.' },
+        { q: 'Route aggregation:', opts: ['Combines several network routes into one summarized route', 'Splits one route into many', 'Encrypts routes', 'Assigns MAC addresses'], a: 0, why: 'بيدمج routes في route ملخّص فيقلّ حجم الـ routing table.' }
+      ]
+    },
+
+    /* ---------- packet tracer ---------- */
+    pt: {
+      cols: 1, shuffleOpts: true,
+      cards: [
+        { q: 'Which cable connects a PC to a switch?', opts: ['Copper straight-through', 'Copper crossover', 'Console cable', 'Coaxial cable only'], a: 0, why: 'أنواع مختلفة ← <b>straight-through</b>.' },
+        { q: 'Which cable connects a switch to another switch?', opts: ['Copper crossover', 'Copper straight-through', 'Console cable', 'Fiber only'], a: 0, why: 'نفس النوع ← <b>crossover</b>.' },
+        { q: 'The console cable is used for:', opts: ['Device configuration (not normal network traffic)', 'Connecting two PCs', 'Carrying Wi-Fi', 'Powering the switch'], a: 0, why: 'للتهيئة بس، من serial port لـ console port.' },
+        { q: 'Three PCs connected to one switch, all on 192.168.1.0/24. Is a default gateway needed?', opts: ['No: they are all on the same network', 'Yes: always', 'Yes: the switch IP', 'Only for ping'], a: 0, why: 'نفس الشبكة ومتوصلين بـ switch ← <b>مش محتاج gateway</b>.' },
+        { q: 'Two networks are connected by a router. What should be the default gateway of a PC in 192.168.2.0/24?', opts: ['The router interface in 192.168.2.0 (192.168.2.1)', 'The router interface in the other network', 'The switch', 'Its own IP'], a: 0, why: 'الـ gateway = الـ router interface اللي في <b>نفس شبكة الـ PC</b>.' },
+        { q: 'Which command sets an IP address on a router interface?', opts: ['ip address 192.168.1.1 255.255.255.0', 'show ip route', 'enable', 'ping 192.168.1.1'], a: 0, why: '<b>ip address IP MASK</b> جوه الـ interface.' },
+        { q: 'Which command brings the interface up?', opts: ['no shutdown', 'shutdown', 'exit', 'end'], a: 0, why: '<b>no shutdown</b>.' },
+        { q: 'Which command shows the interfaces status and their IP addresses?', opts: ['show ip interface brief', 'show ip route', 'ping', 'configure terminal'], a: 0, why: '<b>show ip interface brief</b>.' },
+        { q: 'Divide the Class B network 172.16.0.0/16 into 2 equal subnets. The new prefix is:', opts: ['/17', '/18', '/24', '/15'], a: 0, why: 'نستلف bit واحد ← 16 + 1 = <b>/17</b> (255.255.128.0).' },
+        { q: 'Divide the Class A network 10.0.0.0/8 into 2 equal subnets. Subnet 2 is:', opts: ['10.128.0.0/9', '10.64.0.0/9', '10.1.0.0/9', '10.128.0.0/8'], a: 0, why: 'بيتقسم لـ 10.0.0.0/9 و<b>10.128.0.0/9</b>.' }
+      ]
+    },
+
+    /* ---------- traps (T/F) ---------- */
+    traps: {
+      cols: 2,
+      opts: ['✔ صح', '✘ غلط'],
+      cards: [
+        { q: 'عدد الـ hosts المتاحة في شبكة = 2<sup>h</sup> (كل العناوين).', a: 1, why: 'غلط: <b>2<sup>h</sup> − 2</b> (بتشيل الـ network والـ broadcast).' },
+        { q: 'الـ network address بنجيبه بجعل كل الـ host bits = 0.', a: 0, why: 'صح. وكل الـ host bits = 1 هي الـ <b>broadcast</b>.' },
+        { q: 'First usable address = network address + 1.', a: 0, why: 'صح. والـ last usable = broadcast − 1.' },
+        { q: 'Class A بتبدأ من 0 وتشمل 127.', a: 1, why: 'غلط: <b>1 – 126</b>، والـ 0 والـ 127 محجوزين.' },
+        { q: 'الـ default mask لـ Class B هو 255.255.0.0 (/16).', a: 0, why: 'صح.' },
+        { q: 'Class C فيها 256 host قابلين للاستخدام.', a: 1, why: 'غلط: 2⁸ − 2 = <b>254</b>.' },
+        { q: 'Class D بتتستخدم للـ Multicast.', a: 0, why: 'صح (224 – 239). والـ E للـ experimental.' },
+        { q: 'عدد الـ subnets = 2<sup>n</sup> حيث n = عدد الـ borrowed bits.', a: 0, why: 'صح.' },
+        { q: 'الـ block size في /26 يساوي 32.', a: 1, why: 'غلط: 256 − 192 = <b>64</b>.' },
+        { q: 'في /27 فيه 32 host قابل للاستخدام.', a: 1, why: 'غلط: 2⁵ − 2 = <b>30</b> (الـ 32 هي كل العناوين).' },
+        { q: 'الـ 1s في الـ subnet mask بتمثّل جزء الـ host.', a: 1, why: 'غلط: الـ 1s = <b>network</b>، والـ 0s = host.' },
+        { q: 'الـ router بيعمل AND بين الـ IP والـ mask عشان يطلّع الـ network address.', a: 0, why: 'صح (الكتاب).' },
+        { q: 'IPv4 = 128 bit.', a: 1, why: 'غلط: IPv4 = <b>32 bit</b>، والـ IPv6 هو 128 bit.' },
+        { q: 'استخدام شبكتين classful (C و A) لقسمين فيهم 5 أجهزة بيهدر عناوين كتير.', a: 0, why: 'صح: 16,777,458 عنوان مهدر.' },
+        { q: 'الـ CIDR بيستخدم default masks ثابتة (A / B / C) بس.', a: 1, why: 'غلط: بيستخدم <b>variable-length prefixes</b>.' },
+        { q: 'في VLSM بنبدأ بتوزيع القسم الأصغر الأول.', a: 1, why: 'غلط: بنبدأ <b>بالأكبر</b>.' },
+        { q: 'الـ Switch هو اللي بيوصّل شبكتين مختلفتين.', a: 1, why: 'غلط: ده <b>Router</b>. الـ switch جوه الـ LAN.' },
+        { q: 'الـ Switch بيستخدم MAC addresses والـ Router بيستخدم IP.', a: 0, why: 'صح.' },
+        { q: 'الـ Hub بيبعت الداتا للجهاز المقصود بس.', a: 1, why: 'غلط: الـ hub بيبعت <b>لكل</b> الأجهزة. الـ switch هو اللي بيبعت للمقصود.' },
+        { q: 'وحدة الـ Transport layer اسمها Frame.', a: 1, why: 'غلط: <b>Segment</b>. (Frame = Data link، Packet = Network.)' },
+        { q: 'الـ UDP عنده header بحجم 8 bytes وبدون ACK.', a: 0, why: 'صح. الـ TCP header = 20+ bytes.' },
+        { q: 'Point-to-point = لينك مخصص بين جهازين بالظبط.', a: 0, why: 'صح. والـ multipoint = أكتر من جهاز.' },
+        { q: 'في الـ star topology لو الـ switch المركزي وقع، باقي الأجهزة تفضل شغّالة مع بعض.', a: 1, why: 'غلط: <b>كل الأجهزة تفقد الاتصال</b>.' },
+        { q: 'الـ Straight-through بيوصّل نفس النوع من الأجهزة (PC–PC).', a: 1, why: 'غلط: ده الـ <b>crossover</b>. الـ straight-through لأنواع مختلفة (PC–Switch).' },
+        { q: 'في سيناريو فيه 3 PCs على switch واحد (نفس الشبكة) لازم نحدد default gateway.', a: 1, why: 'غلط: مش لازم، لأنهم على نفس الشبكة ومفيش router.' }
+      ]
+    },
+
+    /* ---------- final MCQ ---------- */
+    mcq: {
+      cols: 1, shuffleOpts: true,
+      cards: [
+        { q: 'How many usable host addresses are in a /27 subnet?', opts: ['30', '32', '28', '62'], a: 0, why: '2⁵ − 2 = <b>30</b>.' },
+        { q: 'What is the network address of 172.20.9.45/16?', opts: ['172.20.0.0', '172.20.9.0', '172.0.0.0', '172.20.9.32'], a: 0, why: '/16 = أول octetين network ← <b>172.20.0.0</b>.' },
+        { q: 'What is the broadcast address of 192.168.7.100/26?', opts: ['192.168.7.127', '192.168.7.255', '192.168.7.63', '192.168.7.100'], a: 0, why: 'block = 64 ← الـ subnet .64–.127 ← broadcast = <b>.127</b>.' },
+        { q: 'A department has 100 hosts. What is the smallest prefix that fits?', opts: ['/25', '/24', '/26', '/27'], a: 0, why: '2⁷ − 2 = 126 ≥ 100 ← <b>/25</b>.' },
+        { q: 'How many bits must be borrowed from a /24 to create at least 8 subnets?', opts: ['3', '2', '4', '8'], a: 0, why: '2³ = 8 ← <b>3</b> bits (← /27).' },
+        { q: 'The address 190.5.5.5 belongs to:', opts: ['Class B', 'Class A', 'Class C', 'Class D'], a: 0, why: '190 بين 128 و191 ← <b>B</b>.' },
+        { q: 'Which OSI layer\'s data unit is the Segment?', opts: ['Transport', 'Network', 'Data Link', 'Session'], a: 0, why: 'Segment ← <b>Transport</b>.' },
+        { q: 'Which is the example of a private IP address given in the section slides?', opts: ['192.168.1.1', '8.8.8.8', '203.0.113.20', '224.0.0.1'], a: 0, why: 'مثال السلايد: <b>192.168.1.1</b>. (الـ 8.8.8.8 و203.0.113.20 public.)' },
+        { q: 'In VLSM, subnets are allocated:', opts: ['From the largest requirement to the smallest', 'From the smallest to the largest', 'Randomly', 'Only with /24 masks'], a: 0, why: 'الأكبر الأول.' },
+        { q: 'Which transport protocol has an 8-byte header and no acknowledgment?', opts: ['UDP', 'TCP', 'IP', 'HTTP'], a: 0, why: '<b>UDP</b>.' }
+      ]
+    }
+  },
+
+  /* ---------- flashcards ---------- */
+  flash: {
+    main: [
+      { f: 'تركيب الـ <span class="en">IPv4</span>؟', b: '<b>32 bit</b> = <b>4 octets</b> × 8 bits، كل octet من 0 لـ 255. بيتقسم لـ network part وhost part.' },
+      { f: '<span class="en">Class A</span>: المدى والـ mask والـ hosts', b: 'أول octet <b>1–126</b> (أول bit = 0) · mask <span class="en">255.0.0.0 (/8)</span> · 126 شبكة · <b>16,777,214</b> host لكل شبكة.' },
+      { f: '<span class="en">Class B</span>: المدى والـ mask والـ hosts', b: 'أول octet <b>128–191</b> (أول bits = 10) · mask <span class="en">255.255.0.0 (/16)</span> · 16,384 شبكة · <b>65,534</b> host.' },
+      { f: '<span class="en">Class C</span>: المدى والـ mask والـ hosts', b: 'أول octet <b>192–223</b> (أول bits = 110) · mask <span class="en">255.255.255.0 (/24)</span> · 2,097,152 شبكة · <b>254</b> host.' },
+      { f: '<span class="en">Class D</span> و <span class="en">Class E</span>', b: '<b>D</b>: 224–239 = Multicast. <b>E</b>: 240–255 = Experimental / Reserved.' },
+      { f: 'ليه Class A من 1 لـ 126 بس؟', b: 'لأن الـ <b>0</b> والـ <b>127</b> في أول octet محجوزين (127 = loopback 🧠).' },
+      { f: 'قانون الـ hosts المتاحة؟ وليه −2؟', b: '<span class="en">2<sup>h</sup> − 2</span> حيث <span class="en">h = 32 − prefix</span>. بنشيل عنوانين: الـ <b>network</b> والـ <b>broadcast</b>.' },
+      { f: 'إزاي تطلّع الـ <b>network address</b>؟', b: 'اجعل كل الـ <b>host bits = 0</b> (أو IP <span class="en">AND</span> mask).' },
+      { f: 'إزاي تطلّع الـ <b>broadcast</b>؟ والـ first / last؟', b: 'الـ host bits كلها <b>1</b>. <span class="en">First = network + 1</span> · <span class="en">Last = broadcast − 1</span>.' },
+      { f: 'الـ <span class="en">subnet mask</span>', b: 'رقم 32 bit: الـ <b>1s</b> = network، الـ <b>0s</b> = host. مثال <span class="en">/24 = 255.255.255.0</span>.' },
+      { f: '📖 إزاي الـ router يعرف إن الوجهة على نفس الـ subnet؟', b: 'بيعمل <b>AND</b> بين عنوان الوجهة والـ mask ويقارن النتيجة بـ subnet المصدر. مثال: <span class="en">129.113.200.120 AND 255.255.255.0 = 129.113.200.0</span> ← نفس الـ subnet.' },
+      { f: 'الـ <span class="en">Borrowed bits</span> وعدد الـ <span class="en">subnets</span>', b: '<span class="en">n = new prefix − default prefix</span> (A:8، B:16، C:24). عدد الـ subnets = <span class="en">2<sup>n</sup></span>.' },
+      { f: '<span class="en">Block size</span> (Magic number)', b: '<span class="en">256 − (قيمة الـ mask في الـ octet المهم)</span>. مثال /26 ← 256 − 192 = <b>64</b> ← الـ subnets بتبدأ 0 / 64 / 128 / 192.' },
+      { f: 'أقنعة /25 لـ /30 (آخر octet)', b: '<span class="en">/25 = .128 · /26 = .192 · /27 = .224 · /28 = .240 · /29 = .248 · /30 = .252</span>' },
+      { f: 'الـ hosts في /25 لـ /30', b: '<span class="en">/25 = 126 · /26 = 62 · /27 = 30 · /28 = 14 · /29 = 6 · /30 = 2</span> (والـ block: 128 / 64 / 32 / 16 / 8 / 4).' },
+      { f: 'إزاي تختار الـ prefix لـ N أجهزة؟', b: 'دوّر على أصغر <span class="en">h</span> بحيث <span class="en">2<sup>h</sup> − 2 ≥ N</span> ثم <span class="en">prefix = 32 − h</span>. مثال 5 أجهزة ← h = 3 ← <b>/29</b>.' },
+      { f: 'إيه هو الـ <span class="en">IP Wastage</span>؟ ورقم السلايد؟', b: 'العناوين المتاحة (usable) اللي <b>مش مستخدمة</b>. مثال: Class C (249 مهدرين) + Class A (16,777,209) = <b>16,777,458</b>.' },
+      { f: '<span class="en">Classful</span> ضد <span class="en">Classless (CIDR)</span>', b: 'Classful = default masks ثابتة (بتهدر). CIDR = <b>variable-length prefixes</b> (/24, /27, /29…) بتخصص بقدر الاحتياج.' },
+      { f: 'فوايد الـ <span class="en">CIDR</span>', b: 'Efficient IP allocation · Flexible subnetting · Better network management · <b>Route aggregation</b> (يقلّل حجم الـ routing table).' },
+      { f: 'خطوات الـ <span class="en">VLSM</span>', b: '① رتّب الأقسام من الأكبر للأصغر ② أصغر prefix يكفي كل قسم ③ كل subnet يبدأ بعد آخر broadcast ④ router interface = first usable، وتأكد من عدم الـ overlap.' },
+      { f: 'مثال VLSM السلايد (205.11.143.0/24)', b: 'Sales 30 ← <span class="en">205.11.143.0/27</span> · HR 20 ← <span class="en">205.11.143.32/27</span> · IT 12 ← <span class="en">205.11.143.64/28</span>.' },
+      { f: '🧠 <span class="en">/31</span> و <span class="en">/32</span>', b: '/31 = عنوانين (وصلات point-to-point بين routers). /32 = عنوان واحد (loopback / host route). <span class="muted">(فهم عام مش من المصادر)</span>' },
+      { f: '<span class="en">Router</span> ضد <span class="en">Switch</span> (Section 1)', b: '<b>Router</b> = BETWEEN networks، بيستخدم <b>IP</b>. <b>Switch</b> = WITHIN a LAN، بيستخدم <b>MAC</b>.' },
+      { f: '<span class="en">Hub</span> / <span class="en">Repeater</span> / <span class="en">NIC</span> / <span class="en">Modem</span>', b: 'Hub: يبعت لكل الأجهزة · Repeater: يجدّد الإشارة · NIC: الهاردوير اللي بيوصّل الجهاز بالشبكة · Modem: بيحوّل الإشارات بين خط الـ ISP والشبكة.' },
+      { f: 'أنواع الشبكات حسب الحجم', b: '<span class="en">PAN</span> (كام متر) · <span class="en">LAN</span> (بيت/مكتب/lab) · <span class="en">MAN</span> (مدينة) · <span class="en">WAN</span> (مدن/دول) · <span class="en">Internet</span> (الكوكب).' },
+      { f: '<span class="en">Point-to-point</span> ضد <span class="en">Multipoint</span>', b: 'Point-to-point = لينك مخصص بين جهازين بالظبط. Multipoint = لينك/جهاز مركزي مشترك بين أكتر من جهاز والسعة متقسّمة.' },
+      { f: 'لو الـ topology اتعطلت: Bus / Star / Ring / Mesh', b: '<b>Bus</b>: الـ backbone يقع = ينقسم نصين · <b>Star</b>: الـ switch يقع = كله يقع · <b>Ring</b> (one-way): يقف (dual ring يعيد التوجيه) · <b>Mesh</b>: يلف من مسار تاني.' },
+      { f: 'الـ <span class="en">PDU</span> لكل طبقة', b: '<span class="en">Application/Presentation/Session = Data · Transport = Segment · Network = Packet · Data Link = Frame · Physical = Bits</span>' },
+      { f: '<span class="en">TCP</span> ضد <span class="en">UDP</span>', b: '<b>TCP</b>: connection-oriented، reliable (ACK)، ordered، أبطأ، header 20+ bytes (HTTP, FTP, SMTP). <b>UDP</b>: connectionless، بدون ACK، أسرع، header 8 bytes (DNS, VoIP, gaming).' },
+      { f: 'شكل الـ <span class="en">Ethernet frame</span>', b: 'Dest MAC (6 B) · Src MAC (6 B) · Type/Length (2 B) · Data (46–1500 B) · <b>FCS</b> (4 B، CRC-32 غالباً).' },
+      { f: '<span class="en">Straight-through</span> / <span class="en">Crossover</span> / <span class="en">Console</span>', b: 'Straight: أنواع مختلفة (PC–Switch) · Crossover: نفس النوع (Switch–Switch) · Console: للتهيئة بس (serial ← console port).' },
+      { f: 'أوامر الـ Router لتهيئة interface', b: '<span class="en">enable → configure terminal → interface gigabitEthernet 0/0 → ip address IP MASK → no shutdown → exit</span>. التحقق: <span class="en">show ip interface brief</span> و<span class="en">show ip route</span> و<span class="en">ping</span>.' },
+      { f: 'إمتى نحتاج <span class="en">default gateway</span>؟', b: 'لما الجهاز يكلّم شبكة تانية عن طريق router: الـ gateway = الـ router interface في <b>نفس شبكة الجهاز</b>. على نفس الشبكة (switch بس) مش لازم.' }
+    ]
+  },
+
+  /* ---------- essays ---------- */
+  essays: {
+    e1: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>192.168.10.0/24 → 4 equal subnets</b></p>' +
+        '<ol dir="ltr" style="margin:0 0 8px;padding-left:20px"><li>Subnets needed = 4 = 2<sup>n</sup> → n = 2 borrowed bits.</li><li>New prefix = 24 + 2 = <b>/26</b> → mask <b>255.255.255.192</b>.</li><li>Host bits h = 32 − 26 = 6 → usable hosts = 2<sup>6</sup> − 2 = <b>62</b> per subnet.</li><li>Block size = 256 − 192 = <b>64</b>.</li></ol>' +
+        '<div class="tscroll"><table class="tbl" dir="ltr" style="margin:0"><tr><th>#</th><th>Network</th><th>First – Last</th><th>Broadcast</th></tr>' +
+        '<tr><td>1</td><td>192.168.10.0/26</td><td>192.168.10.1 – 192.168.10.62</td><td>192.168.10.63</td></tr>' +
+        '<tr><td>2</td><td>192.168.10.64/26</td><td>192.168.10.65 – 192.168.10.126</td><td>192.168.10.127</td></tr>' +
+        '<tr><td>3</td><td>192.168.10.128/26</td><td>192.168.10.129 – 192.168.10.190</td><td>192.168.10.191</td></tr>' +
+        '<tr><td>4</td><td>192.168.10.192/26</td><td>192.168.10.193 – 192.168.10.254</td><td>192.168.10.255</td></tr></table></div>',
+      points: [
+        'n = 2 borrowed bits (2² = 4 subnets)',
+        'New prefix /26, mask 255.255.255.192',
+        'Usable hosts = 2⁶ − 2 = 62',
+        'Block size = 256 − 192 = 64',
+        'The four subnets: .0, .64, .128, .192 with correct first/last/broadcast'
+      ]
+    },
+    e2: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>VLSM for 192.168.50.0/24</b> — allocate from the largest requirement to the smallest, each subnet starting after the previous broadcast.</p>' +
+        '<div class="tscroll"><table class="tbl" dir="ltr" style="margin:0 0 8px"><tr><th>Dept</th><th>Needs</th><th>Prefix (h)</th><th>Network</th><th>Usable range</th><th>Broadcast</th></tr>' +
+        '<tr><td>A</td><td>50</td><td>/26 (h = 6, 62 usable)</td><td>192.168.50.0/26</td><td>.1 – .62</td><td>192.168.50.63</td></tr>' +
+        '<tr><td>B</td><td>20</td><td>/27 (h = 5, 30 usable)</td><td>192.168.50.64/27</td><td>.65 – .94</td><td>192.168.50.95</td></tr>' +
+        '<tr><td>C</td><td>10</td><td>/28 (h = 4, 14 usable)</td><td>192.168.50.96/28</td><td>.97 – .110</td><td>192.168.50.111</td></tr></table></div>' +
+        '<p dir="ltr" style="margin:0">Rule: smallest h with 2<sup>h</sup> − 2 ≥ hosts; prefix = 32 − h. Router interfaces take the first usable address of each subnet; no overlap between the ranges.</p>',
+      points: [
+        'Order the departments from the largest to the smallest',
+        'A: 50 hosts → h = 6 → /26 → 192.168.50.0/26',
+        'B: 20 hosts → h = 5 → /27 → 192.168.50.64/27',
+        'C: 10 hosts → h = 4 → /28 → 192.168.50.96/28',
+        'Each subnet starts after the previous broadcast (no overlap)'
+      ]
+    },
+    e3: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Classful addressing wastes addresses.</b> Each department (5 devices = 4 PCs + 1 router interface) gets a whole network with its default mask: a Class C (192.168.1.0/24, 254 usable, 249 unused) for one department and a Class A (10.0.0.0/8, 16,777,214 usable, 16,777,209 unused) for the other. Total wastage = <b>16,777,458</b> out of 16,777,468 usable addresses.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>CIDR (classless) / subnetting</b> uses variable-length prefixes. Take one Class C network 192.168.1.0/24 and split it with a longer prefix: 5 devices need 2<sup>h</sup> − 2 ≥ 5 → h = 3 → prefix <b>/29</b> (mask 255.255.255.248, 6 usable). Subnet 1 = 192.168.1.0/29 (.1–.6, broadcast .7), Subnet 2 = 192.168.1.8/29 (.9–.14, broadcast .15). Total usable = 12, used = 10, unused = <b>2</b>.</p>' +
+        '<p dir="ltr" style="margin:0">Benefits of CIDR: efficient IP allocation, flexible subnetting, better network management, route aggregation.</p>',
+      points: [
+        'Classful: each department uses a whole network with a default mask',
+        'Numbers: Class C wastes 249, Class A wastes 16,777,209 → 16,777,458 total',
+        'CIDR: one Class C split by a longer prefix',
+        '5 devices → h = 3 → /29 (6 usable), two subnets .0/29 and .8/29',
+        'Result: 12 usable, 10 used, only 2 unused'
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ---------- widgets: binary / calculator / practice / subnet table / VLSM ---------- */
+(function () {
+  'use strict';
+  function P2(n) { return Math.pow(2, n); }
+  function el(id) { return document.getElementById(id); }
+  function qa(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function parseIp(s) {
+    var m = /^\s*(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\s*$/.exec(s || '');
+    if (!m) return null;
+    var a = [+m[1], +m[2], +m[3], +m[4]];
+    for (var i = 0; i < 4; i++) if (a[i] > 255) return null;
+    return a[0] * 16777216 + a[1] * 65536 + a[2] * 256 + a[3];
+  }
+  function toIp(n) { return [Math.floor(n / 16777216) % 256, Math.floor(n / 65536) % 256, Math.floor(n / 256) % 256, n % 256].join('.'); }
+  function maskOf(p) { return p <= 0 ? 0 : ((0xFFFFFFFF << (32 - p)) >>> 0); }
+  function netOf(n, p) { return (n & maskOf(p)) >>> 0; }
+  function bcOf(n, p) { return (netOf(n, p) | ((~maskOf(p)) >>> 0)) >>> 0; }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function hostsOf(p) { return Math.max(0, P2(32 - p) - 2); }
+  function clsOf(n) {
+    var a = Math.floor(n / 16777216);
+    if (a === 0) return 'محجوز (0)';
+    if (a <= 126) return 'A';
+    if (a === 127) return 'محجوز (127)';
+    if (a <= 191) return 'B';
+    if (a <= 223) return 'C';
+    if (a <= 239) return 'D (Multicast)';
+    return 'E (Experimental)';
+  }
+  function bin32(n) { var s = n.toString(2); while (s.length < 32) s = '0' + s; return s; }
+  function binHtml(n, p) {
+    var s = bin32(n), out = '', i;
+    for (i = 0; i < 32; i++) {
+      if (i > 0 && i % 8 === 0) out += '.';
+      if (i === 0) out += '<span class="' + (p > 0 ? 'nb' : 'hb') + '">';
+      else if (i === p) out += '</span><span class="hb">';
+      out += s.charAt(i);
+    }
+    return out + '</span>';
+  }
+  function R(l, v, cls) { return '<div class="res' + (cls ? ' ' + cls : '') + '"><small>' + l + '</small><b>' + v + '</b></div>'; }
+  function minH(n) { var h = 2; while (P2(h) - 2 < n) h++; return h; }
+
+  /* ---- binary toggler ---- */
+  (function () {
+    var box = el('binBits'), inp = el('binN'), v = el('binV');
+    if (!box) return;
+    var W = [128, 64, 32, 16, 8, 4, 2, 1], bits = [0, 0, 0, 0, 0, 0, 0, 0], btns = [];
+    W.forEach(function (w, i) {
+      var d = document.createElement('div'), s = document.createElement('small'), b = document.createElement('button');
+      s.textContent = w; b.type = 'button'; b.textContent = '0';
+      b.addEventListener('click', function () { bits[i] = bits[i] ? 0 : 1; fromBits(); });
+      d.appendChild(s); d.appendChild(b); box.appendChild(d); btns.push(b);
+    });
+    function draw() {
+      var sum = 0, parts = [];
+      bits.forEach(function (x, i) { btns[i].textContent = x; btns[i].className = x ? 'one' : ''; if (x) { sum += W[i]; parts.push(W[i]); } });
+      v.innerHTML = '<span class="en">' + sum + ' = ' + (parts.length ? parts.join(' + ') : '0') + ' = ' + bits.join('') + '</span>';
+      return sum;
+    }
+    function fromBits() { inp.value = draw(); }
+    function fromNum() {
+      var n = parseInt(inp.value, 10);
+      if (isNaN(n) || n < 0 || n > 255) { v.textContent = 'اكتب رقم من 0 لـ 255'; return; }
+      W.forEach(function (w, i) { bits[i] = (n & w) ? 1 : 0; });
+      draw();
+    }
+    inp.addEventListener('input', fromNum); fromNum();
+  })();
+
+  /* ---- calculator ---- */
+  (function () {
+    var ipIn = el('calIp'), pSel = el('calP');
+    if (!ipIn) return;
+    for (var q = 1; q <= 32; q++) { var o = document.createElement('option'); o.value = q; o.textContent = '/' + q; pSel.appendChild(o); }
+    pSel.value = '26';
+    function calc() {
+      var n = parseIp(ipIn.value), p = +pSel.value, res = el('calRes'), bin = el('calBin'), st = el('calSteps');
+      if (n === null) {
+        res.innerHTML = '<div class="verdict neg" style="grid-column:1/-1">اكتب IP صح: 4 أرقام (0–255) بينهم نقط، زي 192.168.1.70</div>';
+        bin.innerHTML = ''; st.innerHTML = ''; return;
+      }
+      var m = maskOf(p), net = netOf(n, p), bc = bcOf(n, p), h = 32 - p, hosts = hostsOf(p), small = p >= 31;
+      res.innerHTML =
+        R('Class', clsOf(n)) + R('Subnet mask', toIp(m)) + R('Network address', toIp(net), 'pos') + R('Broadcast', toIp(bc)) +
+        R('First usable', small ? '—' : toIp(net + 1)) + R('Last usable', small ? '—' : toIp(bc - 1)) + R('Usable hosts', fmt(hosts));
+      bin.innerHTML = 'IP    ' + binHtml(n, p) + '\nMask  ' + binHtml(m, p) + '\nAND   ' + binHtml(net, p) + '   ← network';
+      var k = Math.floor(p / 8), s = [];
+      s.push('الـ host bits: <span class="en">h = 32 − ' + p + ' = ' + h + '</span>');
+      s.push('الـ usable hosts: <span class="en">2<sup>' + h + '</sup> − 2 = ' + fmt(hosts) + '</span>' + (small ? ' (🧠 /31 و /32 حالات خاصة)' : ''));
+      if (p % 8 !== 0 && p < 32) {
+        var mo = Math.floor(m / P2(8 * (3 - k))) % 256, blk = 256 - mo;
+        var io = Math.floor(n / P2(8 * (3 - k))) % 256, no = Math.floor(net / P2(8 * (3 - k))) % 256;
+        s.push('الـ octet المهم هو رقم ' + (k + 1) + ' (الـ mask فيه ' + mo + ') ← <span class="en">block = 256 − ' + mo + ' = ' + blk + '</span>');
+        s.push('الـ network: أكبر مضاعف لـ ' + blk + ' ولا يزيد عن ' + io + ' ← <span class="en">' + no + '</span> ← <span class="en">' + toIp(net) + '</span>');
+        s.push('الـ broadcast: <span class="en">' + no + ' + ' + blk + ' − 1 = ' + (no + blk - 1) + '</span> ← <span class="en">' + toIp(bc) + '</span>');
+      } else if (p < 32) {
+        s.push('الـ prefix /' + p + ' مضاعف لـ 8: أول ' + (p / 8) + ' octet network (اتحفظوا زي ما هما) والباقي host: صفر في الـ network address و255 في الـ broadcast ← <span class="en">' + toIp(net) + '</span> و<span class="en">' + toIp(bc) + '</span>');
+      }
+      if (!small) s.push('<span class="en">First = network + 1 = ' + toIp(net + 1) + '</span> · <span class="en">Last = broadcast − 1 = ' + toIp(bc - 1) + '</span>');
+      st.innerHTML = s.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    }
+    ipIn.addEventListener('input', calc); pSel.addEventListener('change', calc);
+    qa('#calEx [data-ex]').forEach(function (b) {
+      b.addEventListener('click', function () { var t = b.dataset.ex.split('/'); ipIn.value = t[0]; pSel.value = t[1]; calc(); });
+    });
+    calc();
+  })();
+
+  /* ---- practice generator ---- */
+  (function () {
+    var card = el('prCard');
+    if (!card) return;
+    var mode = null, cur = null, solved = 0, tried = 0;
+    function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+    function gen(m) {
+      var a, p;
+      if (m === 'A') { a = rnd(1, 126); p = 8; }
+      else if (m === 'B') { a = rnd(128, 191); p = 16; }
+      else if (m === 'C') { a = rnd(192, 223); p = 24; }
+      else { a = [rnd(1, 126), rnd(128, 191), rnd(192, 223)][rnd(0, 2)]; p = rnd(25, 30); }
+      var n = a * 16777216 + rnd(0, 255) * 65536 + rnd(0, 255) * 256 + rnd(1, 254);
+      var net = netOf(n, p), bc = bcOf(n, p);
+      return { n: n, p: p, ans: { mask: toIp(maskOf(p)), net: toIp(net), bc: toIp(bc), first: toIp(net + 1), last: toIp(bc - 1), hosts: String(hostsOf(p)) } };
+    }
+    function clear() { qa('#prG .in').forEach(function (i) { i.value = ''; i.className = 'in'; }); }
+    function newQ() {
+      if (!mode) { el('prV').textContent = 'اختار نوع السؤال من فوق.'; return; }
+      cur = gen(mode); clear();
+      el('prQ').textContent = toIp(cur.n) + ' /' + cur.p;
+      el('prV').className = 'verdict'; el('prV').textContent = 'احسب الـ 6 قيم وبعدين اضغط «تحقق».';
+    }
+    qa('#prModes [data-m]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        mode = b.dataset.m;
+        qa('#prModes .btn').forEach(function (x) { x.classList.toggle('primary', x === b); });
+        newQ();
+      });
+    });
+    function norm(k, v) {
+      v = (v || '').trim();
+      if (k === 'hosts') return v.replace(/[,\s]/g, '');
+      var n = parseIp(v); return n === null ? v : toIp(n);
+    }
+    el('prCheck').addEventListener('click', function () {
+      if (!cur) { el('prV').textContent = 'اختار نوع السؤال الأول.'; return; }
+      var ok = 0;
+      qa('#prG .in').forEach(function (i) {
+        var good = norm(i.dataset.k, i.value) === cur.ans[i.dataset.k];
+        i.className = 'in ' + (good ? 'good' : 'bad'); if (good) ok++;
+      });
+      var v = el('prV'); tried++;
+      if (ok === 6) { solved++; v.className = 'verdict pos'; v.textContent = '🔥 6 من 6! (حليت ' + solved + ' سؤال كامل من ' + tried + ' محاولة)'; }
+      else { v.className = 'verdict neg'; v.textContent = ok + ' من 6 صح. الخانات الحمرا غلط: راجع الخطوات واضغط «اعرض الحل» لو محتاج.'; }
+    });
+    el('prShow').addEventListener('click', function () {
+      if (!cur) return;
+      qa('#prG .in').forEach(function (i) { i.value = cur.ans[i.dataset.k]; i.className = 'in good'; });
+      el('prV').className = 'verdict'; el('prV').textContent = 'ده الحل. جرّب سؤال جديد وحاول من غير ما تبص.';
+    });
+    el('prNew').addEventListener('click', newQ);
+  })();
+
+  /* ---- subnet table ---- */
+  (function () {
+    var bpSel = el('subBp'), npSel = el('subNp'), ipIn = el('subIp');
+    if (!bpSel) return;
+    function fillNp() {
+      var bp = +bpSel.value, keep = +npSel.value;
+      npSel.innerHTML = '';
+      for (var q = bp + 1; q <= 30; q++) { var o = document.createElement('option'); o.value = q; o.textContent = '/' + q; npSel.appendChild(o); }
+      npSel.value = (keep > bp && keep <= 30) ? keep : (bp === 24 ? 26 : bp + 2);
+    }
+    function row(i, base, np) {
+      var size = P2(32 - np), net = base + i * size, bc = net + size - 1;
+      return '<tr><td>' + (i + 1) + '</td><td>' + toIp(net) + '/' + np + '</td><td>' + toIp(net + 1) + '</td><td>' + toIp(bc - 1) + '</td><td>' + toIp(bc) + '</td></tr>';
+    }
+    function calc() {
+      var n = parseIp(ipIn.value), bp = +bpSel.value, np = +npSel.value, res = el('subRes'), tb = el('subTbl');
+      if (n === null) { res.innerHTML = '<div class="verdict neg" style="grid-column:1/-1">اكتب network صح زي 200.150.20.0</div>'; tb.innerHTML = ''; return; }
+      var base = netOf(n, bp), nb = np - bp, total = P2(nb), h = 32 - np, k = Math.floor(np / 8);
+      var blk = (np % 8 === 0) ? '—' : String(256 - (Math.floor(maskOf(np) / P2(8 * (3 - k))) % 256));
+      res.innerHTML = R('Network الأساسي', toIp(base) + '/' + bp) + R('Borrowed bits n', np + ' − ' + bp + ' = ' + nb) + R('عدد الـ subnets', '2^' + nb + ' = ' + fmt(total), 'pos') +
+        R('Hosts / subnet', '2^' + h + ' − 2 = ' + fmt(hostsOf(np))) + R('Subnet mask', toIp(maskOf(np))) + R('Block size', blk);
+      var h2 = '<tr><th>#</th><th>Network</th><th>First</th><th>Last</th><th>Broadcast</th></tr>', i;
+      if (total <= 16) { for (i = 0; i < total; i++) h2 += row(i, base, np); }
+      else {
+        for (i = 0; i < 8; i++) h2 += row(i, base, np);
+        h2 += '<tr><td colspan="5" style="text-align:center">… ' + fmt(total - 12) + ' subnet تانية …</td></tr>';
+        for (i = total - 4; i < total; i++) h2 += row(i, base, np);
+      }
+      tb.innerHTML = h2;
+    }
+    fillNp(); calc();
+    bpSel.addEventListener('change', function () { fillNp(); calc(); });
+    npSel.addEventListener('change', calc); ipIn.addEventListener('input', calc);
+  })();
+
+  /* ---- hosts -> prefix ---- */
+  (function () {
+    var inp = el('hpN');
+    if (!inp) return;
+    function calc() {
+      var n = parseInt(inp.value, 10), r = el('hpRes');
+      if (isNaN(n) || n < 1) { r.innerHTML = '<div class="verdict neg" style="grid-column:1/-1">اكتب عدد أجهزة (1 أو أكتر)</div>'; return; }
+      var h = minH(n), p = 32 - h;
+      if (p < 1) { r.innerHTML = '<div class="verdict neg" style="grid-column:1/-1">رقم كبير جداً</div>'; return; }
+      r.innerHTML = R('Host bits h', h) + R('Prefix', '/' + p, 'pos') + R('Usable hosts', fmt(hostsOf(p))) + R('Mask', toIp(maskOf(p))) + R('Unused', fmt(hostsOf(p) - n));
+    }
+    inp.addEventListener('input', calc); calc();
+  })();
+
+  /* ---- VLSM ---- */
+  (function () {
+    var tb = el('vlTbl');
+    if (!tb) return;
+    function calc() {
+      var ip = parseIp(el('vlIp').value), bp = +el('vlBp').value, v = el('vlV');
+      var names = qa('#vlRows .vlN'), hs = qa('#vlRows .vlH'), deps = [], i;
+      for (i = 0; i < names.length; i++) {
+        var hv = parseInt(hs[i].value, 10);
+        if (!isNaN(hv) && hv > 0) deps.push({ name: names[i].value.trim() || ('Dept ' + (i + 1)), hosts: hv, idx: i });
+      }
+      if (ip === null) { tb.innerHTML = ''; v.hidden = false; v.className = 'verdict neg'; v.textContent = 'اكتب network صح زي 205.11.143.0'; return; }
+      deps.sort(function (a, b) { return b.hosts - a.hosts || a.idx - b.idx; });
+      var cur = netOf(ip, bp), end = cur + P2(32 - bp), html = '<tr><th>Dept</th><th>Hosts</th><th>Prefix</th><th>Network</th><th>Mask</th><th>First</th><th>Last</th><th>Broadcast</th><th>Usable</th></tr>', fail = false;
+      deps.forEach(function (d) {
+        var h = minH(d.hosts), p = 32 - h, size = P2(h);
+        if (cur + size > end) { fail = true; html += '<tr><td>' + d.name + '</td><td>' + d.hosts + '</td><td colspan="7" class="neg">مفيش مساحة كفاية في الشبكة</td></tr>'; return; }
+        html += '<tr><td>' + d.name + '</td><td>' + d.hosts + '</td><td>/' + p + '</td><td>' + toIp(cur) + '</td><td>' + toIp(maskOf(p)) + '</td><td>' + toIp(cur + 1) + '</td><td>' + toIp(cur + size - 2) + '</td><td>' + toIp(cur + size - 1) + '</td><td>' + (size - 2) + '</td></tr>';
+        cur += size;
+      });
+      tb.innerHTML = deps.length ? html : '';
+      v.hidden = !deps.length;
+      if (deps.length) {
+        v.className = 'verdict ' + (fail ? 'neg' : 'pos');
+        v.textContent = fail ? '⚠️ الشبكة صغيرة على الأقسام دي.' : '✔ اتوزّعوا من الأكبر للأصغر، والمستخدم ' + fmt(cur - netOf(ip, bp)) + ' من ' + fmt(P2(32 - bp)) + ' عنوان.';
+      }
+    }
+    qa('#vlCard input, #vlCard select').forEach(function (x) { x.addEventListener('input', calc); x.addEventListener('change', calc); });
+    calc();
+  })();
+})();
+</script>
+</body>
+</html>

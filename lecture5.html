@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Lecture 5 — Switched Communications Networks</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+  .stg{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .stg li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);opacity:.45;transition:.25s}
+  .stg li.on{opacity:1;border-color:var(--accent);background:rgba(var(--accent-rgb),.14);transform:translateX(-4px)}
+  .stg li.past{opacity:.85}
+  .stg .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--card);border:1px solid var(--line)}
+  .stg li.on .n{background:var(--accent);color:var(--on-accent);border-color:transparent}
+  .stg small{display:block;color:var(--muted)}
+  svg.dg{width:100%;max-width:560px;height:auto;display:block;margin:6px auto}
+  svg.dg .ln{stroke:var(--accent);stroke-width:2.5;fill:none;opacity:.7}
+  svg.dg .stl{stroke:var(--muted);stroke-width:1.8;fill:none}
+  svg.dg .nd{fill:var(--card2);stroke:var(--accent);stroke-width:2;cursor:pointer;transition:.15s}
+  svg.dg .nd.int{stroke:var(--c-ana)}
+  svg.dg .nd:hover,svg.dg .nd.sel{fill:rgba(var(--accent-rgb),.35)}
+  svg.dg .st{fill:var(--card);stroke:var(--c-imp);stroke-width:2;cursor:pointer}
+  svg.dg .st:hover,svg.dg .st.sel{fill:rgba(var(--c-imp-rgb),.35)}
+  svg.dg text{fill:var(--text);font:700 13px "Segoe UI",sans-serif;text-anchor:middle;pointer-events:none}
+  svg.dg text.sm{font-size:11.5px;font-weight:500;fill:var(--muted)}
+  .chain{display:flex;flex-wrap:wrap;gap:6px;direction:ltr;align-items:center;justify-content:center;margin:8px 0}
+  .chain .c{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font:700 13px "Segoe UI",sans-serif;text-align:center;opacity:.55;transition:.25s}
+  .chain .l{font:600 11.5px "Segoe UI",sans-serif;color:var(--muted);padding:0 2px}
+  .chain.res .c{opacity:1;border-color:var(--accent);background:rgba(var(--accent-rgb),.16)}
+  .chain.xfer .c{opacity:1;border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+  .slots{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;direction:ltr;margin:4px 0 10px}
+  .slots span{height:30px;border-radius:6px;border:1px solid var(--line);background:var(--card2);display:grid;place-items:center;font:700 11px "Segoe UI",sans-serif;color:var(--muted)}
+  .slots span.u0{background:rgba(var(--c-plan-rgb),.45);border-color:var(--c-plan);color:var(--text)}
+  .slots span.u1{background:rgba(var(--c-ana-rgb),.45);border-color:var(--c-ana);color:var(--text)}
+  .slots span.u2{background:rgba(var(--c-des-rgb),.45);border-color:var(--c-des);color:var(--text)}
+  .slots span.idle{opacity:.45}
+  .rt{display:grid;gap:6px;margin:8px 0}
+  .rt .r{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card2);direction:ltr;font:600 13.5px "Segoe UI",sans-serif}
+  .rt .r b{color:var(--accent)}
+  .rt .r .t{color:var(--muted);font-weight:500}
+  .bars{display:grid;gap:6px;margin:8px 0;direction:ltr}
+  .bars .row{display:grid;grid-template-columns:78px 1fr 56px;gap:8px;align-items:center;font:700 13px "Segoe UI",sans-serif}
+  .bars .bar2{height:22px;border-radius:7px;background:rgba(var(--c-plan-rgb),.45);border:1px solid var(--c-plan);transition:width .4s}
+  .bars .row.min .bar2{background:rgba(var(--ok-rgb),.5);border-color:var(--ok)}
+  .bars .row.sel .bar2{outline:2px solid var(--accent)}
+  .bars .row .v{text-align:right}
+  .sel{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .sel label{display:flex;gap:6px;align-items:center;font-weight:600}
+</style>
+</head>
+<body data-lecture="l5">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Lecture 5</b><small class="en plain">Switched Communications Networks</small></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0/12</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<div class="layout">
+<nav class="nav" id="nav" aria-label="محطات المحاضرة"></nav>
+<main>
+
+<!-- =====================================================  1 · BIG PICTURE -->
+<section class="station" data-icon="🗺️" data-title="الصورة الكبيرة">
+  <h2>الصورة الكبيرة 🗺️</h2>
+  <p class="lead">إزاي الداتا بتوصل من مصدر لوجهة بعيدة <b>خارج الـ LAN</b>؟ عن طريق شبكة من <b>nodes</b> بتعمل switching. <span class="muted">(⏱️ ٤ دقايق)</span></p>
+
+  <div class="card">
+    <div class="story">
+      <div class="beat"><div class="emo">☎️</div><b>Circuit switching</b><span>مسار مخصوص زي التليفون</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">📦</div><b>Packet switching</b><span>الداتا في packets صغيرة</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🛣️</div><b>Datagram ضد Virtual circuit</b><span>نوعين من الـ packet switching</span></div>
+    </div>
+    <p class="punch">أهم حاجة في المحاضرة: <b>الفرق بين الـ 3</b> (جدول سلايد 29) و<b>مثال الـ packet size</b> (129 / 92 / 77).</p>
+  </div>
+
+  <h3 class="sec">خريطة المحاضرة <small>(اضغط على أي مربع تروحله)</small></h3>
+  <div class="grid g3">
+    <button type="button" class="tile ph-plan" data-go="2"><span class="emo">🕸️</span><b>الشبكة المتبدّلة</b><small><span class="en">Stations · Nodes · Links</span></small></button>
+    <button type="button" class="tile ph-ana" data-go="3"><span class="emo">☎️</span><b class="en">Circuit Switching</b><small>3 مراحل + عيوبه ⭐</small></button>
+    <button type="button" class="tile ph-des" data-go="4"><span class="emo">📦</span><b class="en">Packet Switching</b><small>المبادئ والمميزات ⭐</small></button>
+    <button type="button" class="tile ph-imp" data-go="5"><span class="emo">🛣️</span><b>Datagram · Virtual circuit</b><small>+ Message switching 📖 ⭐</small></button>
+    <button type="button" class="tile ph-plan" data-go="6"><span class="emo">📏</span><b class="en">Packet Size</b><small>129 · 92 · 77 ⭐</small></button>
+    <button type="button" class="tile ph-ana" data-go="7"><span class="emo">⚖️</span><b>جدول المقارنة</b><small>سلايد 29 ⭐</small></button>
+    <button type="button" class="tile ph-des" data-go="8"><span class="emo">🏛️</span><b class="en">X.25 · Frame Relay</b><small>المعايير</small></button>
+  </div>
+
+  <div class="card">
+    <h4>🎯 بعد المحاضرة دي المفروض تقدر:</h4>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li>تشرح الـ <span class="en">stations / nodes / links</span> والـ <span class="en">communications network</span>.</li>
+      <li>تشرح مراحل الـ <span class="en">circuit switching</span> الثلاثة وعيوبه.</li>
+      <li>تشرح مبادئ الـ <span class="en">packet switching</span> ومميزاته على الـ circuit.</li>
+      <li>تفرّق بين <span class="en">datagram</span> و <span class="en">virtual circuit</span>.</li>
+      <li>تحسب وتفسّر تأثير حجم الـ packet على زمن النقل (<span class="en">packet size example</span>).</li>
+      <li>تقارن الـ 3 أنواع من جدول السلايد وتعرّف <span class="en">X.25</span> و <span class="en">Frame Relay</span>.</li>
+    </ul>
+    <p class="hint" style="margin:8px 0 0">دي أهداف طلّعتها أنا من عناوين السلايدات (الكتاب مفيهوش قايمة Learning Outcomes مكتوبة).</p>
+  </div>
+
+  <div class="note">💡 <b>رموز:</b> 📖 = إضافة من الكتاب. 🧠 = حيلة أو توضيح مني (فهم عام). ⚠️ = تعارض أو حاجة تحتاج انتباه.</div>
+</section>
+
+<!-- =====================================================  2 · SWITCHED NETWORKS -->
+<section class="station" data-icon="🕸️" data-title="الشبكة المتبدّلة">
+  <h2>الشبكة المتبدّلة <span class="en">Switched Network</span> 🕸️</h2>
+  <p class="lead">لنقل الداتا <b>خارج الـ local area</b>: بنبعتها من المصدر للوجهة عبر شبكة <b>nodes</b> وسيطة. <span class="muted">(⏱️ ٦ دقايق)</span></p>
+
+  <div class="card">
+    <ul style="margin:0">
+      <li>الـ <b class="en">switching nodes</b> مش مهتمة <b>بمحتوى الداتا</b>، غرضها بس توفّر <b class="en">switching facility</b> بتنقل الداتا من node لـ node لحد ما توصل لوجهتها.</li>
+      <li>الأجهزة المتوصّلة بالشبكة = <b class="en">stations</b>: <span class="chip en">computers</span><span class="chip en">terminals</span><span class="chip en">telephones</span><span class="chip en">other communicating devices</span></li>
+      <li>أجهزة الـ switching اللي غرضها توفّر الاتصال = <b class="en">nodes</b>.</li>
+      <li>الـ nodes متوصّلة ببعض في topology معينة بواسطة <b class="en">transmission links</b>.</li>
+      <li>كل station متوصّلة بـ node، ومجموعة الـ nodes = <b class="en">communications network</b>.</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🖼️ شكل الشبكة <small>(رسم مبسّط مني من سلايد 3 — اضغط على أي node أو station)</small></h3>
+  <div class="card">
+    <svg class="dg" id="netSvg" viewBox="0 0 520 300" role="img" aria-label="switched network">
+      <g class="stl"><line x1="75" y1="100" x2="110" y2="100"/><line x1="250" y1="26" x2="250" y2="40"/><line x1="380" y1="86" x2="440" y2="72"/><line x1="388" y1="205" x2="442" y2="178"/><line x1="388" y1="210" x2="420" y2="255"/><line x1="70" y1="215" x2="95" y2="200"/></g>
+      <g class="ln"><line x1="130" y1="100" x2="235" y2="52"/><line x1="130" y1="100" x2="115" y2="190"/><line x1="130" y1="100" x2="228" y2="135"/><line x1="268" y1="52" x2="355" y2="100"/><line x1="252" y1="142" x2="352" y2="106"/><line x1="130" y1="200" x2="228" y2="148"/><line x1="125" y1="208" x2="230" y2="250"/><line x1="255" y1="148" x2="358" y2="195"/><line x1="370" y1="108" x2="372" y2="190"/><line x1="255" y1="250" x2="358" y2="212"/></g>
+      <circle class="nd" data-n="1" cx="130" cy="100" r="19"/><text x="130" y="105">1</text>
+      <circle class="nd" data-n="2" cx="250" cy="52" r="19"/><text x="250" y="57">2</text>
+      <circle class="nd" data-n="3" cx="370" cy="100" r="19"/><text x="370" y="105">3</text>
+      <circle class="nd" data-n="4" cx="115" cy="200" r="19"/><text x="115" y="205">4</text>
+      <circle class="nd int" data-n="5" cx="240" cy="142" r="19"/><text x="240" y="147">5</text>
+      <circle class="nd" data-n="6" cx="372" cy="205" r="19"/><text x="372" y="210">6</text>
+      <circle class="nd int" data-n="7" cx="240" cy="252" r="19"/><text x="240" y="257">7</text>
+      <rect class="st" data-s="B" x="42" y="86" width="34" height="28" rx="6"/><text x="59" y="105">B</text>
+      <rect class="st" data-s="C" x="232" y="2" width="36" height="26" rx="6"/><text x="250" y="20">C</text>
+      <rect class="st" data-s="D" x="440" y="58" width="34" height="28" rx="6"/><text x="457" y="77">D</text>
+      <rect class="st" data-s="E" x="442" y="164" width="34" height="28" rx="6"/><text x="459" y="183">E</text>
+      <rect class="st" data-s="F" x="420" y="246" width="34" height="28" rx="6"/><text x="437" y="265">F</text>
+      <rect class="st" data-s="A" x="36" y="204" width="34" height="28" rx="6"/><text x="53" y="223">A</text>
+    </svg>
+    <p class="hint" style="margin:0 0 8px;text-align:center">🟡 الأصفر = node بتعمل <span class="en">internal switching</span> بس · المربعات = <span class="en">stations</span></p>
+    <div class="note" id="netNote">اضغط على node (دايرة) أو station (مربع) وشوف الوصف.</div>
+  </div>
+
+  <h3 class="sec">📌 ملاحظات على الرسمة <small>(سلايد 4–6)</small></h3>
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0"><h4>🔀 nodes شغلها الداخلي</h4><p style="margin:0">بعض الـ nodes بتتوصّل بـ nodes تانية بس (مثلاً <b>5 و 7</b>). مهمتها <b class="en">internal switching of data</b>.</p></div>
+    <div class="card tint ph-ana" style="margin:0"><h4>🖥️ nodes ليها stations</h4><p style="margin:0">nodes تانية ليها station أو أكتر. وبالإضافة للـ switching بتستقبل الداتا من الـ stations دي وتسلّمها ليها. اللينكات <b>node-station</b> غالباً <b class="en">dedicated point-to-point</b>.</p></div>
+  </div>
+  <div class="note ok">🔑 <b>الشبكة غالباً مش fully connected</b> (مفيش لينك مباشر بين كل زوج nodes). لكن دايماً <b>أفضل يكون فيه أكتر من مسار</b> ممكن لكل زوج stations: ده بيزوّد الـ <b>reliability</b> (الاعتمادية). ⚠️ مثال الـ <b>reliability</b> ده مهم.</div>
+  <div class="note">🧠 <b>التقنيتين</b> المستخدمين في الـ <b>wide area switched networks</b>: <b class="en">circuit switching</b> و <b class="en">packet switching</b>. الفرق بينهم في <b>طريقة تبديل المعلومة من لينك للتاني</b> في الطريق من المصدر للوجهة.</div>
+
+  <h3 class="sec">🎯 تدريب: Station ولا Node ولا Link؟</h3>
+  <div data-deck="net"></div>
+</section>
+
+<!-- =====================================================  3 · CIRCUIT SWITCHING -->
+<section class="station" data-icon="☎️" data-title="Circuit Switching ⭐">
+  <h2><span class="en">Circuit Switching</span> ⭐</h2>
+  <p class="lead">مسار <b>مخصوص</b> بين محطتين طول المكالمة، زي التليفون. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <ul style="margin:0">
+      <li>الـ circuit switching معناه إن فيه <b>dedicated communication path</b> بين محطتين.</li>
+      <li>المسار ده = <b>سلسلة متصلة من اللينكات</b> بين الـ network nodes.</li>
+      <li>مثال السلايد: توصيلة على <b class="en">public circuit-switching network</b> (التليفون).</li>
+    </ul>
+    <div class="note">📖 <b>الكتاب:</b> بيفضل المسار موجود طول الجلسة وبعد انتهاء الاتصال بيتقفل. مناسب خصوصاً لتطبيقات الصوت (<span class="en">voice</span>)، ومثاله خطوط التليفون العامة.</div>
+  </div>
+
+  <h3 class="sec">📞 مراحل الـ <span class="en">Circuit Switching</span> الثلاثة <small>(دوس واتفرّج)</small></h3>
+  <div class="card" id="cirCard">
+    <ol class="stg" id="cirStg"></ol>
+    <div class="chain" id="cirChain"></div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="cirNext">المرحلة التالية ←</button>
+      <button type="button" class="btn ghost" id="cirReset">🔁 من الأول</button>
+    </div>
+    <div class="note" id="cirNote">دوس «المرحلة التالية» عشان تبدأ.</div>
+  </div>
+  <p class="hint">أسماء الأجزاء في رسمة السلايد 8: <span class="en">Subscriber loop · End office · Connecting trunk · Long-distance office · Intercity trunk · Digital PBX</span>.</p>
+
+  <div class="note warn">⚠️ <b>نقطة مهمة (سلايد 10):</b> مسار الاتصال بيتأسس <b>قبل</b> ما الداتا تبدأ. فلازم تتحجز <b>channel capacity</b> بين كل زوج nodes في المسار، وكل node لازم يكون عندها <b>internal switching capacity</b> متاحة تتعامل مع الاتصال المطلوب.</div>
+
+  <div class="card">
+    <h3>👎 عيبين في الـ <span class="en">Circuit Switching</span></h3>
+    <ol class="steps ph-imp">
+      <li>في اتصال user/host عادي (مثلاً مستخدم PC داخل على database server) <b>الخط بيبقى idle أغلب الوقت</b>، فالـ circuit switching <b>مش efficient</b> مع الـ data connections.</li>
+      <li>الاتصال بيوفّر إرسال <b>بمعدل ثابت (constant data rate)</b>، فكل جهاز من الاتنين لازم يبعت ويستقبل <b>بنفس معدل التاني</b>: ده بيحدّ من فايدة الشبكة في توصيل أنواع مختلفة من الـ hosts والـ workstations.</li>
+    </ol>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده أنهي مرحلة؟</h3>
+  <div data-deck="circ"></div>
+</section>
+
+<!-- =====================================================  4 · PACKET SWITCHING -->
+<section class="station" data-icon="📦" data-title="Packet Switching ⭐">
+  <h2><span class="en">Packet Switching</span> ⭐</h2>
+  <p class="lead">الداتا بتتبعت في <b>packets قصيرة</b>، وفي مميزات على الـ circuit. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <h3>📦 المبادئ (سلايد 11–13)</h3>
+    <ul>
+      <li>الداتا بتتبعت في <b class="en">short packets</b>. الحد الأقصى المعتاد لطول الـ packet = <b class="en">1000 octets (bytes)</b>.</li>
+      <li>لو المصدر عنده رسالة أطول، بتتقسّم لسلسلة packets.</li>
+      <li>كل packet = <b>جزء من داتا المستخدم</b> (أو كلها لو الرسالة قصيرة) + <b class="en">control information</b>.</li>
+      <li>الـ control information (على الأقل) فيها المعلومات اللي الشبكة محتاجاها <b>عشان تقدر توجّه الـ packet وتسلّمه للوجهة</b>.</li>
+      <li>رسمة سلايد 13: الرسالة بتتقسّم لـ packets ← بتتبعت بأحسن مسار (<span class="en">most expedient route</span>) ← بتتعاد ترتيبها وتتجمّع (<span class="en">reordered and reassembled</span>).</li>
+    </ul>
+    <div class="note">📖 <b>الكتاب:</b> كل packet ليه header فيه معلومات زي <span class="en">source IP address, destination IP address, sequence number</span>. الـ sequence number بيعرّف الـ packet عند الوجهة وبيتجمّعوا بالترتيب الصح وبعدين بيتبعت acknowledgement. والمثال الأهم على الـ packet switching: <b>الإنترنت</b>.</div>
+  </div>
+
+  <h3 class="sec">✅ مميزات الـ <span class="en">Packet Switching</span> على الـ <span class="en">Circuit</span> <small>(سلايد 14–16)</small></h3>
+  <ol class="steps ph-plan">
+    <li><b>كفاءة خط أعلى (Line efficiency)</b>: اللينك الواحد بين node و node بيتشارك <b>ديناميكياً</b> بين packets كتير على مدار الوقت. الـ packets بتتحط في طابور وتتبعت <b>بأسرع ما يمكن</b>. بينما في الـ circuit switching الوقت على اللينك <b>محجوز مسبقاً</b> بـ <span class="en">synchronous time division multiplexing</span>، وغالباً اللينك بيبقى فاضي لأن جزء من وقته مخصص لاتصال idle.</li>
+    <li><b>Data-rate conversion</b>: محطتين بمعدلات مختلفة يقدروا يتبادلوا packets لأن كل واحدة متوصّلة بالـ node بمعدلها المناسب.</li>
+    <li>لما الـ traffic يزيد: في الـ circuit بعض المكالمات <b class="en">بتتحجب (blocked)</b> (الشبكة بترفض طلبات اتصال جديدة). في الـ packet <b>الـ packets لسه بتتقبل لكن الـ delivery delay بيزيد</b>.</li>
+    <li>ممكن تُستخدم <b class="en">priorities</b>: لو node عندها packets كتير في الطابور، تبعت الأولوية الأعلى الأول، فتتعرض لتأخير أقل.</li>
+  </ol>
+
+  <h3 class="sec">🧪 استغلال اللينك: Circuit ضد Packet <small>(محاكاة مني بتبسّط الفكرة)</small></h3>
+  <div class="card" id="utCard">
+    <p style="margin-top:0">3 مستخدمين بيتشاركوا لينك فيه <b>12 slot</b> زمنية. كل مستخدم عنده احتمال إنه يبعت داتا في كل slot. اضبط النشاط وجرّب «حاول تاني» عدة مرات.</p>
+    <div class="sel">
+      <label>نشاط المستخدمين (احتمال إرسال):
+        <select id="utP"><option value="0.2">20% (idle أغلب الوقت)</option><option value="0.4" selected>40%</option><option value="0.7">70%</option></select>
+      </label>
+      <button type="button" class="btn primary" id="utGo">🎲 حاول تاني</button>
+    </div>
+    <p class="muted" style="margin:6px 0 2px"><b>Circuit switching</b>: كل مستخدم له slots ثابتة (1، 4، 7، 10 للأول… إلخ) حتى لو مش عنده داتا:</p>
+    <div class="slots" id="utC"></div>
+    <p class="muted" style="margin:6px 0 2px"><b>Packet switching</b>: أي packet تستخدم أول slot فاضية:</p>
+    <div class="slots" id="utPk"></div>
+    <div class="res-row">
+      <div class="res"><small>استغلال اللينك في الـ circuit</small><b id="utRc"></b></div>
+      <div class="res pos"><small>استغلال اللينك في الـ packet</small><b id="utRp"></b></div>
+    </div>
+    <p class="hint" style="margin:6px 0 0">🧠 الألوان = المستخدمين 1 و 2 و 3. الـ slots الباهتة = لينك فاضي. ملاحظة: في الـ packet switching الـ slots الفاضية اللي بتفضل بتحصل لأن المستخدمين ما عندهمش داتا كفاية.</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Circuit ولا Packet؟</h3>
+  <div data-deck="pkt"></div>
+</section>
+
+<!-- =====================================================  5 · DATAGRAM vs VC -->
+<section class="station" data-icon="🛣️" data-title="Datagram ضد Virtual Circuit ⭐">
+  <h2><span class="en">Datagram</span> ضد <span class="en">Virtual Circuit</span> ⭐</h2>
+  <p class="lead">لو الرسالة اتقسّمت لـ packets، الشبكة هتتعامل معاها إزاي؟ في طريقتين. <span class="muted">(⏱️ ٩ دقايق)</span></p>
+
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0">
+      <h4>📮 <span class="en">Datagram</span> (سلايد 18–20)</h4>
+      <ul style="margin:0;padding-inline-start:20px">
+        <li>الفكرة بسيطة جداً: بنحط في <b>كل packet</b> معلومات كفاية تخلّي أي switch يقرر يوصّلها للوجهة إزاي.</li>
+        <li>يعني كل packet فيها <b>عنوان الوجهة كامل</b>.</li>
+        <li>كل packet بتتعامل <b>باستقلال</b> من غير ما تعتمد على اللي قبلها.</li>
+        <li>كل node <b>بتختار الـ node اللي بعدها</b> في مسار الـ packet بناءً على معلومات من الجيران (<span class="en">traffic, line failures…</span>).</li>
+        <li>فالـ packets (لنفس الوجهة) <b>مش بتمشي كلها في نفس المسار</b> وممكن توصل <b class="en">out of sequence</b>.</li>
+      </ul>
+    </div>
+    <div class="card tint ph-ana" style="margin:0">
+      <h4>🔗 <span class="en">Virtual Circuit</span> (سلايد 21–23)</h4>
+      <ul style="margin:0;padding-inline-start:20px">
+        <li><b>مسار مخطط مسبقاً</b> بيتأسس <b>قبل</b> ما أي packet تتبعت.</li>
+        <li>بعد التأسيس <b>كل الـ packets</b> بين الطرفين بتمشي في <b>نفس المسار</b>.</li>
+        <li>لأن المسار ثابت طول الاتصال المنطقي، فهو شبه الـ circuit في الـ circuit switching، فاتسمى <b class="en">virtual circuit</b>.</li>
+        <li>كل packet فيها <b>virtual circuit identifier</b> + الداتا.</li>
+        <li>الخاصية الأساسية: <b>route بين المحطات بيتحدد قبل نقل الداتا</b>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note">📖 <b>الكتاب:</b> الـ datagram = <b class="en">Connectionless Switching</b> (من غير مسار ثابت، المسار بيتحدد بقرار routing وكل packet ليها header فيه عنوان الوجهة وتتجمّع تاني في الآخر). الـ virtual circuit = <b class="en">Connection-Oriented Switching</b>: بتتستخدم رسايل <b class="en">call request</b> و <b class="en">call accept</b> لتأسيس الجلسة بين المرسل والمستقبل، وفيه <b>circuit ثابت محدد مسبقاً</b>. والإنترنت بيستخدم packet switching وكل packet فيه ممكن تتبعت باستقلال.</div>
+
+  <h3 class="sec">🧪 جرّب الفرق <small>(محاكاة مني: المسارات مجرد أمثلة)</small></h3>
+  <div class="card" id="dvCard">
+    <div class="seg" id="dvSeg" style="margin-bottom:8px">
+      <button type="button" data-m="dg" class="on">Datagram</button>
+      <button type="button" data-m="vc">Virtual circuit</button>
+    </div>
+    <p class="muted" style="margin:4px 0">3 مسارات ممكنة من A لـ E: <span class="en">R1: 4→5→6 (قصير) · R2: 4→7→6 (متوسط) · R3: 4→1→2→3→6 (طويل)</span>. هنبعت 5 packets.</p>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="dvGo">📤 ابعت 5 packets</button>
+    </div>
+    <div class="rt" id="dvRt"></div>
+    <div class="verdict" id="dvV">اختار الطريقة ودوس «ابعت».</div>
+  </div>
+
+  <div class="card tint ph-imp">
+    <h4>📖 <span class="en">Message Switching</span> (من الكتاب بس)</h4>
+    <p style="margin:0">تقنية <b>في النص</b> بين الـ circuit والـ packet. الرسالة <b>كاملة</b> بتتخزّن في كل node، ولما المسار يتاح بتتبعت كاملة. فيها آلية <b class="en">store and forward</b>، فبتحتاج موارد أكتر وبتبقى <b>بطيئة</b> (long delays). مناسبة للتطبيقات اللي مش محتاجة سرعة. مش في سلايدات الدكتور.</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Datagram ولا Virtual circuit؟</h3>
+  <div data-deck="dgvc"></div>
+</section>
+
+<!-- =====================================================  6 · PACKET SIZE -->
+<section class="station" data-icon="📏" data-title="Packet Size ⭐">
+  <h2><span class="en">Packet Size</span> ⭐</h2>
+  <p class="lead">العلاقة بين حجم الـ packet وزمن النقل. مثال محسوب في السلايد (129 / 92 / 77). <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <h3>📋 افتراضات المثال (سلايد 24–28)</h3>
+    <ul style="margin:0">
+      <li>فيه <b class="en">virtual circuit</b> من station <b>X</b> عبر nodes <b>a</b> و <b>b</b> لـ station <b>Y</b> (يعني 3 لينكات).</li>
+      <li>الرسالة <b>40 octets</b>، وكل packet فيها <b>3 octets</b> control information (<span class="en">header</span>) في الأول.</li>
+      <li>بنتجاهل وقت الـ switching.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <ol class="steps ph-plan">
+      <li><b>packet واحدة</b> (43 octets = 3 header + 40 data): تتبعت X→a، ولما توصل كلها تتبعت a→b، ولما توصل كلها b→Y. الزمن = <b class="en">43 × 3 = 129 octet-times</b>. (الرسمة a)</li>
+      <li><b>packetين</b> (كل واحدة 20 data + 3 header): الـ node a تبدأ ترسل الأولى أول ما توصلها من X من غير ما تستنى التانية. التداخل ده بينزّل الزمن لـ <b class="en">92 octet-times</b>. (الرسمة b)</li>
+      <li><b>5 packets</b>: كل node وسيطة تبدأ ترسل أبكر، والتوفير أكبر: <b class="en">77 octet-times</b>. (الرسمة c)</li>
+      <li>لكن <b>استخدام packets أكتر وأصغر</b> في الآخر بيطلّع <b>تأخير أكبر مش أقل</b> (الرسمة d: 10 packets).</li>
+    </ol>
+    <div class="note warn">⚠️ كمان: المثال <b>مبيعرضش</b> الـ processing والـ queuing delays عند كل node، وهي بتزيد لما packets أكتر تتعامل لرسالة واحدة. ومع كده: استخدام packet size صغير (<b>53 octets</b>) ممكن يطلّع <b>تصميم شبكة efficient</b>.</div>
+  </div>
+
+  <h3 class="sec">🧮 حاسبة <span class="en">Packet Size</span> <small>(المعادلة مني: حقّقتها على أرقام السلايد)</small></h3>
+  <div class="card calc" id="psCard">
+    <div class="formula" dir="ltr">time = (p + n) × (M / p + H)<small>p = number of packets · n = intermediate nodes · M = message octets · H = header octets</small></div>
+    <div class="calc-top">
+      <label>الرسالة M <input type="number" id="psM" value="40" min="1" step="1"> <span class="en plain">octets</span></label>
+      <label>الـ header H <input type="number" id="psH" value="3" min="0" step="1"> <span class="en plain">octets</span></label>
+      <label>nodes وسيطة n <input type="number" id="psN" value="2" min="0" max="10" step="1"></label>
+    </div>
+    <div class="bars" id="psBars"></div>
+    <p class="muted" style="margin:6px 0 0" id="psMsg"></p>
+  </div>
+  <div class="note ok">✔ مع القيم الافتراضية: <span class="en">p=1 → 129 · p=2 → 92 · p=5 → 77 · p=10 → 84</span>. السلايد بيعرض 129 و 92 و 77 و (d) بتبيّن إن 10 packets أسوأ من 5. الأقل في المثال = <b>5 packets (77)</b>.</div>
+
+  <h3 class="sec">🎯 تدريب: الأرقام والنتايج</h3>
+  <div data-deck="psize"></div>
+</section>
+
+<!-- =====================================================  7 · COMPARISON TABLE -->
+<section class="station" data-icon="⚖️" data-title="جدول المقارنة ⭐">
+  <h2>جدول المقارنة <small class="en plain" style="font-size:16px">(سلايد 29)</small> ⚖️</h2>
+  <p class="lead">أهم جدول في المحاضرة: الـ 3 أنواع جنب بعض. <span class="muted">(⏱️ ٧ دقايق)</span></p>
+
+  <div class="tscroll">
+  <table class="tbl" dir="ltr" style="min-width:560px">
+    <tr><th>Circuit Switching</th><th>Datagram Packet Switching</th><th>Virtual Circuit Packet Switching</th></tr>
+    <tr><td>Dedicated transmission path</td><td>No dedicated path</td><td>No dedicated path</td></tr>
+    <tr><td>Continuous transmission of data</td><td>Transmission of packets</td><td>Transmission of packets</td></tr>
+    <tr><td>Fast enough for interactive</td><td>Fast enough for interactive</td><td>Fast enough for interactive</td></tr>
+    <tr><td>Messages are not stored</td><td>Packets may be stored until delivered</td><td>Packets stored until delivered</td></tr>
+    <tr><td>The path is established for entire conversation</td><td>Route established for each packet</td><td>Route established for entire conversation</td></tr>
+    <tr><td>Call setup delay; negligible transmission delay</td><td>Packet transmission delay</td><td>Call setup delay; packet transmission delay</td></tr>
+    <tr><td>Busy signal if called party busy</td><td>Sender may be notified if packet not delivered</td><td>Sender notified of connection denial</td></tr>
+    <tr><td>Overload may block call setup; no delay for established calls</td><td>Overload increases packet delay</td><td>Overload may block call setup; increases packet delay</td></tr>
+    <tr><td>Electromechanical or computerized switching nodes</td><td>Small switching nodes</td><td>Small switching nodes</td></tr>
+    <tr><td>User responsible for message loss protection</td><td>Network may be responsible for individual packets</td><td>Network may be responsible for packet sequences</td></tr>
+    <tr><td>Usually no speed or code conversion</td><td>Speed and code conversion</td><td>Speed and code conversion</td></tr>
+    <tr><td>Fixed bandwidth</td><td>Dynamic use of bandwidth</td><td>Dynamic use of bandwidth</td></tr>
+    <tr><td>No overhead bits after call setup</td><td>Overhead bits in each packet</td><td>Overhead bits in each packet</td></tr>
+  </table>
+  </div>
+  <div class="note">🧠 <b>حيلة:</b> الصفوف اللي <b>Datagram و VC بيتشاركوا فيها</b> (No dedicated path · Transmission of packets · Small switching nodes · Speed and code conversion · Dynamic use of bandwidth · Overhead bits in each packet) = مميزات الـ <b>packet switching</b> عموماً. الفرق بينهم الأساسي: <b>route لكل packet</b> (datagram) ضد <b>route للمحادثة كلها</b> (VC) + الـ <b>call setup</b>.</div>
+  <div class="note warn">⚠️ الصف الأول بيقول للـ VC «No dedicated path»، لكن الصف الخامس بيقول «Route established for entire conversation». فيه <b>route ثابت</b> لكن مش <b>مسار مخصوص ومحجوز</b> زي الـ circuit.</div>
+
+  <h3 class="sec">🎯 لعبة: ده بيوصف أنهي نوع؟</h3>
+  <div data-deck="cmp"></div>
+</section>
+
+<!-- =====================================================  8 · X.25 + FRAME RELAY -->
+<section class="station" data-icon="🏛️" data-title="X.25 · Frame Relay">
+  <h2><span class="en">X.25</span> و <span class="en">Frame Relay</span> 🏛️</h2>
+  <p class="lead">معيارين لشبكات الـ packet switching. <span class="muted">(⏱️ ٥ دقايق)</span></p>
+
+  <div class="card" data-tabs="x25">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="x25">X.25</button>
+      <button type="button" class="ph-ana" data-tab="fr">Frame Relay</button>
+    </div>
+    <div class="pane" data-pane="x25">
+      <ul>
+        <li><b class="en">X.25</b> = <b class="en">ITU-T standard</b> بيحدد <b>interface بين host system وشبكة packet-switching</b>.</li>
+        <li><b class="en">ITU-T</b> = <span class="en">International Telecommunication Union – Telecommunication</span>.</li>
+        <li>وظيفته متقسمة على <b>3 مستويات (levels)</b>:</li>
+      </ul>
+      <ol class="steps ph-plan">
+        <li><b class="en">Physical level</b>: بيتعامل مع الـ <b>physical interface</b> بين الـ station (computer/terminal) واللينك اللي بيوصّلها بالـ packet-switching node.</li>
+        <li><b class="en">Link level</b>: بيوفّر <b>نقل موثوق للداتا</b> عبر اللينك الفيزيائي بإرسالها كسلسلة <b>frames</b>. المعيار اسمه <b class="en">LAPB (Link Access Protocol-Balanced)</b>.</li>
+        <li><b class="en">Packet level</b>: بيوفّر <b class="en">virtual circuit service</b>: بيخلّي أي مشترك في الشبكة يؤسس <b>اتصالات منطقية</b> (virtual circuits) مع مشتركين تانيين.</li>
+      </ol>
+    </div>
+    <div class="pane" data-pane="fr">
+      <ul>
+        <li><b class="en">Frame Relay</b> اتصمم عشان يوفّر <b>مخطط إرسال أكفأ من X.25</b>.</li>
+        <li>خدمة اتصالات <b>packet-switching</b> مصممة لنقل داتا <b>بتكلفة فعالة</b> للـ traffic بين الـ <b class="en">LANs</b> وبين نقط النهاية في الـ <b class="en">WANs</b>.</li>
+        <li>في عملية الـ relay الداتا بتتحط في blocks <b>بأحجام مختلفة</b> اسمها <b class="en">frames</b>.</li>
+        <li><b>المعلومات المعتادة لتصحيح الأخطاء مش بتتحط في الـ frame</b>، وعشان كده بيتحقق <b>معدل تبادل داتا أعلى</b>.</li>
+      </ul>
+      <div class="note">📖 <b>الكتاب:</b> الـ Frame Relay (وكمان <span class="en">PPP</span>) من بروتوكولات الـ <b class="en">Network Access</b> الشائعة لما الشبكة الفيزيائية تكون <b>WAN</b> (وفي الـ LAN بيبقى Ethernet).</div>
+    </div>
+  </div>
+
+  <table class="tbl">
+    <tr><th></th><th class="en">X.25</th><th class="en">Frame Relay</th></tr>
+    <tr class="ph-plan"><td>الفكرة</td><td>interface بين host وشبكة packet-switching (ITU-T)</td><td>خدمة packet-switching أكفأ من X.25</td></tr>
+    <tr class="ph-ana"><td>المستويات</td><td>Physical · Link (LAPB) · Packet (virtual circuit)</td><td>—</td></tr>
+    <tr class="ph-des"><td>الوحدة</td><td>frames في الـ link level، وpackets في الـ packet level</td><td>frames بأحجام مختلفة</td></tr>
+    <tr class="ph-imp"><td>تصحيح الأخطاء</td><td>link level موثوق (LAPB)</td><td>مفيش معلومات error correction في الـ frame ← سرعة أعلى</td></tr>
+  </table>
+
+  <h3 class="sec">🎯 تدريب: X.25 ولا Frame Relay؟</h3>
+  <div data-deck="xfr"></div>
+</section>
+
+<!-- =====================================================  9 · TRAPS -->
+<section class="station" data-icon="⚠️" data-title="فخاخ الامتحان">
+  <h2>فخاخ الامتحان ⚠️</h2>
+  <p class="lead">الجمل دي هي اللي بتتعمل منها <span class="en">True/False</span>. قرر: صح ولا غلط؟ (⏱️ ٤ دقايق)</p>
+  <div data-deck="traps"></div>
+</section>
+
+<!-- =====================================================  10 · FLASHCARDS -->
+<section class="station" data-icon="🧠" data-title="Flashcards">
+  <h2>Flashcards 🧠</h2>
+  <p class="lead">فكّر في الإجابة الأول، وبعدين اقلب الكارت. علّم اللي عرفته ✅ واللي لسه 🔁 — وراجع الأخير بس. (⏱️ ٦ دقايق)</p>
+  <div data-flash="main"></div>
+  <p class="hint" style="text-align:center;margin-top:10px">⌨️ مسطرة (Space) تقلب · الأسهم تنقل بين الكروت</p>
+</section>
+
+<!-- =====================================================  11 · QUIZ -->
+<section class="station" data-icon="📝" data-title="الكويز النهائي">
+  <h2>الكويز النهائي 📝</h2>
+  <p class="lead">10 أسئلة <span class="en">MCQ</span> بتصحيح فوري، وبعدها 3 أسئلة <span class="en">Essay</span> تكتب إجابتك وتقارنها بالنموذجية. (⏱️ ٨ دقايق)</p>
+
+  <h3 class="sec">① MCQ</h3>
+  <div data-deck="mcq"></div>
+
+  <h3 class="sec">② Essay</h3>
+  <div class="card essay" data-essay="e1">
+    <h3>سؤال 1</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Compare circuit switching and packet switching. Mention the phases and shortcomings of circuit switching and the advantages of packet switching.</p>
+    <textarea placeholder="اكتب إجابتك هنا (بتتحفظ في المتصفح بس)…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e2">
+    <h3>سؤال 2</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Explain the datagram and virtual-circuit approaches of packet switching, and state three differences between them and circuit switching.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e3">
+    <h3>سؤال 3</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">A 40-octet message is sent over a virtual circuit X → a → b → Y with a 3-octet header per packet. Show how the total transmission time changes when the message is sent as 1, 2 or 5 packets, and explain the effect of using many small packets.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+</section>
+
+<!-- =====================================================  12 · SUMMARY -->
+<section class="station summary" data-icon="⚡" data-title="ملخص المراجعة">
+  <h2>ملخص المراجعة ⚡ <span class="en plain" style="font-size:18px">Lecture 5</span></h2>
+  <p class="lead noprint">ده اللي تراجعه الليلة اللي قبل الامتحان. <button type="button" class="btn" onclick="window.print()">🖨️ اطبع / احفظ PDF</button></p>
+
+  <h3 class="sec">🕸️ الشبكة المتبدّلة</h3>
+  <table class="tbl">
+    <tr><th>المصطلح</th><th>المعنى</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Stations</span></td><td>الأجهزة المتوصّلة بالشبكة (computers, terminals, telephones…)</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Nodes</span></td><td>أجهزة الـ switching (بعضها internal switching بس، وبعضها ليها stations)</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Links</span></td><td>بتوصّل الـ nodes ببعض (node-station غالباً dedicated point-to-point)</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">Communications network</span></td><td>مجموعة الـ nodes · غالباً مش fully connected · أكتر من مسار = reliability أعلى</td></tr>
+  </table>
+
+  <h3 class="sec">☎️ Circuit switching</h3>
+  <div class="note ok"><b>3 مراحل:</b> <span class="en">Circuit establishment → Data transfer → Circuit disconnect</span>. المسار بيتأسس قبل الداتا، وبتتحجز capacity بين كل زوج nodes.<br><b>عيبين:</b> ① الخط idle أغلب الوقت مع data connections (inefficient) ② معدل ثابت: الطرفين لازم نفس المعدل.</div>
+
+  <h3 class="sec">📦 Packet switching</h3>
+  <div class="note ok">الداتا في packets (الحد المعتاد <b>1000 octets</b>) = جزء داتا + control information للـ routing. <b>المميزات:</b> line efficiency أعلى (sharing ديناميكي ضد TDM محجوز) · data-rate conversion · عند الزحمة الـ packets لسه بتتقبل والـ delay بيزيد (ضد blocking في الـ circuit) · priorities.</div>
+
+  <h3 class="sec">⚖️ الجدول المقارن (أهم الصفوف)</h3>
+  <table class="tbl">
+    <tr><th></th><th>Circuit</th><th>Datagram</th><th>Virtual circuit</th></tr>
+    <tr><td>المسار</td><td>مخصوص</td><td>مفيش dedicated path</td><td>مفيش dedicated path</td></tr>
+    <tr><td>الـ route</td><td>للمحادثة كلها</td><td>لكل packet</td><td>للمحادثة كلها</td></tr>
+    <tr><td>الـ setup</td><td>call setup delay</td><td>مفيش</td><td>call setup + packet delay</td></tr>
+    <tr><td>الزحمة</td><td>تـ block الـ call</td><td>يزيد packet delay</td><td>block call + يزيد delay</td></tr>
+    <tr><td>الـ bandwidth</td><td>ثابت</td><td>ديناميكي</td><td>ديناميكي</td></tr>
+    <tr><td>الـ overhead</td><td>مفيش بعد الـ setup</td><td>في كل packet</td><td>في كل packet</td></tr>
+    <tr><td>الحماية من الفقد</td><td>المستخدم</td><td>الشبكة (packets)</td><td>الشبكة (sequences)</td></tr>
+  </table>
+
+  <h3 class="sec">📏 Packet size (40 octets + 3 header، nodes a و b)</h3>
+  <table class="tbl">
+    <tr><th>عدد الـ packets</th><th>الزمن (octet-times)</th><th>ملاحظة</th></tr>
+    <tr><td class="en">1</td><td class="en">129 (= 43 × 3)</td><td>سلايد</td></tr>
+    <tr><td class="en">2</td><td class="en">92</td><td>سلايد</td></tr>
+    <tr><td class="en">5</td><td class="en">77</td><td>سلايد (الأقل)</td></tr>
+    <tr><td class="en">10</td><td class="en">84</td><td>من المعادلة: أسوأ من 5 (الرسمة d)</td></tr>
+  </table>
+  <p class="muted">المعادلة (مني): <span class="en">time = (p + n) × (M/p + H)</span>. packet size صغير (53 octets) ممكن يكون efficient.</p>
+
+  <h3 class="sec">🏛️ X.25 و Frame Relay</h3>
+  <div class="grid g2">
+    <div class="card"><h4>X.25</h4><p style="margin:0">معيار <span class="en">ITU-T</span> لـ interface بين host وشبكة packet-switching. 3 levels: <span class="en">Physical · Link (LAPB, frames, reliable) · Packet (virtual circuit service)</span>.</p></div>
+    <div class="card"><h4>Frame Relay</h4><p style="margin:0">أكفأ من X.25. بين الـ LANs ونقط النهاية في الـ WANs. frames بأحجام مختلفة ومن غير error-correction info فمعدل أعلى.</p></div>
+  </div>
+
+  <h3 class="sec">📖 الكتاب ضد السلايدات</h3>
+  <table class="tbl">
+    <tr><th>الموضوع</th><th>السلايدات</th><th>الكتاب 📖</th></tr>
+    <tr><td>الأنواع</td><td>Circuit + Packet (Datagram, VC)</td><td>+ <b>Message switching</b> (store and forward، بطيء)</td></tr>
+    <tr><td>Datagram / VC</td><td>تعريفات + جدول</td><td>= Connectionless / Connection-oriented · call request و call accept · sequence number في الـ header</td></tr>
+    <tr><td>Circuit</td><td>3 مراحل + عيبين</td><td>الصوت / التليفون مثال · نفس المراحل</td></tr>
+    <tr><td>Packet</td><td>1000 octets · مميزات</td><td>الإنترنت مثال · header فيه IP source/destination</td></tr>
+    <tr><td>Frame Relay</td><td>خدمة بين LANs و WANs</td><td>في الـ Network Access لما الشبكة WAN (مع PPP)</td></tr>
+  </table>
+
+  <h3 class="sec">⚠️ الفخاخ</h3>
+  <div class="note bad">
+    ❌ الـ switching nodes مهتمة بمحتوى الداتا (لأ) &nbsp;·&nbsp; ❌ الشبكة fully connected (مش غالباً) &nbsp;·&nbsp; ❌ الـ circuit switching مناسب لـ data connections لأن الخط مشغول (الخط idle) &nbsp;·&nbsp; ❌ الزحمة في الـ packet switching بتـ block المكالمات (ده الـ circuit؛ في packet الـ delay بيزيد) &nbsp;·&nbsp; ❌ الـ datagram كل packet على نفس المسار وبالترتيب (لأ) &nbsp;·&nbsp; ❌ packets أكتر وأصغر دايماً أسرع (لأ، بتزيد التأخير في النهاية) &nbsp;·&nbsp; ❌ X.25 على 4 مستويات (3) &nbsp;·&nbsp; ❌ Frame Relay فيه error correction في الـ frame (مفيش)
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+window.DATA = {
+  decks: {
+    /* ---------- network vocabulary ---------- */
+    net: {
+      cols: 2,
+      opts: [{ t: 'Station', cls: 'ph-plan' }, { t: 'Node', cls: 'ph-ana' }, { t: 'Link', cls: 'ph-des' }, { t: 'Communications network', cls: 'ph-imp' }],
+      cards: [
+        { q: 'Computers, terminals, telephones or other communicating devices attached to the network', a: 0, why: 'دي <b>stations</b>.' },
+        { q: 'Switching devices whose purpose is to provide communication', a: 1, why: 'دي <b>nodes</b>.' },
+        { q: 'The transmission connections that join the nodes to one another in some topology', a: 2, why: '<b>Transmission links</b>.' },
+        { q: 'The collection of nodes (to which each station attaches)', a: 3, why: '<b>Communications network</b>.' },
+        { q: 'Nodes 5 and 7 in the slide figure, which connect only to other nodes', a: 1, why: '<b>Nodes</b> وظيفتها internal switching.' },
+        { q: 'A node-station connection is generally a dedicated point-to-point one', a: 2, why: 'ده <b>link</b> (node-station links).' },
+        { q: 'A mainframe, a server or a personal computer attached to a node', a: 0, why: '<b>Stations</b>.' }
+      ]
+    },
+
+    /* ---------- circuit phases ---------- */
+    circ: {
+      cols: 1,
+      opts: [{ t: 'Circuit establishment', cls: 'ph-plan' }, { t: 'Data transfer', cls: 'ph-ana' }, { t: 'Circuit disconnect', cls: 'ph-des' }],
+      cards: [
+        { q: 'Before any signals can be transmitted, an end-to-end (station-to-station) circuit must be established.', a: 0, why: '<b>Circuit establishment</b>.' },
+        { q: 'Data can now be transmitted from A through the network to E; the transmission may be analog or digital.', a: 1, why: '<b>Data transfer</b>.' },
+        { q: 'After some period of data transfer, the connection is terminated, usually by the action of one of the two stations.', a: 2, why: '<b>Circuit disconnect</b>.' },
+        { q: 'Channel capacity must be reserved between each pair of nodes in the path.', a: 0, why: 'بيحصل قبل الداتا: <b>Circuit establishment</b>.' },
+        { q: 'Each node must have available internal switching capacity to handle the requested connection.', a: 0, why: '<b>Circuit establishment</b>.' },
+        { q: 'The transmission depends on the nature of the network (analog or digital).', a: 1, why: '<b>Data transfer</b>.' }
+      ]
+    },
+
+    /* ---------- circuit vs packet ---------- */
+    pkt: {
+      cols: 2,
+      opts: [{ t: 'Circuit switching', cls: 'ph-plan' }, { t: 'Packet switching', cls: 'ph-ana' }],
+      cards: [
+        { q: 'A single node-to-node link is dynamically shared by many packets over time', a: 1, why: '<b>Packet</b>: line efficiency أعلى.' },
+        { q: 'Time on a node-to-node link is preallocated using synchronous time division multiplexing', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'When traffic becomes heavy, some calls are blocked', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'When traffic becomes heavy, packets are still accepted but delivery delay increases', a: 1, why: '<b>Packet</b>.' },
+        { q: 'Stations of different data rates can exchange data (data-rate conversion)', a: 1, why: '<b>Packet</b>.' },
+        { q: 'Provides transmission at a constant data rate, so both devices must use the same rate', a: 0, why: '<b>Circuit</b> (عيب).' },
+        { q: 'Higher-priority packets can be transmitted first', a: 1, why: '<b>Packet</b> (priorities).' },
+        { q: 'A typical upper bound on packet length is 1000 octets', a: 1, why: '<b>Packet</b>.' },
+        { q: 'With typical user/host data connections the line is idle much of the time, so it is inefficient', a: 0, why: '<b>Circuit</b> (عيب).' }
+      ]
+    },
+
+    /* ---------- datagram vs VC ---------- */
+    dgvc: {
+      cols: 2,
+      opts: [{ t: 'Datagram', cls: 'ph-plan' }, { t: 'Virtual circuit', cls: 'ph-ana' }],
+      cards: [
+        { q: 'Every packet contains the complete destination address', a: 0, why: '<b>Datagram</b>.' },
+        { q: 'Each packet is treated independently, with no reference to packets that have gone before', a: 0, why: '<b>Datagram</b>.' },
+        { q: 'Packets may arrive out of sequence at the exit point', a: 0, why: '<b>Datagram</b>.' },
+        { q: 'A preplanned route is established before any packets are sent', a: 1, why: '<b>Virtual circuit</b>.' },
+        { q: 'Each packet contains a virtual circuit identifier as well as data', a: 1, why: '<b>Virtual circuit</b>.' },
+        { q: 'Each node chooses the next node on a packet’s path using information about traffic and line failures', a: 0, why: '<b>Datagram</b>.' },
+        { q: 'All packets between a pair of communicating parties follow the same route', a: 1, why: '<b>Virtual circuit</b>.' },
+        { q: '📖 Also known as connectionless switching', a: 0, why: 'الكتاب: <b>Datagram</b>.' },
+        { q: '📖 Call request and call accept messages are used to establish a session', a: 1, why: 'الكتاب: <b>Virtual circuit</b> (connection-oriented).' },
+        { q: 'Somewhat similar to a circuit in a circuit-switching network because the route is fixed for the logical connection', a: 1, why: '<b>Virtual circuit</b>.' }
+      ]
+    },
+
+    /* ---------- packet size ---------- */
+    psize: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'A 40-octet message with a 3-octet header is sent as a single packet over X → a → b → Y. The total transmission time is:', opts: ['129 octet-times', '92 octet-times', '77 octet-times', '43 octet-times'], a: 0, why: '43 octets × 3 transmissions = <b>129</b>.' },
+        { q: 'The same message sent as two packets (20 data octets each) takes:', opts: ['92 octet-times', '129 octet-times', '77 octet-times', '86 octet-times'], a: 0, why: 'التداخل بينزّل الزمن لـ <b>92</b>.' },
+        { q: 'The same message sent as five packets takes:', opts: ['77 octet-times', '92 octet-times', '129 octet-times', '65 octet-times'], a: 0, why: '<b>77</b>.' },
+        { q: 'Using more and smaller packets eventually results in:', opts: ['Increased rather than reduced delay', 'Reduced delay always', 'No change in delay', 'No header overhead'], a: 0, why: 'الرسمة (d): <b>التأخير بيزيد</b>.' },
+        { q: 'In the packet-size example, the path from X to Y is:', opts: ['A virtual circuit through nodes a and b', 'A datagram path through 5 nodes', 'A dedicated circuit with no nodes', 'A path through a single node'], a: 0, why: 'سلايد 24: virtual circuit من X عبر <b>a</b> و <b>b</b> لـ Y.' },
+        { q: 'The example does NOT show:', opts: ['The processing and queuing delays at each node', 'The header size', 'The message length', 'The number of nodes'], a: 0, why: 'المثال مبيعرضش <b>الـ processing والـ queuing delays</b>.' },
+        { q: 'Which packet size is mentioned as able to give an efficient network design?', opts: ['53 octets', '1000 octets', '3 octets', '129 octets'], a: 0, why: '<b>53 octets</b> (سلايد 28).' }
+      ]
+    },
+
+    /* ---------- comparison table sorting ---------- */
+    cmp: {
+      cols: 2,
+      opts: [{ t: 'Circuit switching', cls: 'ph-plan' }, { t: 'Datagram', cls: 'ph-ana' }, { t: 'Virtual circuit', cls: 'ph-des' }, { t: 'Both packet types', cls: 'ph-imp' }],
+      cards: [
+        { q: 'Dedicated transmission path', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Continuous transmission of data', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Messages are not stored', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Route established for each packet', a: 1, why: '<b>Datagram</b>.' },
+        { q: 'Route established for entire conversation', a: 2, why: '<b>Virtual circuit</b>.' },
+        { q: 'Call setup delay; negligible transmission delay', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Call setup delay; packet transmission delay', a: 2, why: '<b>Virtual circuit</b>.' },
+        { q: 'Packet transmission delay (no call setup)', a: 1, why: '<b>Datagram</b>.' },
+        { q: 'Busy signal if called party busy', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Sender may be notified if packet not delivered', a: 1, why: '<b>Datagram</b>.' },
+        { q: 'Sender notified of connection denial', a: 2, why: '<b>Virtual circuit</b>.' },
+        { q: 'Overload may block call setup; no delay for established calls', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Overload increases packet delay', a: 1, why: '<b>Datagram</b>.' },
+        { q: 'Overload may block call setup; increases packet delay', a: 2, why: '<b>Virtual circuit</b>.' },
+        { q: 'Electromechanical or computerized switching nodes', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'User responsible for message loss protection', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Network may be responsible for individual packets', a: 1, why: '<b>Datagram</b>.' },
+        { q: 'Network may be responsible for packet sequences', a: 2, why: '<b>Virtual circuit</b>.' },
+        { q: 'Fixed bandwidth', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Dynamic use of bandwidth', a: 3, why: 'الاتنين <b>packet</b>.' },
+        { q: 'Overhead bits in each packet', a: 3, why: 'الاتنين <b>packet</b>.' },
+        { q: 'No overhead bits after call setup', a: 0, why: '<b>Circuit</b>.' },
+        { q: 'Small switching nodes', a: 3, why: 'الاتنين <b>packet</b>.' },
+        { q: 'Packets may be stored until delivered', a: 1, why: '<b>Datagram</b> (والـ VC: Packets stored until delivered).' }
+      ]
+    },
+
+    /* ---------- X.25 vs Frame Relay ---------- */
+    xfr: {
+      cols: 2,
+      opts: [{ t: 'X.25', cls: 'ph-plan' }, { t: 'Frame Relay', cls: 'ph-ana' }],
+      cards: [
+        { q: 'An ITU-T standard specifying an interface between a host system and a packet-switching network', a: 0, why: '<b>X.25</b>.' },
+        { q: 'Functionality is specified on three levels: physical, link and packet', a: 0, why: '<b>X.25</b>.' },
+        { q: 'The link level is referred to as LAPB (Link Access Protocol-Balanced)', a: 0, why: '<b>X.25</b>.' },
+        { q: 'The packet level provides a virtual circuit service', a: 0, why: '<b>X.25</b>.' },
+        { q: 'Designed to provide a more efficient transmission scheme than X.25', a: 1, why: '<b>Frame Relay</b>.' },
+        { q: 'Data is placed in blocks of different sizes called frames', a: 1, why: '<b>Frame Relay</b>.' },
+        { q: 'The usual information for error correction is not included in the frame, giving a higher data exchange rate', a: 1, why: '<b>Frame Relay</b>.' },
+        { q: 'Cost-efficient data transmission for traffic between LANs and between endpoints in WANs', a: 1, why: '<b>Frame Relay</b>.' }
+      ]
+    },
+
+    /* ---------- True / False traps ---------- */
+    traps: {
+      cols: 2,
+      opts: [{ t: 'صح ✔ (True)', cls: 't-ok' }, { t: 'غلط ✘ (False)', cls: 't-bad' }],
+      cards: [
+        { q: 'The switching nodes are concerned with the content of the data.', a: 1, why: 'مش مهتمة بالمحتوى، غرضها بس تنقل الداتا node بعد node.' },
+        { q: 'Some nodes connect only to other nodes; their task is the internal switching of data.', a: 0, why: 'صح (مثلاً 5 و 7).' },
+        { q: 'Node-station links are generally dedicated point-to-point links.', a: 0, why: 'صح.' },
+        { q: 'Usually the network is fully connected: there is a direct link between every pair of nodes.', a: 1, why: 'عادةً <b>مش</b> fully connected.' },
+        { q: 'It is desirable to have more than one possible path for each pair of stations because this enhances reliability.', a: 0, why: 'صح.' },
+        { q: 'The two technologies used in wide area switched networks are circuit switching and packet switching.', a: 0, why: 'صح.' },
+        { q: 'Circuit switching involves three phases: circuit establishment, data transfer and circuit disconnect.', a: 0, why: 'صح.' },
+        { q: 'In circuit switching, the connection path is established after data transmission begins.', a: 1, why: 'بيتأسس <b>قبل</b> الداتا.' },
+        { q: 'Circuit switching is efficient for typical user/host data connections because the line is almost never idle.', a: 1, why: 'الخط بيبقى <b>idle</b> أغلب الوقت، فهو inefficient.' },
+        { q: 'In circuit switching both devices must transmit and receive at the same data rate.', a: 0, why: 'صح — constant data rate.' },
+        { q: 'A typical upper bound on packet length is 1000 octets (bytes).', a: 0, why: 'صح.' },
+        { q: 'Each packet contains a portion of the user’s data plus control information needed for routing and delivery.', a: 0, why: 'صح.' },
+        { q: 'A packet-switching network can perform data-rate conversion.', a: 0, why: 'صح.' },
+        { q: 'When traffic becomes heavy on a packet-switching network, some calls are blocked.', a: 1, why: 'ده في <b>circuit</b>. في الـ packet: الـ packets بتتقبل والـ delay بيزيد.' },
+        { q: 'In the datagram approach every packet contains the complete destination address.', a: 0, why: 'صح.' },
+        { q: 'In the datagram approach, all packets follow the same route and always arrive in order.', a: 1, why: 'ممكن تمشي في مسارات مختلفة وتوصل <b>out of sequence</b>.' },
+        { q: 'In the virtual-circuit approach a preplanned route is established before any packets are sent.', a: 0, why: 'صح.' },
+        { q: 'In the virtual-circuit approach each packet contains a virtual circuit identifier.', a: 0, why: 'صح.' },
+        { q: 'Circuit switching uses dynamic use of bandwidth while datagram uses fixed bandwidth.', a: 1, why: 'العكس: circuit = <b>fixed</b>، packet = <b>dynamic</b>.' },
+        { q: 'A 40-octet message with a 3-octet header sent as a single packet over two intermediate nodes takes 129 octet-times.', a: 0, why: 'صح (43 × 3).' },
+        { q: 'Breaking a message into more and smaller packets always reduces the total delay.', a: 1, why: 'في الآخر بيزوّد التأخير (الرسمة d).' },
+        { q: 'X.25 is an ITU-T standard that specifies an interface between a host system and a packet-switching network.', a: 0, why: 'صح.' },
+        { q: 'The functionality of X.25 is specified on four levels.', a: 1, why: 'على <b>3 levels</b>: physical, link, packet.' },
+        { q: 'In Frame Relay the usual information for error correction is included in the frame.', a: 1, why: 'مش بتتحط، وده سبب السرعة الأعلى.' },
+        { q: 'The link level of X.25 is referred to as LAPB.', a: 0, why: 'صح.' },
+        { q: '📖 In message switching the entire message is stored in each node and forwarded when the path is available (store and forward).', a: 0, why: 'صح — الكتاب.' }
+      ]
+    },
+
+    /* ---------- MCQ ---------- */
+    mcq: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'Which of the following is NOT a phase of circuit switching?', opts: ['Packet reassembly', 'Circuit establishment', 'Data transfer', 'Circuit disconnect'], a: 0, why: 'المراحل التلاتة: establishment, data transfer, disconnect.' },
+        { q: 'A preplanned route is established before any packets are sent, and all packets follow it. This is:', opts: ['Virtual circuit', 'Datagram', 'Message switching', 'Frame relay'], a: 0, why: '<b>Virtual circuit</b>.' },
+        { q: 'Each packet carries the complete destination address and is treated independently. This describes:', opts: ['Datagram', 'Virtual circuit', 'Circuit switching', 'X.25 link level'], a: 0, why: '<b>Datagram</b>.' },
+        { q: 'A 40-octet message (3-octet header per packet) is sent as one packet over two intermediate nodes. The total time is:', opts: ['129 octet-times', '92 octet-times', '77 octet-times', '43 octet-times'], a: 0, why: '43 × 3 = <b>129</b>.' },
+        { q: 'The same message sent as five packets takes:', opts: ['77 octet-times', '129 octet-times', '92 octet-times', '40 octet-times'], a: 0, why: '<b>77</b>.' },
+        { q: 'Which is a shortcoming of circuit switching?', opts: ['The line is idle much of the time with data connections', 'Packets arrive out of sequence', 'Each packet carries overhead bits', 'Delivery delay grows with traffic'], a: 0, why: 'عيب الـ circuit: <b>الخط idle</b> فمش efficient (وكمان constant data rate).' },
+        { q: 'Which is an advantage of packet switching over circuit switching?', opts: ['A link is dynamically shared by many packets, so line efficiency is greater', 'A dedicated path is reserved for the whole call', 'Fixed bandwidth is guaranteed', 'No overhead bits are needed'], a: 0, why: '<b>Line efficiency</b> أعلى.' },
+        { q: 'The packet level of X.25 provides:', opts: ['A virtual circuit service', 'The physical interface', 'Reliable frame transfer (LAPB)', 'Error-free analog signals'], a: 0, why: 'الـ packet level = <b>virtual circuit service</b>. (LAPB = link level.)' },
+        { q: 'Frame Relay achieves a higher data exchange rate than X.25 because:', opts: ['The usual error-correction information is not included in the frame', 'It uses fixed-size packets of 53 octets', 'It uses circuit switching', 'It uses three levels'], a: 0, why: 'مفيش error correction info في الـ frame.' },
+        { q: 'ITU-T stands for:', opts: ['International Telecommunication Union – Telecommunication', 'International Technical Union – Transmission', 'Internet Telephony Union – Telecom', 'Integrated Transport Union – Telephony'], a: 0, why: 'سلايد 30.' }
+      ]
+    }
+  },
+
+  /* ---------- flashcards ---------- */
+  flash: {
+    main: [
+      { f: 'ليه بنحتاج <span class="en">switched network</span>؟', b: 'لنقل الداتا <b>خارج الـ local area</b>: من المصدر للوجهة عبر شبكة <span class="en">switching nodes</span> وسيطة.' },
+      { f: 'الـ <span class="en">switching nodes</span> مهتمة بإيه؟', b: 'مش مهتمة بمحتوى الداتا. غرضها توفّر <span class="en">switching facility</span> بتنقل الداتا من node لـ node لحد الوجهة.' },
+      { f: '<span class="en">Station</span> و <span class="en">Node</span> و <span class="en">Link</span>', b: '<b>Station</b>: جهاز متوصّل (computer, terminal, telephone). <b>Node</b>: جهاز switching. <b>Link</b>: بيوصّل الـ nodes. ومجموعة الـ nodes = <span class="en">communications network</span>.' },
+      { f: 'ليه بنحب يكون في أكتر من مسار بين أي محطتين؟', b: 'لأن ده بيزوّد الـ <b>reliability</b> (الشبكة غالباً مش fully connected).' },
+      { f: 'التقنيتين في الـ <span class="en">wide area switched networks</span>', b: '<span class="en">Circuit switching</span> و <span class="en">Packet switching</span>. بيفرقوا في طريقة تبديل المعلومة من لينك للتاني.' },
+      { f: 'الـ <span class="en">Circuit switching</span>', b: 'فيه <span class="en">dedicated communication path</span> بين محطتين: سلسلة متصلة من اللينكات بين الـ nodes.' },
+      { f: 'مراحل الـ <span class="en">circuit switching</span> (3)', b: '<span class="en">Circuit establishment → Data transfer → Circuit disconnect</span>' },
+      { f: 'متى بيتأسس مسار الـ circuit؟ وإيه المطلوب؟', b: '<b>قبل</b> ما الداتا تبدأ. لازم تتحجز channel capacity بين كل زوج nodes وكل node عندها internal switching capacity.' },
+      { f: 'عيبين الـ <span class="en">circuit switching</span>', b: '① الخط idle أغلب الوقت في data connections (inefficient) ② معدل ثابت: الطرفين لازم نفس المعدل (بيحدّ من توصيل أجهزة مختلفة).' },
+      { f: 'الـ <span class="en">Packet switching</span>: الداتا بتتبعت إزاي؟', b: 'في <span class="en">short packets</span> (الحد المعتاد 1000 octets). الرسالة الأطول بتتقسم. كل packet = جزء داتا + control information (للـ routing والتسليم).' },
+      { f: 'مميزات الـ <span class="en">packet switching</span> على الـ <span class="en">circuit</span>', b: '① line efficiency أعلى (sharing ديناميكي) ② data-rate conversion ③ الزحمة: بتزيد الـ delay بدل ما تـ block المكالمات ④ priorities.' },
+      { f: 'الـ <span class="en">line efficiency</span> في الـ packet ضد الـ circuit', b: 'الـ packet: اللينك بيتشارك ديناميكياً. الـ circuit: وقت اللينك محجوز مسبقاً بـ <span class="en">synchronous TDM</span>، فبيبقى فاضي لو الاتصال idle.' },
+      { f: 'الـ <span class="en">Datagram</span>', b: 'كل packet فيها عنوان الوجهة كامل وبتتعامل باستقلال. كل node بتختار الـ node اللي بعدها. الـ packets ممكن تمشي في مسارات مختلفة وتوصل out of sequence.' },
+      { f: 'الـ <span class="en">Virtual circuit</span>', b: 'مسار مخطط مسبقاً بيتأسس قبل أي packet. كل الـ packets في نفس المسار. كل packet فيها <span class="en">virtual circuit identifier</span>.' },
+      { f: 'ليه اتسمى <span class="en">virtual circuit</span>؟', b: 'لأن الـ route ثابت طول الاتصال المنطقي، فهو شبه الـ circuit في الـ circuit switching.' },
+      { f: '📖 <span class="en">Datagram</span> = إيه في الكتاب؟ و <span class="en">VC</span>؟', b: '<b>Datagram</b> = <span class="en">connectionless switching</span>. <b>VC</b> = <span class="en">connection-oriented</span> (call request و call accept لتأسيس الجلسة).' },
+      { f: '📖 <span class="en">Message switching</span>', b: 'في النص بين الـ circuit والـ packet. الرسالة كاملة بتتخزّن في كل node وتتبعت لما المسار يتاح (<span class="en">store and forward</span>): بطيء ومحتاج موارد أكتر.' },
+      { f: 'مثال الـ <span class="en">packet size</span>: الافتراضات', b: 'virtual circuit من X عبر a و b لـ Y. رسالة 40 octets، header = 3 octets لكل packet. بنتجاهل switching time.' },
+      { f: 'الرسالة كـ packet واحدة', b: '43 octets (3 + 40) × 3 transmissions = <b class="en">129 octet-times</b>.' },
+      { f: 'الرسالة كـ packetين / 5 packets', b: '<b>packetين</b>: <span class="en">92</span> octet-times. <b>5 packets</b>: <span class="en">77</span> octet-times. (التداخل في الإرسال بينزّل الزمن.)' },
+      { f: 'لو استخدمنا packets أكتر وأصغر من كده؟', b: 'التأخير بيزيد بدل ما يقل (الرسمة d: 10 packets). والمثال مبيعرضش processing وqueuing delays اللي بتزيد كمان.' },
+      { f: 'حجم الـ packet اللي ممكن يدّي <span class="en">efficient network design</span>', b: '<span class="en">53 octets</span> (سلايد 28).' },
+      { f: 'معادلة الـ packet size (مني)', b: '<span class="en">time = (p + n) × (M/p + H)</span>. للمثال: p=1: 129 · p=2: 92 · p=5: 77 · p=10: 84.' },
+      { f: 'صفوف الجدول: <span class="en">Circuit</span> فقط', b: 'Dedicated path · continuous transmission · messages not stored · call setup delay مع negligible transmission delay · busy signal · fixed bandwidth · no overhead bits after setup · user responsible for message loss.' },
+      { f: 'صفوف الجدول: <span class="en">Datagram</span> فقط', b: 'Route established for each packet · packet transmission delay (من غير call setup) · sender may be notified if packet not delivered · overload increases packet delay · network responsible for individual packets.' },
+      { f: 'صفوف الجدول: <span class="en">Virtual circuit</span> فقط', b: 'Route established for entire conversation · call setup delay + packet transmission delay · sender notified of connection denial · overload may block call setup + increases packet delay · network responsible for packet sequences.' },
+      { f: 'مشترك بين الـ <span class="en">Datagram</span> والـ <span class="en">VC</span>', b: 'No dedicated path · transmission of packets · small switching nodes · speed and code conversion · dynamic use of bandwidth · overhead bits in each packet.' },
+      { f: '<span class="en">X.25</span>', b: 'معيار <span class="en">ITU-T</span> يحدد interface بين host system وشبكة packet-switching. 3 مستويات.' },
+      { f: 'مستويات <span class="en">X.25</span>', b: '<span class="en">Physical level</span> (interface فيزيائي) · <span class="en">Link level</span> (نقل موثوق بـ frames، اسمه LAPB) · <span class="en">Packet level</span> (virtual circuit service).' },
+      { f: '<span class="en">ITU-T</span> و <span class="en">LAPB</span> اختصار إيه؟', b: '<span class="en">International Telecommunication Union – Telecommunication</span> · <span class="en">Link Access Protocol-Balanced</span>.' },
+      { f: '<span class="en">Frame Relay</span>', b: 'أكفأ من X.25. خدمة packet-switching بتكلفة فعالة للـ traffic بين الـ LANs ونقط النهاية في الـ WANs.' },
+      { f: 'ليه <span class="en">Frame Relay</span> أسرع؟', b: 'الداتا في blocks بأحجام مختلفة (frames) ومن غير معلومات الـ error correction المعتادة، فبيحقق معدل تبادل أعلى.' }
+    ]
+  },
+
+  /* ---------- essay model answers ---------- */
+  essays: {
+    e1: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Circuit switching</b>: a dedicated communication path (a connected sequence of links between nodes) exists between two stations. It has three phases: <i>circuit establishment</i> (an end-to-end circuit is set up before any signals are transmitted; channel capacity is reserved on each link and each node needs internal switching capacity), <i>data transfer</i> (analog or digital), and <i>circuit disconnect</i> (usually by one of the stations). Shortcomings: (1) with typical user/host data connections the line is idle much of the time, so it is inefficient; (2) the connection provides a constant data rate, so both devices must transmit and receive at the same rate, limiting the interconnection of varied hosts.</p>' +
+        '<p dir="ltr" style="margin:0"><b>Packet switching</b>: data are sent in short packets (typically up to 1000 octets), each with a portion of the user data plus control information needed for routing and delivery. Advantages: greater line efficiency (a link is dynamically shared by many packets, whereas circuit switching preallocates link time by synchronous TDM); data-rate conversion between stations of different rates; under heavy traffic packets are still accepted but delay increases (whereas circuit-switched calls are blocked); and priorities can be used so higher-priority packets are sent first.</p>',
+      points: [
+        'Circuit switching — dedicated path',
+        'Three phases: establishment, transfer, disconnect',
+        'Shortcoming 1 — line idle / inefficient for data',
+        'Shortcoming 2 — constant data rate for both devices',
+        'Packet switching — short packets with control information (≈1000 octets)',
+        'Advantages — line efficiency, data-rate conversion, delay not blocking, priorities'
+      ]
+    },
+    e2: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Datagram</b>: every packet contains the complete destination address and is treated independently, with no reference to previous packets. Each node chooses the next node on a packet’s path using information from neighbouring nodes (traffic, line failures…). So packets with the same destination need not follow the same route and may arrive out of sequence.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>Virtual circuit</b>: a preplanned route is established before any packets are sent; all packets between a pair of communicating parties follow the same route. Each packet carries a virtual circuit identifier as well as data. It resembles a circuit but the route is virtual.</p>' +
+        '<p dir="ltr" style="margin:0"><b>Differences from circuit switching</b> (slide-29 table): circuit switching has a dedicated transmission path, fixed bandwidth, and no overhead bits after call setup, whereas datagram and VC packet switching have no dedicated path, dynamic use of bandwidth, and overhead bits in each packet. In datagram the route is established for each packet; in VC and circuit it is established for the entire conversation.</p>',
+      points: [
+        'Datagram — complete destination address, independent packets',
+        'Datagram — routes may differ, out-of-sequence arrival',
+        'VC — preplanned route set up first, all packets same route',
+        'VC — virtual circuit identifier in each packet',
+        'Three differences vs circuit (dedicated path, fixed bandwidth, overhead bits…)'
+      ]
+    },
+    e3: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px">Assumptions: a virtual circuit from X through nodes a and b to Y (three links), a 40-octet message and 3 octets of header per packet; switching time is ignored.</p>' +
+        '<ul dir="ltr" style="margin:0 0 8px;padding-left:20px"><li><b>1 packet</b> (43 octets): X→a, then a→b after the whole packet has arrived, then b→Y. Time = 43 × 3 = <b>129</b> octet-times.</li><li><b>2 packets</b> (20 + 3 octets each): node a can start sending the first packet without waiting for the second; this overlap reduces the time to <b>92</b> octet-times.</li><li><b>5 packets</b>: intermediate nodes start transmitting even sooner; total <b>77</b> octet-times.</li></ul>' +
+        '<p dir="ltr" style="margin:0"><b>Effect of many small packets</b>: using more and smaller packets eventually results in increased, rather than reduced, delay (e.g. 10 packets), because of the extra header overhead; the example also ignores processing and queuing delays at each node, which grow when more packets are handled for a single message. However, using a small packet size (53 octets) can result in an efficient network design.</p>',
+      points: [
+        '1 packet: 43 × 3 = 129 octet-times',
+        '2 packets: 92 (overlap of transmission)',
+        '5 packets: 77',
+        'Too many smaller packets → delay increases (header overhead)',
+        'Processing and queuing delays not shown; 53-octet packets can be efficient'
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ---------- clickable network figure ---------- */
+(function () {
+  var svg = document.getElementById('netSvg');
+  if (!svg) return;
+  var note = document.getElementById('netNote');
+  var ST = { A: 4, B: 1, C: 2, D: 3, E: 6, F: 6 };
+  var DESC = { A: 'Personal computer', B: 'Personal computer', C: 'Mainframe', D: 'Personal computer (في السلايد)', E: 'Personal computer', F: 'Personal computer' };
+  svg.addEventListener('click', function (e) {
+    var t = e.target;
+    Array.prototype.forEach.call(svg.querySelectorAll('.sel'), function (x) { x.classList.remove('sel'); });
+    if (t.dataset && t.dataset.n) {
+      t.classList.add('sel');
+      var n = t.dataset.n, mine = Object.keys(ST).filter(function (s) { return ST[s] === +n; });
+      note.innerHTML = '<b>Node ' + n + '</b>: ' + (mine.length
+        ? 'عليها station' + (mine.length > 1 ? 's' : '') + ' (<b>' + mine.join(' و ') + '</b>) — بالإضافة للـ switching بتستقبل الداتا منها وتسلّمها ليها.'
+        : 'متوصّلة بـ <b>nodes تانية بس</b> — مهمتها <b>internal switching of data</b>.');
+    } else if (t.dataset && t.dataset.s) {
+      t.classList.add('sel');
+      var s = t.dataset.s;
+      note.innerHTML = '<b>Station ' + s + '</b> (' + DESC[s] + '): متوصّلة بالـ <b>node ' + ST[s] + '</b> بلينك <b>dedicated point-to-point</b>.';
+    }
+  });
+})();
+
+/* ---------- circuit switching phases ---------- */
+(function () {
+  var ol = document.getElementById('cirStg'), chain = document.getElementById('cirChain');
+  if (!ol) return;
+  var P = [
+    { t: 'Circuit establishment', f: 'قبل أي إشارة', n: 'المسار بيتأسس <b>من طرف لطرف</b>: بتتحجز <b>channel capacity</b> على كل لينك في المسار وكل node بتجهّز <b>internal switching capacity</b>. دي مرحلة الـ <b>call setup</b>.', cls: 'res' },
+    { t: 'Data transfer', f: 'الداتا بتتبعت', n: 'الداتا بتتبعت من A عبر الشبكة لـ E (analog أو digital حسب نوع الشبكة) على المسار المحجوز ده بمعدل ثابت.', cls: 'xfer' },
+    { t: 'Circuit disconnect', f: 'إنهاء الاتصال', n: 'بعد فترة نقل الداتا الاتصال بيتقفل (غالباً بقرار من إحدى المحطتين) والموارد المحجوزة بتتحرر.', cls: '' }
+  ];
+  var nodes = ['Telephone', 'End office', 'Long-distance office', 'Long-distance office', 'End office', 'Digital PBX'];
+  var links = ['Subscriber loop', 'Connecting trunk', 'Intercity trunk', 'Connecting trunk', ''];
+  nodes.forEach(function (x, i) {
+    var c = document.createElement('div'); c.className = 'c'; c.textContent = x; chain.appendChild(c);
+    if (i < links.length && links[i]) { var l = document.createElement('div'); l.className = 'l'; l.textContent = '— ' + links[i] + ' —'; chain.appendChild(l); }
+  });
+  var cur = -1;
+  P.forEach(function (x, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="n">' + (i + 1) + '</span><div><b class="en">' + x.t + '</b><small>' + x.f + '</small></div>';
+    ol.appendChild(li);
+  });
+  var next = document.getElementById('cirNext'), reset = document.getElementById('cirReset'), note = document.getElementById('cirNote');
+  function draw() {
+    Array.prototype.forEach.call(ol.children, function (li, i) { li.classList.toggle('on', i === cur); li.classList.toggle('past', i < cur); });
+    chain.className = 'chain ' + (cur >= 0 ? P[cur].cls : '');
+    note.innerHTML = cur < 0 ? 'دوس «المرحلة التالية» عشان تبدأ.' : '<b>' + (cur + 1) + '.</b> ' + P[cur].n;
+    next.disabled = cur >= P.length - 1;
+  }
+  next.addEventListener('click', function () { if (cur < P.length - 1) { cur++; draw(); } });
+  reset.addEventListener('click', function () { cur = -1; draw(); });
+  draw();
+})();
+
+/* ---------- utilization demo ---------- */
+(function () {
+  var C = document.getElementById('utC');
+  if (!C) return;
+  var PK = document.getElementById('utPk'), pSel = document.getElementById('utP');
+  var SLOTS = 12, U = 3;
+  function roll() {
+    var p = +pSel.value, has = [];
+    for (var u = 0; u < U; u++) { has.push([]); for (var i = 0; i < SLOTS; i++) has[u].push(Math.random() < p); }
+    C.innerHTML = ''; PK.innerHTML = '';
+    var used = 0, i;
+    for (i = 0; i < SLOTS; i++) {
+      var owner = i % U, s = document.createElement('span');
+      if (has[owner][i]) { s.className = 'u' + owner; s.textContent = owner + 1; used++; } else { s.className = 'idle'; s.textContent = '·'; }
+      C.appendChild(s);
+    }
+    var q = [];
+    for (i = 0; i < SLOTS; i++) for (var u2 = 0; u2 < U; u2++) if (has[u2][i]) q.push(u2);
+    var usedP = Math.min(SLOTS, q.length);
+    for (i = 0; i < SLOTS; i++) {
+      var s2 = document.createElement('span');
+      if (i < q.length) { s2.className = 'u' + q[i]; s2.textContent = q[i] + 1; } else { s2.className = 'idle'; s2.textContent = '·'; }
+      PK.appendChild(s2);
+    }
+    document.getElementById('utRc').textContent = Math.round(used / SLOTS * 100) + '%';
+    document.getElementById('utRp').textContent = Math.round(usedP / SLOTS * 100) + '%';
+  }
+  document.getElementById('utGo').addEventListener('click', roll);
+  pSel.addEventListener('change', roll);
+  roll();
+})();
+
+/* ---------- datagram vs VC routing demo ---------- */
+(function () {
+  var rt = document.getElementById('dvRt');
+  if (!rt) return;
+  var R = [{ n: 'R1', p: 'A → 4 → 5 → 6 → E', d: 3 }, { n: 'R2', p: 'A → 4 → 7 → 6 → E', d: 4 }, { n: 'R3', p: 'A → 4 → 1 → 2 → 3 → 6 → E', d: 6 }];
+  var mode = 'dg', V = document.getElementById('dvV');
+  function go() {
+    rt.innerHTML = '';
+    var pk = [];
+    var fixed = R[Math.floor(Math.random() * 3)];
+    for (var i = 1; i <= 5; i++) {
+      var r = mode === 'vc' ? fixed : R[Math.floor(Math.random() * 3)];
+      pk.push({ id: i, r: r, t: i + r.d });
+    }
+    pk.forEach(function (x) {
+      rt.innerHTML += '<div class="r"><b>Pkt ' + x.id + '</b><span>' + x.r.n + ': ' + x.r.p + '</span><span class="t">t=' + x.t + '</span></div>';
+    });
+    var order = pk.slice().sort(function (a, b) { return a.t - b.t || a.id - b.id; }).map(function (x) { return x.id; });
+    var inOrder = order.every(function (v, i) { return v === i + 1; });
+    V.className = 'verdict ' + (mode === 'vc' || inOrder ? 'pos' : 'neg');
+    V.innerHTML = (mode === 'vc'
+      ? '<b>Virtual circuit</b>: المسار اتحدد <b>مرة واحدة قبل الإرسال</b> (' + fixed.n + ') وكل الـ packets مشيت فيه ← ترتيب الوصول: <span class="en">' + order.join(', ') + '</span> ✔ بالترتيب.'
+      : '<b>Datagram</b>: كل packet اختارت مسارها باستقلال ← ترتيب الوصول: <span class="en">' + order.join(', ') + '</span> ' + (inOrder ? '(صدفة: وصلوا بالترتيب المرة دي، جرّب تاني)' : '← 🚨 <b>out of sequence</b>.'));
+  }
+  document.getElementById('dvGo').addEventListener('click', go);
+  Array.prototype.forEach.call(document.querySelectorAll('#dvSeg button'), function (b) {
+    b.addEventListener('click', function () {
+      mode = b.dataset.m;
+      Array.prototype.forEach.call(document.querySelectorAll('#dvSeg button'), function (x) { x.classList.toggle('on', x === b); });
+      rt.innerHTML = ''; V.className = 'verdict'; V.textContent = 'دوس «ابعت 5 packets».';
+    });
+  });
+})();
+
+/* ---------- packet size calculator ---------- */
+(function () {
+  var bars = document.getElementById('psBars');
+  if (!bars) return;
+  var M = document.getElementById('psM'), H = document.getElementById('psH'), N = document.getElementById('psN'), msg = document.getElementById('psMsg');
+  var PS = [1, 2, 4, 5, 8, 10, 20, 40];
+  function fmt(x) { return (Math.round(x * 10) / 10) + ''; }
+  function upd() {
+    var m = Math.max(1, +M.value || 1), h = Math.max(0, +H.value || 0), n = Math.max(0, +N.value || 0);
+    var list = PS.filter(function (p) { return p <= m; });
+    var T = list.map(function (p) { return (p + n) * (m / p + h); });
+    var mn = Math.min.apply(null, T), mx = Math.max.apply(null, T);
+    bars.innerHTML = '';
+    list.forEach(function (p, i) {
+      var d = document.createElement('div'); d.className = 'row' + (T[i] === mn ? ' min' : '');
+      d.innerHTML = '<span>p = ' + p + '</span><div><div class="bar2" style="width:' + Math.max(6, T[i] / mx * 100) + '%"></div></div><span class="v">' + fmt(T[i]) + '</span>';
+      bars.appendChild(d);
+    });
+    var bi = T.indexOf(mn);
+    msg.innerHTML = 'الأقل زمناً من الاختيارات دي: <b>p = ' + list[bi] + '</b> (' + fmt(mn) + ' octet-times). لو زوّدت عدد الـ packets أكتر من كده الـ header overhead بيرجّع الزمن يزيد.' + (m % 1 === 0 && list.some(function (p) { return m % p !== 0; }) ? ' <span class="muted">(الأرقام تقريبية لو الرسالة مبتتقسمش بالتساوي.)</span>' : '');
+  }
+  [M, H, N].forEach(function (x) { x.addEventListener('input', upd); });
+  upd();
+})();
+</script>
+</body>
+</html>

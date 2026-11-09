@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Lecture 3 — Encapsulation, Transmission Media and LAN Topologies</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+  svg.dg{width:100%;max-width:560px;height:auto;display:block;margin:6px auto}
+  svg.dg .ln{stroke:var(--accent);stroke-width:3;fill:none}
+  svg.dg .thin{stroke:var(--accent);stroke-width:2;fill:none}
+  svg.dg .nd{fill:var(--card2);stroke:var(--accent);stroke-width:2}
+  svg.dg .hl{fill:rgba(var(--accent-rgb),.22);stroke:var(--accent);stroke-width:2}
+  svg.dg .tm{fill:var(--bad);stroke:none}
+  svg.dg text{fill:var(--text);font:600 13px "Segoe UI",sans-serif;text-anchor:middle}
+  svg.dg text.sm{font-size:11.5px;font-weight:500;fill:var(--muted)}
+  .stg{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .stg li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);opacity:.45;transition:.25s}
+  .stg li.on{opacity:1;border-color:var(--accent);background:rgba(var(--accent-rgb),.14);transform:translateX(-4px)}
+  .stg li.past{opacity:.85}
+  .stg .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--card);border:1px solid var(--line)}
+  .stg li.on .n{background:var(--accent);color:var(--on-accent);border-color:transparent}
+  .stg small{display:block;color:var(--muted)}
+  .pdu{direction:ltr;display:flex;flex-wrap:wrap;gap:4px;align-items:stretch;justify-content:center;margin:6px 0 10px;min-height:46px}
+  .pdu span{display:grid;place-items:center;padding:8px 10px;border-radius:8px;font:700 13px "Segoe UI",sans-serif;border:1px solid var(--line);background:var(--card2)}
+  .pdu .d{background:rgba(var(--c-plan-rgb),.25);border-color:var(--c-plan)}
+  .pdu .h4{background:rgba(var(--c-ana-rgb),.28);border-color:var(--c-ana)}
+  .pdu .h3{background:rgba(var(--c-des-rgb),.28);border-color:var(--c-des)}
+  .pdu .h2{background:rgba(var(--c-imp-rgb),.28);border-color:var(--c-imp)}
+  .pdu .bits{font-family:Consolas,monospace;letter-spacing:1px;word-break:break-all;background:rgba(var(--warn-rgb),.18);border-color:var(--warn)}
+  /* modes simulator */
+  .pcs{display:grid;grid-template-columns:1fr 90px 1fr;gap:8px;align-items:center;direction:ltr;margin:8px 0}
+  .pc{display:grid;place-items:center;gap:2px;padding:12px 6px;border-radius:14px;border:1px solid var(--line);background:var(--card2);font:700 15px "Segoe UI",sans-serif;transition:.2s}
+  .pc small{color:var(--muted);font-weight:500;font-size:12px}
+  .pc.snd{border-color:var(--ok);background:rgba(var(--ok-rgb),.18)}
+  .pc.rcv{border-color:var(--c-plan);background:rgba(var(--c-plan-rgb),.18)}
+  .pc.col{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+  .arws{display:grid;gap:4px;text-align:center;font-size:26px;line-height:1;color:var(--muted)}
+  .arws span{opacity:.25;transition:.2s}
+  .arws span.on{opacity:1;color:var(--ok)}
+  /* hub demo */
+  .hubg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;direction:ltr;margin:8px 0}
+  .hubg button{padding:12px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:700 14px "Segoe UI",sans-serif;cursor:pointer;transition:.2s}
+  .hubg button small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .hubg button.snd{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+  .hubg button.rcv{border-color:var(--c-plan);background:rgba(var(--c-plan-rgb),.2)}
+  .hubg button.col{border-color:var(--bad);background:rgba(var(--bad-rgb),.22)}
+  .hubbox{direction:ltr;text-align:center;margin:0 auto 6px;max-width:200px;padding:8px 10px;border-radius:12px;border:2px solid var(--accent);background:rgba(var(--accent-rgb),.14);font:800 14px "Segoe UI",sans-serif}
+  /* UTP slider */
+  #catTicks{font-size:12px;flex-wrap:wrap;gap:2px}
+  #catTicks span{padding:4px 6px}
+  /* bus demo */
+  .busg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;direction:ltr;margin:8px 0}
+  .busg div{padding:10px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card2);text-align:center;font:700 14px "Segoe UI",sans-serif;transition:.2s}
+  .busg div small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .busg div.snd{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+  .busg div.cpy{border-color:var(--c-plan);background:rgba(var(--c-plan-rgb),.22)}
+  .busg div.ign{opacity:.6}
+  .busline{height:6px;border-radius:4px;background:var(--accent);margin:0 6px 4px;direction:ltr}
+  .sel{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .sel label{display:flex;gap:6px;align-items:center;font-weight:600}
+  .sel select{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit}
+</style>
+</head>
+<body data-lecture="l3">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Lecture 3</b><small class="en plain">Encapsulation, Transmission Media and LAN Topologies</small></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0/11</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<div class="layout">
+<nav class="nav" id="nav" aria-label="محطات المحاضرة"></nav>
+<main>
+
+<!-- =====================================================  1 · BIG PICTURE -->
+<section class="station" data-icon="🗺️" data-title="الصورة الكبيرة">
+  <h2>الصورة الكبيرة 🗺️</h2>
+  <p class="lead">المحاضرة دي بتكمّل الـ <span class="en">OSI</span>: الداتا بتتغلّف إزاي، وبتمشي في إيه، وبشكل أنهي شبكة. <span class="muted">(⏱️ ٤ دقايق)</span></p>
+
+  <div class="card">
+    <div class="story">
+      <div class="beat"><div class="emo">📦</div><b>الداتا بتتغلّف</b><span><span class="en">Encapsulation</span></span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🔌</div><b>بتمشي في وسيط</b><span>كابل نحاس / فايبر</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🕸️</div><b>جوه شبكة بشكل معين</b><span><span class="en">Bus · Tree · Ring · Star</span></span></div>
+    </div>
+    <p class="punch">من الفكرة (الغلاف) للسلك للشكل العام للشبكة.</p>
+  </div>
+
+  <h3 class="sec">خريطة المحاضرة <small>(اضغط على أي مربع تروحله)</small></h3>
+  <div class="grid g3">
+    <button type="button" class="tile ph-plan" data-go="2"><span class="emo">📦</span><b class="en">Encapsulation</b><small>+ Decapsulation ⭐</small></button>
+    <button type="button" class="tile ph-ana" data-go="3"><span class="emo">↔️</span><b>أوضاع الإرسال + Hub</b><small><span class="en">Simplex · Half · Full</span> · <span class="en">Repeater · Hub</span></small></button>
+    <button type="button" class="tile ph-des" data-go="4"><span class="emo">🏢</span><b class="en">LAN</b><small>الأنواع والـ hardware والـ server</small></button>
+    <button type="button" class="tile ph-imp" data-go="5"><span class="emo">🧵</span><b>Twisted pair و Coaxial</b><small>+ فئات الـ UTP ⭐</small></button>
+    <button type="button" class="tile ph-plan" data-go="6"><span class="emo">💡</span><b>Fiber optic + المقارنة</b><small>الجداول المقارنة ⭐</small></button>
+    <button type="button" class="tile ph-ana" data-go="7"><span class="emo">🕸️</span><b>LAN Topologies</b><small><span class="en">Bus · Tree · Ring · Star</span> ⭐</small></button>
+  </div>
+
+  <div class="card">
+    <h4>🎯 بعد المحاضرة دي المفروض تقدر:</h4>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li>تشرح الـ <span class="en">encapsulation</span> والـ <span class="en">decapsulation</span> وإيه اللي بيتضاف في كل layer.</li>
+      <li>تفرّق بين <span class="en">simplex / half-duplex / full-duplex</span>.</li>
+      <li>تعرّف الـ <span class="en">repeater</span> والـ <span class="en">hub</span>.</li>
+      <li>تشرح الـ <span class="en">LAN</span> وفرق الـ <span class="en">PC LAN</span> عن الـ <span class="en">back-end network</span> وفرق الـ <span class="en">server</span> عن الـ <span class="en">PC</span>.</li>
+      <li>تقارن <span class="en">twisted pair / coaxial / fiber optic</span>.</li>
+      <li>ترسم وتشرح الـ <span class="en">topologies</span> الأربعة وتختار المناسب.</li>
+    </ul>
+    <p class="hint" style="margin:8px 0 0">دي أهداف طلّعتها أنا من عناوين السلايدات (الكتاب مفيهوش قايمة Learning Outcomes مكتوبة).</p>
+  </div>
+
+  <div class="note">💡 <b>رموز:</b> 📖 = إضافة من الكتاب. 📄 = من ملف <span class="en">Extra 1</span>. 🧠 = حيلة أو تشبيه (فهم عام مني). ⚠️ = تعارض أو حاجة تحتاج انتباه.</div>
+</section>
+
+<!-- =====================================================  2 · ENCAPSULATION -->
+<section class="station" data-icon="📦" data-title="Encapsulation ⭐">
+  <h2><span class="en">Encapsulation</span> ⭐</h2>
+  <p class="lead">الداتا مبتتبعتش «عريانة»: كل layer بتلفّها بـ <b>header</b>. <span class="muted">(⏱️ ٩ دقايق)</span></p>
+
+  <div class="card">
+    <h3>📦 الفكرة (سلايد 2–3)</h3>
+    <ol class="steps ph-plan">
+      <li>لما التطبيق يكون عنده رسالة يبعتها، الداتا بتروح للـ <span class="en">application layer</span> اللي بتضيف <b class="en">application layer header (H)</b>.</li>
+      <li>غرض الـ header: يحط معلومات إضافية لازمة للاتصال <b class="en">peer-to-peer</b> (بين نفس الـ layer في الجهازين).</li>
+      <li>الـ header + الداتا اللي اتغلفت = <b class="en">PDU (protocol data unit)</b>. وبنقول إن كل PDU <b>encapsulate</b> الداتا بإضافة الـ header.</li>
+      <li>العملية بتتكرر عدة مرات وبتتولّد <b>PDU في كل layer</b>.</li>
+      <li>الـ <b class="en">data link layer</b> بتضيف كمان <b>trailer</b> وبتطلع <b class="en">frame</b>.</li>
+      <li>أخيراً الـ frame (ومعاه كل الـ PDUs اللي اتغلّفت جواه) بيتبعت على الـ <b>physical medium</b>.</li>
+    </ol>
+    <div class="note ok">🔁 <b class="en">Decapsulation</b>: المستقبل بيعمل <b>العكس</b>: بيشيل (<span class="en">strips off</span>) الـ headers طبقة طبقة عشان يفصل بروتوكولات الاتصال عن الداتا.</div>
+    <p class="hint" style="margin:6px 0 0">⚠️ النص بيقول إن كل layer بتضيف header، لكن رسمة السلايد 4 بتوضح الـ headers من الـ Transport لتحت (والـ Application/Presentation/Session في الرسمة بيطلعوا «Data» واحدة). في الامتحان اكتب الفكرة العامة.</p>
+  </div>
+
+  <h3 class="sec">🎬 شوفها بنفسك <small>(سلايد 5: <span class="en">Data Encapsulation</span>)</small></h3>
+  <div class="card" id="encCard">
+    <div class="seg" id="encSeg" style="margin-bottom:8px">
+      <button type="button" data-m="enc" class="on">⬇ Encapsulation (المرسل)</button>
+      <button type="button" data-m="dec">⬆ Decapsulation (المستقبل)</button>
+    </div>
+    <ol class="stg" id="encStg"></ol>
+    <div class="pdu" id="encVis"></div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="encNext">الخطوة التالية ←</button>
+      <button type="button" class="btn ghost" id="encReset">🔁 من الأول</button>
+    </div>
+    <div class="note" id="encNote">دوس «الخطوة التالية» عشان تبدأ.</div>
+  </div>
+
+  <div class="note">📌 <b>مصطلحات في السلايد:</b> <b class="en">LLC</b> = <span class="en">Logical Link Control</span>. <b class="en">FCS</b> = <span class="en">Frame Check Sequence</span>: كود لاكتشاف الأخطاء بيتضاف على الـ frame.<br>
+  ترتيب الـ frame من اليسار: <span class="en">MAC header · LLC header · IP header · TCP header · Upper layer data · FCS</span>.</div>
+
+  <h3 class="sec">🎯 تدريب: ده بيتضاف في أنهي layer؟</h3>
+  <div data-deck="encap"></div>
+</section>
+
+<!-- =====================================================  3 · MODES + HUB -->
+<section class="station" data-icon="↔️" data-title="أوضاع الإرسال + Hub">
+  <h2>أوضاع الإرسال + <span class="en">Repeater &amp; Hub</span> ↔️</h2>
+  <p class="lead">اتجاه الإرسال بين جهازين، وأجهزة الـ <span class="en">Layer 1</span>. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <h3 class="sec">① <span class="en">Transmission mode</span></h3>
+  <div class="grid g3">
+    <div class="flip ph-plan"><div class="f"><span class="emo">➡️</span><b class="en">Simplex</b><small>اضغط</small></div><div class="b">الاتصال في <b>اتجاه واحد بس</b>. المرسل بيبعت بس، والمستقبل يستقبل بس، و<b>المستقبل مايقدرش يرد</b>. 📖 أمثلة: <span class="en">Keyboard, Traditional Monitors</span>.</div></div>
+    <div class="flip ph-ana"><div class="f"><span class="emo">↔️</span><b class="en">Half-duplex</b><small>اضغط</small></div><div class="b">كل جهاز <b>يقدر يبعت ويستقبل</b> لكن <b>مش في نفس الوقت</b> (واحد بيبعت والتاني بيستقبل، وبعدين العكس).</div></div>
+    <div class="flip ph-des"><div class="f"><span class="emo">🔁</span><b class="en">Full-duplex</b><small>اضغط</small></div><div class="b">الأجهزة بتبعت وتستقبل <b>في نفس الوقت</b> (طريقين للإرسال).</div></div>
+  </div>
+
+  <h3 class="sec">🧪 جرّب بنفسك <small>(محاكاة مني)</small></h3>
+  <div class="card" id="modeCard">
+    <div class="seg" id="modeSeg" style="margin-bottom:8px">
+      <button type="button" data-m="simplex" class="on">Simplex</button>
+      <button type="button" data-m="half">Half-duplex</button>
+      <button type="button" data-m="full">Full-duplex</button>
+    </div>
+    <div class="pcs">
+      <div class="pc" id="pcA">💻 A<small id="pcAs"></small></div>
+      <div class="arws"><span id="arAB">➡</span><span id="arBA">⬅</span></div>
+      <div class="pc" id="pcB">🖥️ B<small id="pcBs"></small></div>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="btn" id="aBtn">A يبعت ▶</button>
+      <button type="button" class="btn" id="bBtn">◀ B يبعت</button>
+    </div>
+    <div class="verdict" id="modeV">اختار وضع وجرّب تخلّي A و B يبعتوا.</div>
+  </div>
+  <div class="note">🧠 <b>أمثلة من الحياة (فهم عام، مش في السلايدات):</b> <span class="en">Simplex</span> زي بث التليفزيون · <span class="en">Half-duplex</span> زي الووكي توكي · <span class="en">Full-duplex</span> زي المكالمة التليفونية.</div>
+
+  <h3 class="sec">🎯 تدريب: Simplex ولا Half ولا Full؟</h3>
+  <div data-deck="modes"></div>
+
+  <h3 class="sec">② أجهزة <span class="en">Layer 1</span>: <span class="en">Repeater</span> و <span class="en">Hub</span></h3>
+  <div class="grid g2">
+    <div class="card tint ph-imp" style="margin:0"><h4>🔁 <span class="en">Repeater</span></h4><p style="margin:0">جهاز بيعمل <b>regenerate للإشارة</b> (<span class="en">analog أو digital</span>) اللي اتشوّهت بسبب فقد الإرسال (<span class="en">attenuation</span>).</p></div>
+    <div class="card tint ph-plan" style="margin:0"><h4>🔀 <span class="en">Hub</span></h4><p style="margin:0">هو <b class="en">multi-port repeater</b>. بياخد الـ <b>bits</b> من الـ input port ويبعتها لـ <b>كل الـ ports التانية</b>.</p></div>
+  </div>
+  <div class="note ok">🔑 <b>الـ repeater والـ hub</b> بيشتغلوا في وضع <b class="en">half duplex</b>.</div>
+  <div class="note">📖 <b>الكتاب (Hub):</b> الداتا اللي بتوصل على أي خط بتتبعت على كل الخطوط التانية. <b>عيبه:</b> لو داتا جت من جهازين في نفس الوقت <b>هيحصل collision</b>. وعن الـ repeater: لازم جهاز repeater عشان يرجّع الإشارة الضعيفة أو المتشوّهة ويخلّي الداتا تسافر أبعد على الكابلات أو الـ wireless.</div>
+
+  <h3 class="sec">🧪 تجربة الـ <span class="en">Hub</span> <small>(محاكاة مني)</small></h3>
+  <div class="card">
+    <p style="margin-top:0">دوس على جهاز (أو أكتر) عشان يبعت. شوف مين بيستقبل، وإيه اللي بيحصل لو اتنين بعتوا مع بعض.</p>
+    <div class="hubbox">HUB</div>
+    <div class="hubg" id="hubg"></div>
+    <div class="verdict" id="hubV">دوس على جهاز تخليه يبعت.</div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Repeater ولا Hub؟</h3>
+  <div data-deck="l1dev"></div>
+</section>
+
+<!-- =====================================================  4 · LAN -->
+<section class="station" data-icon="🏢" data-title="LAN والـ Server">
+  <h2><span class="en">LAN</span> والـ <span class="en">Server</span> 🏢</h2>
+  <p class="lead">إيه هي الـ LAN، وليه بتتعمل، ومكوناتها. <span class="muted">(⏱️ ٧ دقايق)</span></p>
+
+  <div class="card">
+    <h3>🏢 <span class="en">Local Area Networks (LANs)</span></h3>
+    <p>الـ <b>LAN</b> بتتكون من <b>وسيط إرسال مشترك</b> (<span class="en">shared transmission medium</span>) + مجموعة <b>hardware و software</b> لتوصيل الأجهزة بالوسيط وتنظيم الوصول ليه بشكل منظم (<span class="en">regulating the orderly access to the medium</span>).</p>
+    <h4>ليه بنعمل LAN؟ (سلايد 13–15)</h4>
+    <ul>
+      <li>تكلفة الأنظمة منخفضة، فمديرين الأقسام بيشتروا PCs لتطبيقات القسم (<span class="en">spreadsheet, project management, Internet access</span>).</li>
+      <li>مجموعة processors على مستوى الأقسام <b>مش كفاية</b> لكل احتياجات المنظمة؛ لسه محتاجين <b>central processing facilities</b>: برامج كبيرة (زي <span class="en">econometric forecasting models</span>) وملفات على مستوى الشركة (<span class="en">accounting, payroll</span>).</li>
+      <li>فيه أسباب لتوصيل الـ workstations <b>ببعض</b> مش بس بالمركز: أعضاء الفريق يتشاركوا الشغل والمعلومات، ومشاركة موارد غالية (<span class="en">disk, laser printer</span>).</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🧩 نوعين من تطبيقات الـ LAN</h3>
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0"><h4>💻 <span class="en">Personal computer LANs</span></h4><ul style="margin:0;padding-inline-start:20px"><li>المتطلب الأساسي: <b class="en">low cost</b></li><li><span class="en">Limited data rate</span></li></ul></div>
+    <div class="card tint ph-ana" style="margin:0"><h4>🏭 <span class="en">Back end networks</span></h4><p style="margin:0 0 4px">بتوصّل أنظمة كبيرة (<span class="en">mainframes, supercomputers, mass storage</span>). المتطلب: <b>bulk data transfer</b> بين عدد محدود من الأجهزة في مساحة صغيرة.</p><ul style="margin:0;padding-inline-start:20px"><li><span class="en">High data rate</span> (100 Mbps أو أكتر)</li><li><span class="en">High speed interface</span></li><li><span class="en">Distributed access</span></li><li><span class="en">Limited distance</span></li><li><span class="en">Limited number of devices</span></li></ul></div>
+  </div>
+  <div data-deck="lan"></div>
+
+  <h3 class="sec">🧱 الـ <span class="en">LAN Hardware &amp; Software</span> <small>(سلايد 19)</small></h3>
+  <div class="card">
+    <ul style="margin:0">
+      <li><b>PC</b>: <span class="en">servers and clients</span>.</li>
+      <li><b class="en">NIC</b> (<span class="en">Network interface card</span>): فيها الـ <b>physical address</b>.</li>
+      <li><b>Media</b>: <span class="chip en">Unshielded twisted pair (inexpensive)</span><span class="chip en">Coaxial cable (faster, expensive)</span><span class="chip en">Optical fiber (fastest, expensive)</span><span class="chip en">Air for wireless</span></li>
+      <li><b class="en">Hub / Switch</b>: بيسمحوا للكمبيوترات تتوصّل بالشبكة وتبعت داتا.</li>
+      <li><b>Software</b>: <b class="en">network operating system</b>.</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🖥️ الـ <span class="en">Network Server</span> <small>(سلايد 20–22)</small></h3>
+  <div class="card">
+    <ul style="margin:0">
+      <li><b>Server</b> = كمبيوتر قوي بيقدّم موارد مشتركة لـ workstations وservers تانية: <span class="en">disk space, hardware access, email services</span>.</li>
+      <li>أي كمبيوتر ممكن يكون server، <b>اللي بيفرّق الـ server عن الـ workstation مش الـ hardware، لكن الوظيفة (function)</b> اللي بيؤديها.</li>
+      <li>الـ servers بتتبني عادةً بمكونات أقوى (مثلاً RAM أكتر) أو OS أقوى متصمم يشتغل 24/7.</li>
+      <li>أمثلة: <span class="chip en">Application server</span><span class="chip en">Database server</span><span class="chip en">Domain name service server</span><span class="chip en">File server</span><span class="chip en">Mail server</span></li>
+    </ul>
+  </div>
+  <div class="tscroll">
+  <table class="tbl" dir="ltr" style="min-width:480px">
+    <tr><th>Server</th><th>Desktop (PC)</th></tr>
+    <tr><td>It has multiple processes (processors) for faster access</td><td>It has a single processor in most cases</td></tr>
+    <tr><td>The files are stored at a secure location</td><td>The files are present at the individual's desktop</td></tr>
+    <tr><td>Mirrored hard drives that have the backup of the data</td><td>A single hard drive; if it fails you lose the data</td></tr>
+    <tr><td>Requires more than one power supply</td><td>Has only one power supply</td></tr>
+    <tr><td>More secure against viruses, malware and cyber threats</td><td>Vulnerable to viruses, malware and cyber threats</td></tr>
+    <tr><td>The hardware parts are costly</td><td>The hardware parts are not costly</td></tr>
+    <tr><td>Higher processing power, memory and storage</td><td>Lower processing power, memory and storage</td></tr>
+  </table>
+  </div>
+  <div data-deck="srv"></div>
+</section>
+
+<!-- =====================================================  5 · TWISTED PAIR + COAX -->
+<section class="station" data-icon="🧵" data-title="Twisted pair و Coaxial ⭐">
+  <h2><span class="en">Twisted pair</span> و <span class="en">Coaxial</span> ⭐</h2>
+  <p class="lead">الوسيط (<span class="en">transmission medium</span>) = <b>المسار الفيزيائي</b> بين المرسل والمستقبل. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <h3>🌳 تصنيف الـ <span class="en">Transmission Media</span> <small class="muted">(سلايد 24)</small></h3>
+    <div class="grid g2">
+      <div class="card tint ph-plan" style="margin:0"><h4 class="en">Guided Media</h4><p style="margin:0"><span class="chip en ph-plan">Twisted Pair Cable</span><span class="chip en ph-plan">Coaxial Cable</span><span class="chip en ph-plan">Optical Fibre Cable</span></p></div>
+      <div class="card tint ph-ana" style="margin:0"><h4 class="en">Unguided Media</h4><p style="margin:0"><span class="chip en ph-ana">Radiowaves</span><span class="chip en ph-ana">Microwaves</span><span class="chip en ph-ana">Infrared</span></p></div>
+    </div>
+    <div class="note">📄 <b>Extra 1:</b> <span class="en">guided media</span> = <span class="en">copper wire and fiber optics</span>. <span class="en">unguided media</span> = <span class="en">terrestrial wireless, satellite, and lasers through the air</span>. وكمان <b class="en">Magnetic media</b>: تكتب الداتا على شريط/وسائط قابلة للإزالة (زي DVD) وتنقلها فيزيائياً للجهاز التاني وتقراها.</div>
+  </div>
+
+  <div class="card" data-tabs="tp">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="tp">Twisted Pair</button>
+      <button type="button" class="ph-ana" data-tab="cx">Coaxial</button>
+    </div>
+
+    <div class="pane" data-pane="tp">
+      <ul>
+        <li>زوج أسلاك <b>معزولة</b> ملفوفة على بعض (<span class="en">insulated wires twisted together</span>)، بتُستخدم في الاتصالات من زمان.</li>
+        <li>اللف بيساعد في <b>تقليل الضوضاء</b> من مصادر خارجية والـ <b class="en">crosstalk</b> في الكابلات متعددة الأزواج.</li>
+        <li>نوعين: <b class="en">UTP</b> (<span class="en">Unshielded Twisted Pair</span>) و <b class="en">STP</b> (<span class="en">Shielded Twisted Pair</span>).</li>
+      </ul>
+      <div class="note">📄 <b>Extra 1:</b> سلكين نحاس معزولين، سُمك كل واحد حوالي <b>1 mm</b>، ملفوفين بشكل لولبي زي الـ DNA. بيصلحوا لـ <span class="en">analog</span> أو <span class="en">digital</span>. الـ <span class="en">bandwidth</span> بتعتمد على سُمك السلك والمسافة: <b>عدة Mbps لكام كيلومتر</b>.<br>
+      <b>UTP</b>: من غير طبقة shield، شائع في شبكات البيوت والمكاتب (<span class="en">Ethernet</span>) لرخصه وسهولة استخدامه.<br>
+      <b>STP</b>: فيه <span class="en">foil or braided shielding</span> حوالين كل زوج (أو الكابل كله) لحماية إضافية من الـ <span class="en">EMI</span>، مناسب للبيئات ذات الضوضاء الكهربية العالية.<br>
+      بتُستخدم في: خطوط التليفون، شبكات Ethernet، و DSL، وفي الـ LANs وبين الكمبيوترات والـ switches/routers.</div>
+      <div class="note">📖 <b>الكتاب:</b> الـ UTP فيه <b>4 أزواج</b> نحاس في غلاف بلاستيك من غير shield (رخيص، خفيف، سهل التركيب). الـ STP فيه shield معدني (foil أو mesh): حماية أفضل من الـ EMI لكنه <b>أغلى وأتقل وأصعب في التركيب</b>. وأقصى مدى قياسي للـ twisted pair في الشبكات = <b class="en">100 meters</b>، وبعدها محتاج <b>repeater</b>.</div>
+    </div>
+
+    <div class="pane" data-pane="cx">
+      <ul>
+        <li>كابل <b>عالي التردد</b> فيه <b class="en">single solid-copper core</b>.</li>
+        <li>قدرته على الإرسال <b>أكتر من 80 مرة</b> من الـ twisted pair (<span class="en">over 80 times the transmission capability of the twisted-pair</span>).</li>
+      </ul>
+      <div class="note">📄 <b>Extra 1:</b> تركيبه <b>طبقات متحدة المركز (concentric)</b> من موصّلات كهربية ومواد عازلة: ① الموصّل الرئيسي (سلك نحاس صلب أو مجدول) ② طبقة <b class="en">dielectric</b> عازلة ③ طبقة <b>shield</b> (foil معدني أو نحاس مجدول) ④ غلاف خارجي عازل. الـ shield الخارجي بيتوصّل في الـ connectors عند الطرفين.<br>
+      <b>مميزاته:</b> <span class="en">supporting high bandwidth · easy to install · less affected by EMI compared with twisted pair · supporting multiple channels</span>.</div>
+      <div class="note">📖 <b>الكتاب:</b> الإشارة بتتنقل <b>كهربائياً</b> (مش ضوء). <span class="en">Coaxial cable</span> بيُستخدم في <b>cable television</b> و <b>broadband Internet</b>.</div>
+    </div>
+  </div>
+
+  <h3 class="sec">🎚️ فئات الـ <span class="en">UTP</span> (سلايد 26) <small>(اسحب السلايدر)</small></h3>
+  <div class="card" id="catCard">
+    <div class="range-wrap">
+      <input type="range" id="catRange" min="0" max="8" step="1" value="0" aria-label="UTP category">
+      <div class="ticks" id="catTicks"></div>
+    </div>
+    <h4 class="en" id="catName" style="margin-top:8px;font-size:24px"></h4>
+    <p class="en plain" id="catDesc" style="margin:0;font-size:17px"></p>
+  </div>
+  <div class="note warn">⚠️ السلايد كاتب نفس الوصف (<span class="en">10 Gbps · 10G Ethernet (55 meters)</span>) لـ <b>CAT6</b> و <b>CAT6a</b>، و<span class="en">(100 meters)</span> لـ <b>CAT7</b>. ذاكر اللي في السلايد. 🧠 (فهم عام: الأرقام الفعلية للمسافات بتختلف من مصدر لمصدر.)</div>
+  <div data-deck="utp"></div>
+
+  <h3 class="sec">🎯 تدريب: ده وصف أنهي كابل؟</h3>
+  <div data-deck="cable"></div>
+</section>
+
+<!-- =====================================================  6 · FIBER + COMPARE -->
+<section class="station" data-icon="💡" data-title="Fiber optic + المقارنة ⭐">
+  <h2><span class="en">Fiber optic</span> + المقارنة ⭐</h2>
+  <p class="lead">أسرع وسيط، والجداول اللي بتتسأل منها. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <h3>💡 <span class="en">Fiber optic cable</span></h3>
+    <ul>
+      <li>الـ <b>fiber optic cable</b> = التجميعة الكاملة من ألياف (<span class="en">fibers</span>) فيها ليف بصري واحد أو أكتر لنقل الداتا. كل عنصر ليف مغلّف بطبقات بلاستيك ومحطوط في أنبوب واقي.</li>
+    </ul>
+    <div class="note">📄 <b>Extra 1:</b> بتنقل الداتا بـ <b>نبضات ضوء قصيرة</b> (<span class="en">short light pulses</span>) على ليف طويل من الزجاج أو البلاستيك. مقاوم للـ <b class="en">EMI</b>. الزجاج مصنوع من الرمل. تركيبه شبه الـ coax من غير الـ braid.<br>
+    <b>القلب (core) الزجاجي:</b> في <span class="en">multimode</span> قطره حوالي <b>50 microns</b> (سُمك شعرة إنسان)، وفي <span class="en">single-mode</span> من <b>8 لـ 10 microns</b>. وحوالينه <span class="en">cladding</span> (زجاج) و<span class="en">jacket</span> (بلاستيك).<br>
+    ⚠️ الجملة «metal wires are preferred for transmission because the signals travel more safely» في Extra 1 واضح إنها <b>غلطة صياغة</b> (الكلام عن الـ fiber). اعتمد على باقي الوصف.</div>
+    <div class="note">📖 <b>الكتاب:</b> الداتا بتتنقل عبر <b>انعكاسات داخلية للضوء</b> (<span class="en">internal reflections</span>) في الـ core. سرعات أعلى بكتير من النحاس ومحصّنة ضد الـ EMI. بتُستخدم في: بنية الإنترنت، data centres، الأتمتة الصناعية، المؤسسات الحكومية، الاتصالات العسكرية. <b>شبكات التليفون كانت أول مستخدم كبير</b> (الـ long lines / long haul) لأن مسافة وسعة الـ fiber خلّته أرخص بكتير.</div>
+  </div>
+
+  <h3 class="sec">⚖️ جدول سلايد 28: <span class="en">Twisted copper wire</span> ضد <span class="en">Fibre-optic</span></h3>
+  <div class="tscroll">
+  <table class="tbl" dir="ltr" style="min-width:460px">
+    <tr><th></th><th>Twisted copper wire</th><th>Fibre-optic cable</th></tr>
+    <tr class="ph-plan"><td><b>Cost</b></td><td>Cheap</td><td>Expensive</td></tr>
+    <tr class="ph-ana"><td><b>Bandwidth</b></td><td>Lower bandwidth (originally designed for voice only)</td><td>Faster bandwidth</td></tr>
+    <tr class="ph-des"><td><b>Maximum transmission speed</b></td><td>Up to 1 gigabit per second</td><td>Over 40 terabits per second</td></tr>
+    <tr class="ph-imp"><td><b>Maximum distance for reliable communication</b></td><td>Up to 100 metres</td><td>Over 2 kilometres</td></tr>
+  </table>
+  </div>
+
+  <h3 class="sec">📖 مقارنة الكتاب (<span class="en">Twisted pair · Coaxial · Fiber</span>)</h3>
+  <div class="tscroll">
+  <table class="tbl" dir="ltr" style="min-width:540px">
+    <tr><th></th><th>Twisted pair</th><th>Co-axial</th><th>Fiber optic</th></tr>
+    <tr><td><b>Signal</b></td><td>Electrical (metallic wires)</td><td>Electrical (inner conductor)</td><td>Optical (glass fiber)</td></tr>
+    <tr><td><b>Consists of</b></td><td>Pair of insulated copper wires</td><td>4 components: solid conductor wire, insulation layer, grounding conductor, exterior insulation</td><td>Bundle of very thin optical fibers (glass or plastic)</td></tr>
+    <tr><td><b>Installation</b></td><td>Simple and easy</td><td>Relatively difficult / fairly easy*</td><td>Difficult</td></tr>
+    <tr><td><b>Bandwidth</b></td><td>Low</td><td>Moderately high</td><td>Very high</td></tr>
+    <tr><td><b>EMI</b></td><td>Can take place</td><td>Reduced due to shielding</td><td>Not present</td></tr>
+    <tr><td><b>Attenuation</b></td><td>Very high</td><td>Low</td><td>Very low</td></tr>
+    <tr><td><b>Data rate</b></td><td>Low</td><td>Moderately high</td><td>Very high</td></tr>
+    <tr><td><b>Noise immunity</b></td><td>Low</td><td>Higher</td><td>Highest</td></tr>
+    <tr><td><b>Cost</b></td><td>Very low</td><td>Moderate</td><td>Expensive</td></tr>
+    <tr><td><b>Repeater spacing</b></td><td>2–10 km</td><td>1–10 km</td><td>10–100 km</td></tr>
+  </table>
+  </div>
+  <p class="hint">* الجدول بتاع الكتاب بيقول للـ coax «Relatively difficult» في صف و«Fairly easy installation» في صف تاني (تكرار متعارض)، و Extra 1 بيقول «Easy to install». ⚠️ لو جه سؤال، الأسلم تربطه بمقارنة السؤال نفسه.</p>
+
+  <h3 class="sec">📄 جدول <span class="en">Extra 1 (Table 1.2)</span> — الأرقام اللي في الملف</h3>
+  <div class="tscroll">
+  <table class="tbl" dir="ltr" style="min-width:640px">
+    <tr><th></th><th>Coaxial</th><th>UTP</th><th>STP</th><th>Single Mode Fiber</th><th>Multimode Fiber</th></tr>
+    <tr><td><b>Medium</b></td><td>Copper</td><td>Copper</td><td>Copper</td><td>Glass (or plastic core)</td><td>Glass (or plastic core)</td></tr>
+    <tr><td><b>Transmission</b></td><td>Electrical</td><td>Electrical</td><td>Electrical</td><td>Light (Laser)</td><td>Light (LED)</td></tr>
+    <tr><td><b>Max distance</b></td><td>~500 m</td><td>100 m (Cat 5e/6)</td><td>100 m (Cat 5e/6)</td><td>Up to 40–100 km</td><td>Up to 2 km</td></tr>
+    <tr><td><b>Data rate</b></td><td>Up to 10 Mbps (older types)</td><td>Up to 10 Gbps (Cat 6a/7)</td><td>Up to 10 Gbps (Cat 6a/7)</td><td>10 Gbps to 100+ Gbps</td><td>10 Gbps (typical max)</td></tr>
+    <tr><td><b>EMI resistance</b></td><td>Moderate</td><td>Low</td><td>High</td><td>Very High</td><td>Very High</td></tr>
+    <tr><td><b>Cost</b></td><td>Low</td><td>Low</td><td>Moderate</td><td>High</td><td>Moderate</td></tr>
+    <tr><td><b>Installation</b></td><td>Easy</td><td>Easy</td><td>Slightly more complex</td><td>Complex</td><td>Moderate</td></tr>
+    <tr><td><b>Typical use</b></td><td>TV, CCTV, legacy LANs</td><td>Ethernet LANs</td><td>Industrial or noisy environments</td><td>Long-distance backbone links</td><td>Short-distance backbone links</td></tr>
+    <tr><td><b>Connector</b></td><td>BNC, F-type</td><td>RJ-45</td><td>RJ-45 (shielded)</td><td>LC, SC, FC</td><td>LC, SC, ST</td></tr>
+    <tr><td><b>Bandwidth</b></td><td>Low</td><td>Medium to High</td><td>Medium to High</td><td>Very High</td><td>High</td></tr>
+  </table>
+  </div>
+  <div class="note warn">⚠️ <b>تعارضات بين المصادر:</b> السلايد 28 بيقول twisted copper «up to 1 gigabit per second» وfiber «over 40 terabits per second»، لكن Table 1.2 في Extra 1 بيقول UTP حتى 10 Gbps والـ fiber من 10 لـ 100+ Gbps. وسلايد 27 بيقول الـ coax <b>أكتر من 80 مرة</b> قدرة الـ twisted pair، بينما Table 1.2 بيقول coax «up to 10 Mbps (older types)». <b>في الامتحان اكتب اللي في سلايد المحاضرة</b> (اللي أخدته مع الدكتور) ولو السؤال من الكتاب أو Extra 1 جاوب بحسبه.</div>
+
+  <div class="card tint ph-plan">
+    <h4>🧭 اختيار الـ transmission medium (سلايد 29)</h4>
+    <p style="margin:0">بيتحدد بعدد عوامل: <span class="chip en ph-plan">Capacity: to support the expected network traffic</span><span class="chip en ph-plan">Reliability: to meet requirements for availability</span><span class="chip en ph-plan">Types of data supported: tailored to the application</span><span class="chip en ph-plan">Environmental scope: service over the range of environments required</span></p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: اختار الوسيط المناسب <small>(فهم عام + جداول)</small></h3>
+  <div data-deck="pick"></div>
+</section>
+
+<!-- =====================================================  7 · TOPOLOGIES -->
+<section class="station" data-icon="🕸️" data-title="LAN Topologies ⭐">
+  <h2><span class="en">LAN Topologies</span> ⭐</h2>
+  <p class="lead"><b class="en">Topology</b> = الطريقة اللي بتتوصّل بيها نقط النهاية (الـ <span class="en">stations</span>) ببعض. الشائع: <b class="en">bus, tree, ring, star</b>. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <div class="card" data-tabs="bus">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="bus">Bus</button>
+      <button type="button" class="ph-ana" data-tab="tree">Tree</button>
+      <button type="button" class="ph-des" data-tab="ring">Ring</button>
+      <button type="button" class="ph-imp" data-tab="star">Star</button>
+    </div>
+
+    <div class="pane" data-pane="bus">
+      <svg class="dg" viewBox="0 0 520 130" role="img" aria-label="bus topology">
+        <line class="ln" x1="40" y1="40" x2="480" y2="40"/><rect class="tm" x="28" y="30" width="10" height="20" rx="2"/><rect class="tm" x="482" y="30" width="10" height="20" rx="2"/>
+        <line class="thin" x1="110" y1="40" x2="110" y2="78"/><line class="thin" x1="200" y1="40" x2="200" y2="78"/><line class="thin" x1="290" y1="40" x2="290" y2="78"/><line class="thin" x1="380" y1="40" x2="380" y2="78"/>
+        <rect class="nd" x="88" y="78" width="44" height="30" rx="8"/><rect class="nd" x="178" y="78" width="44" height="30" rx="8"/><rect class="nd" x="268" y="78" width="44" height="30" rx="8"/><rect class="nd" x="358" y="78" width="44" height="30" rx="8"/>
+        <text x="110" y="98">A</text><text x="200" y="98">B</text><text x="290" y="98">C</text><text x="380" y="98">D</text>
+        <text x="260" y="22" class="sm">bus (linear medium) · red = terminator · short lines = taps</text>
+      </svg>
+      <ul>
+        <li><b>Bus و Tree</b> الاتنين بيستخدموا <b class="en">multipoint medium</b>.</li>
+        <li>كل الـ stations بتتوصّل من خلال <b>hardware interfacing</b> اسمه <b class="en">tap</b> مباشرة بوسيط خطي (<b>bus</b>).</li>
+        <li><b>Full-duplex</b> بين الـ station والـ tap: الداتا بتتبعت على الـ bus وبتتستقبل منه.</li>
+        <li>الإرسال من أي station بينتشر <b>على طول الوسيط في الاتجاهين</b> وبيتستقبل عند كل الـ stations التانية.</li>
+        <li>في كل طرف <b class="en">terminator</b> بيمتص أي إشارة ويشيلها من الـ bus.</li>
+      </ul>
+    </div>
+
+    <div class="pane" data-pane="tree">
+      <svg class="dg" viewBox="0 0 520 170" role="img" aria-label="tree topology">
+        <circle class="hl" cx="40" cy="85" r="18"/><text x="40" y="120" class="sm">Headend</text>
+        <line class="ln" x1="58" y1="85" x2="150" y2="85"/>
+        <line class="ln" x1="150" y1="85" x2="150" y2="40"/><line class="ln" x1="150" y1="85" x2="150" y2="130"/>
+        <line class="ln" x1="150" y1="40" x2="470" y2="40"/><line class="ln" x1="150" y1="130" x2="470" y2="130"/>
+        <line class="thin" x1="260" y1="40" x2="260" y2="14"/><line class="thin" x1="360" y1="40" x2="360" y2="14"/><line class="thin" x1="260" y1="130" x2="260" y2="156"/><line class="thin" x1="360" y1="130" x2="360" y2="156"/><line class="thin" x1="450" y1="40" x2="450" y2="66"/><line class="thin" x1="450" y1="130" x2="450" y2="104"/>
+        <rect class="nd" x="244" y="2" width="32" height="14" rx="5"/><rect class="nd" x="344" y="2" width="32" height="14" rx="5"/><rect class="nd" x="244" y="154" width="32" height="14" rx="5"/><rect class="nd" x="344" y="154" width="32" height="14" rx="5"/><rect class="nd" x="434" y="64" width="32" height="14" rx="5"/><rect class="nd" x="434" y="92" width="32" height="14" rx="5"/>
+      </svg>
+      <ul>
+        <li>الـ <b class="en">tree</b> = <b>تعميم (generalization)</b> للـ bus.</li>
+        <li>الوسيط عبارة عن <b>كابل متفرّع</b> (<span class="en">branching cable</span>) <b>من غير حلقات مقفولة</b> (<span class="en">no closed loops</span>).</li>
+        <li>التخطيط بيبدأ من نقطة اسمها <b class="en">headend</b>. كابل أو أكتر بيطلع منها، وكل واحد ممكن يتفرّع، والفروع ممكن تتفرع تاني فيطلع تخطيط معقد.</li>
+        <li>برضه: الإرسال من أي station بينتشر في الوسيط كله وبيتستقبل عند كل الـ stations التانية.</li>
+      </ul>
+    </div>
+
+    <div class="pane" data-pane="ring">
+      <svg class="dg" viewBox="0 0 520 190" role="img" aria-label="ring topology">
+        <circle class="thin" cx="260" cy="95" r="68" style="stroke-dasharray:8 6"/>
+        <rect class="hl" x="238" y="14" width="44" height="26" rx="8"/><rect class="hl" x="318" y="64" width="44" height="26" rx="8"/><rect class="hl" x="298" y="140" width="44" height="26" rx="8"/><rect class="hl" x="178" y="140" width="44" height="26" rx="8"/><rect class="hl" x="158" y="64" width="44" height="26" rx="8"/>
+        <text x="260" y="32">R</text><text x="340" y="82">R</text><text x="320" y="158">R</text><text x="200" y="158">R</text><text x="180" y="82">R</text>
+        <text x="260" y="98" class="sm">unidirectional</text><text x="260" y="112" class="sm">links</text>
+        <text x="440" y="48" class="sm">R = repeater</text>
+      </svg>
+      <ul>
+        <li>الشبكة عبارة عن <b>مجموعة repeaters</b> متوصّلة بـ <b class="en">point-to-point links</b> في <b>حلقة مقفولة</b> (<span class="en">closed loop</span>).</li>
+        <li>الـ repeater جهاز <b>بسيط نسبياً</b>: بيستقبل داتا على لينك وبيرسلها <b>bit by bit</b> على اللينك التاني بنفس سرعة وصولها.</li>
+        <li>اللينكات <b class="en">unidirectional</b>: الداتا بتتحرك في <b>اتجاه واحد</b> حوالين الحلقة (<span class="en">clockwise أو counterclockwise</span>).</li>
+      </ul>
+    </div>
+
+    <div class="pane" data-pane="star">
+      <svg class="dg" viewBox="0 0 520 190" role="img" aria-label="star topology">
+        <line class="ln" x1="260" y1="95" x2="110" y2="35"/><line class="ln" x1="260" y1="95" x2="110" y2="155"/><line class="ln" x1="260" y1="95" x2="410" y2="35"/><line class="ln" x1="260" y1="95" x2="410" y2="155"/><line class="ln" x1="260" y1="95" x2="260" y2="20"/>
+        <circle class="hl" cx="260" cy="95" r="28"/><text x="260" y="99">Central node</text>
+        <circle class="nd" cx="110" cy="35" r="14"/><circle class="nd" cx="110" cy="155" r="14"/><circle class="nd" cx="410" cy="35" r="14"/><circle class="nd" cx="410" cy="155" r="14"/><circle class="nd" cx="260" cy="14" r="12"/>
+        <text x="260" y="70" class="sm"> </text><text x="440" y="100" class="sm">hub / switch / repeater</text>
+      </svg>
+      <ul>
+        <li>كل station <b>متوصّلة مباشرة بـ central node مشترك</b>.</li>
+        <li>عادةً كل station بتتوصّل بالـ central node بـ <b>لينكين point-to-point</b>: واحد للإرسال وواحد للاستقبال.</li>
+        <li><b>بتاخد كابلات أكتر من الـ bus</b>، لكن الميزة: لو كابل اتقطع <b>node واحدة بس بتقع</b>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="sec">🧪 مشكلتين في الـ <span class="en">Bus / Tree</span> وحلهم</h3>
+  <div class="card">
+    <ol class="steps ph-ana">
+      <li>الإرسال من station بيوصل لكل الـ stations، فلازم نوضّح الرسالة <b>لمين</b>.</li>
+      <li>محتاجين <b>آلية لتنظيم الإرسال</b> (<span class="en">regulate transmission</span>).</li>
+    </ol>
+    <p><b>الحل:</b> الـ stations بتبعت الداتا في <b>blocks صغيرة اسمها frames</b>. كل frame = جزء من الداتا + <b class="en">frame header</b> فيه control information. وكل station على الـ bus ليها <b>address (identifier) فريد</b>، وعنوان الوجهة بيتحط في الـ header.</p>
+    <p class="muted" style="margin-bottom:4px">جرّب (سلايد 36): اختار المرسل والوجهة وشوف مين بينسخ الـ frame ومين بيتجاهله.</p>
+    <div class="sel">
+      <label>المرسل: <select id="busFrom"><option>A</option><option>B</option><option selected>C</option><option>D</option></select></label>
+      <label>الوجهة: <select id="busTo"><option selected>A</option><option>B</option><option>C</option><option>D</option></select></label>
+    </div>
+    <div class="busline"></div>
+    <div class="busg" id="busg"></div>
+    <div class="verdict" id="busV"></div>
+  </div>
+
+  <div class="card tint ph-des">
+    <h4>🧭 اختيار الـ topology (سلايد 39)</h4>
+    <p style="margin:0">بيعتمد على عوامل: <span class="chip en ph-des">Reliability</span><span class="chip en ph-des">Expandability</span><span class="chip en ph-des">Performance</span></p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده وصف أنهي topology؟</h3>
+  <div data-deck="topo"></div>
+</section>
+
+<!-- =====================================================  8 · TRAPS -->
+<section class="station" data-icon="⚠️" data-title="فخاخ الامتحان">
+  <h2>فخاخ الامتحان ⚠️</h2>
+  <p class="lead">الجمل دي هي اللي بتتعمل منها <span class="en">True/False</span>. قرر: صح ولا غلط؟ (⏱️ ٤ دقايق)</p>
+  <div data-deck="traps"></div>
+</section>
+
+<!-- =====================================================  9 · FLASHCARDS -->
+<section class="station" data-icon="🧠" data-title="Flashcards">
+  <h2>Flashcards 🧠</h2>
+  <p class="lead">فكّر في الإجابة الأول، وبعدين اقلب الكارت. علّم اللي عرفته ✅ واللي لسه 🔁 — وراجع الأخير بس. (⏱️ ٦ دقايق)</p>
+  <div data-flash="main"></div>
+  <p class="hint" style="text-align:center;margin-top:10px">⌨️ مسطرة (Space) تقلب · الأسهم تنقل بين الكروت</p>
+</section>
+
+<!-- =====================================================  10 · QUIZ -->
+<section class="station" data-icon="📝" data-title="الكويز النهائي">
+  <h2>الكويز النهائي 📝</h2>
+  <p class="lead">10 أسئلة <span class="en">MCQ</span> بتصحيح فوري، وبعدها 3 أسئلة <span class="en">Essay</span> تكتب إجابتك وتقارنها بالنموذجية. (⏱️ ٨ دقايق)</p>
+
+  <h3 class="sec">① MCQ</h3>
+  <div data-deck="mcq"></div>
+
+  <h3 class="sec">② Essay</h3>
+  <div class="card essay" data-essay="e1">
+    <h3>سؤال 1</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Explain the encapsulation and decapsulation processes in a layered model. What does each layer add, and what is a frame?</p>
+    <textarea placeholder="اكتب إجابتك هنا (بتتحفظ في المتصفح بس)…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e2">
+    <h3>سؤال 2</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Compare twisted copper wire and fibre-optic cable in terms of cost, bandwidth, maximum transmission speed and maximum distance. Which factors determine the choice of a transmission medium?</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e3">
+    <h3>سؤال 3</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Describe the four common LAN topologies (bus, tree, ring and star) and state the factors that govern the choice of a topology.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+</section>
+
+<!-- =====================================================  11 · SUMMARY -->
+<section class="station summary" data-icon="⚡" data-title="ملخص المراجعة">
+  <h2>ملخص المراجعة ⚡ <span class="en plain" style="font-size:18px">Lecture 3</span></h2>
+  <p class="lead noprint">ده اللي تراجعه الليلة اللي قبل الامتحان. <button type="button" class="btn" onclick="window.print()">🖨️ اطبع / احفظ PDF</button></p>
+
+  <h3 class="sec">📦 الـ Encapsulation</h3>
+  <table class="tbl">
+    <tr><th>الخطوة</th><th>اللي بيحصل</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Transport</span></td><td>بيضيف header (TCP) → <span class="en">segment</span></td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Network</span></td><td>بيضيف header (IP) → <span class="en">packet</span></td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Data Link</span></td><td>بيضيف header (MAC + LLC) و trailer (FCS) → <span class="en">frame</span></td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">Physical</span></td><td>الـ frame بيتبعت كـ <span class="en">bits</span> على الـ medium</td></tr>
+    <tr class="t-ok"><td><span class="dot"></span><span class="en">Decapsulation</span></td><td>المستقبل بيشيل الـ headers طبقة طبقة (العكس)</td></tr>
+  </table>
+
+  <h3 class="sec">↔️ أوضاع الإرسال و Layer 1</h3>
+  <table class="tbl">
+    <tr><th></th><th>المعنى</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Simplex</span></td><td>اتجاه واحد، المستقبل مايقدرش يرد (📖 keyboard, traditional monitors)</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Half-duplex</span></td><td>بيبعت ويستقبل لكن مش في نفس الوقت</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Full-duplex</span></td><td>بيبعت ويستقبل في نفس الوقت</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">Repeater</span></td><td>بيعمل regenerate للإشارة المشوّهة بسبب attenuation (half duplex)</td></tr>
+    <tr class="t-warn"><td><span class="dot"></span><span class="en">Hub</span></td><td>multi-port repeater: بيبعت الـ bits لكل الـ ports التانية (half duplex). 📖 اتنين مع بعض = collision</td></tr>
+  </table>
+
+  <h3 class="sec">🏢 LAN و Server</h3>
+  <div class="grid g2">
+    <div class="card"><h4>💻 PC LAN</h4><p style="margin:0"><span class="en">Low cost · limited data rate</span></p></div>
+    <div class="card"><h4>🏭 Back end network</h4><p style="margin:0"><span class="en">Mainframes, supercomputers, mass storage · high data rate (100 Mbps+) · high speed interface · distributed access · limited distance · limited number of devices</span></p></div>
+    <div class="card"><h4>🖥️ Server</h4><p style="margin:0">بيفرق عن الـ workstation بـ <b>الوظيفة</b> مش الـ hardware. أمثلة: <span class="en">application, database, DNS, file, mail</span>.</p></div>
+    <div class="card"><h4>🧱 LAN hardware</h4><p style="margin:0"><span class="en">PCs (servers/clients) · NIC · media · hub/switch · network OS</span></p></div>
+  </div>
+
+  <h3 class="sec">🔌 الكابلات في جدول</h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">Twisted pair</th><th class="en">Coaxial</th><th class="en">Fiber optic</th></tr>
+    <tr><td>الإشارة</td><td>كهربية</td><td>كهربية</td><td>ضوء</td></tr>
+    <tr><td>التكلفة</td><td>رخيص</td><td>متوسط</td><td>غالي</td></tr>
+    <tr><td>الـ bandwidth</td><td>منخفض</td><td>متوسط-عالي</td><td>عالي جداً</td></tr>
+    <tr><td>الـ EMI</td><td>ممكن يحصل</td><td>مخفّض بالـ shield</td><td>مفيش</td></tr>
+    <tr><td>المسافة (سلايد 28)</td><td>حتى 100 m</td><td>—</td><td>أكتر من 2 km</td></tr>
+    <tr><td>السرعة (سلايد 28)</td><td>حتى 1 Gbps</td><td>أكتر من 80× الـ TP (سلايد 27)</td><td>أكتر من 40 Tbps</td></tr>
+  </table>
+  <table class="tbl">
+    <tr><th>فئة UTP</th><th>الوصف</th></tr>
+    <tr><td class="en">CAT1</td><td class="en plain">Up to 1 Mbps · old telephone cable</td></tr>
+    <tr><td class="en">CAT2</td><td class="en plain">Up to 4 Mbps · Token Ring</td></tr>
+    <tr><td class="en">CAT3</td><td class="en plain">Up to 10 Mbps · Token Ring &amp; 10BASE-T Ethernet</td></tr>
+    <tr><td class="en">CAT4</td><td class="en plain">Up to 16 Mbps · Token Ring</td></tr>
+    <tr><td class="en">CAT5</td><td class="en plain">Up to 100 Mbps · Ethernet, Fast Ethernet, Token Ring</td></tr>
+    <tr><td class="en">CAT5e</td><td class="en plain">Up to 1 Gbps · Ethernet, Fast Ethernet, Gigabit Ethernet</td></tr>
+    <tr><td class="en">CAT6 / CAT6a</td><td class="en plain">Up to 10 Gbps · Gigabit Ethernet, 10G Ethernet (55 meters)</td></tr>
+    <tr><td class="en">CAT7</td><td class="en plain">Up to 10 Gbps · Gigabit Ethernet, 10G Ethernet (100 meters)</td></tr>
+  </table>
+
+  <h3 class="sec">🕸️ الـ Topologies</h3>
+  <table class="tbl">
+    <tr><th></th><th>الفكرة</th><th>نقطة مميزة</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Bus</span></td><td>stations على وسيط خطي بـ <span class="en">tap</span></td><td><span class="en">terminator</span> في كل طرف · multipoint</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Tree</span></td><td>تعميم للـ bus، كابل متفرّع من غير loops</td><td>يبدأ من <span class="en">headend</span> · multipoint</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Ring</span></td><td>repeaters في حلقة مقفولة بـ point-to-point</td><td>اللينكات <span class="en">unidirectional</span> (bit by bit)</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">Star</span></td><td>كل station بـ central node (لينكين)</td><td>كابلات أكتر لكن لو كابل وقع node واحدة بس تقع</td></tr>
+  </table>
+  <p class="muted">اختيار الـ topology: <span class="en">Reliability · Expandability · Performance</span>. اختيار الـ medium: <span class="en">Capacity · Reliability · Types of data supported · Environmental scope</span>.</p>
+
+  <h3 class="sec">⚠️ الفخاخ</h3>
+  <div class="note bad">
+    ❌ simplex = المستقبل يقدر يرد (لأ) &nbsp;·&nbsp; ❌ LLC = Link Layer Control (هي Logical Link Control) &nbsp;·&nbsp; ❌ Hub بيبعت للوجهة بس (بيبعت لكل الـ ports) &nbsp;·&nbsp; ❌ Repeater/Hub = full duplex (هما half) &nbsp;·&nbsp; ❌ PC LAN متطلبه الأساسي data rate عالي (هو low cost) &nbsp;·&nbsp; ❌ الـ server يفرق بالـ hardware (يفرق بالوظيفة) &nbsp;·&nbsp; ❌ الـ fiber أرخص من النحاس (أغلى) &nbsp;·&nbsp; ❌ الـ tree فيه closed loops (لأ) &nbsp;·&nbsp; ❌ الـ star لو كابل وقع الشبكة كلها تقع (node واحدة بس)
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+window.DATA = {
+  decks: {
+    /* ---------- encapsulation: which layer adds what ---------- */
+    encap: {
+      cols: 2,
+      opts: [{ t: 'Transport', cls: 'ph-plan' }, { t: 'Network', cls: 'ph-ana' }, { t: 'Data Link', cls: 'ph-des' }, { t: 'Physical', cls: 'ph-imp' }],
+      cards: [
+        { q: 'Adds a TCP header to the upper layer data (forming a segment)', a: 0, why: 'الـ <b>Transport</b> بيضيف الـ TCP header.' },
+        { q: 'Adds an IP header (forming a packet)', a: 1, why: 'الـ <b>Network</b> بيضيف الـ IP header.' },
+        { q: 'Adds the MAC header and the LLC header', a: 2, why: 'دي headers الـ <b>Data Link</b>.' },
+        { q: 'Adds a trailer (FCS) to produce a frame', a: 2, why: 'الـ <b>Data Link</b> بتضيف trailer وبتطلع frame.' },
+        { q: 'Frame Check Sequence (FCS): an error-detecting code added to the frame', a: 2, why: 'الـ FCS في الـ <b>Data Link</b>.' },
+        { q: 'Transmits the frame as bits over the medium', a: 3, why: 'الـ <b>Physical</b> بيبعت bits.' },
+        { q: 'At the receiver, strips the frame header and trailer (decapsulation)', a: 2, why: 'الـ <b>Data Link</b> بتشيل الـ header والـ trailer.' },
+        { q: 'At the receiver, strips the IP header and hands the segment up', a: 1, why: 'الـ <b>Network</b> بيشيل الـ IP header.' },
+        { q: 'At the receiver, strips the TCP header and delivers the data upward', a: 0, why: 'الـ <b>Transport</b> بيشيل الـ TCP header.' },
+        { q: 'Logical Link Control (LLC) information is placed here', a: 2, why: 'الـ LLC بتاع الـ <b>Data Link</b>.' }
+      ]
+    },
+
+    /* ---------- transmission modes ---------- */
+    modes: {
+      cols: 3,
+      opts: [{ t: 'Simplex', cls: 'ph-plan' }, { t: 'Half-duplex', cls: 'ph-ana' }, { t: 'Full-duplex', cls: 'ph-des' }],
+      cards: [
+        { q: 'Communication occurs in only one direction; the receiver cannot reply to the sender.', a: 0, why: 'ده <b>Simplex</b>.' },
+        { q: 'Devices can send and receive data at the same time (two ways of transmission).', a: 2, why: 'ده <b>Full-duplex</b>.' },
+        { q: 'Each device can both transmit and receive, but not at the same time.', a: 1, why: 'ده <b>Half-duplex</b>.' },
+        { q: 'A is sending and B is receiving; then B is sending and A is receiving.', a: 1, why: 'ده رسمة <b>Half-duplex</b> في السلايد.' },
+        { q: 'Both directions at the same time.', a: 2, why: '<b>Full-duplex</b>.' },
+        { q: 'One direction only.', a: 0, why: '<b>Simplex</b>.' },
+        { q: '📖 Keyboard and traditional monitors are examples of this mode.', a: 0, why: 'الكتاب: أمثلة الـ <b>Simplex</b>.' },
+        { q: 'The repeater and the hub work in this mode.', a: 1, why: 'السلايد: <b>half duplex</b>.' },
+        { q: 'Bidirectional communication limited to one direction at a time.', a: 1, why: '<b>Half-duplex</b> (الكتاب).' }
+      ]
+    },
+
+    /* ---------- repeater vs hub ---------- */
+    l1dev: {
+      cols: 3,
+      opts: [{ t: 'Repeater', cls: 'ph-imp' }, { t: 'Hub', cls: 'ph-plan' }, { t: 'Both', cls: 'ph-ana' }],
+      cards: [
+        { q: 'A network device used to regenerate a signal.', a: 0, why: 'ده الـ <b>Repeater</b>.' },
+        { q: 'A multi-port repeater.', a: 1, why: 'ده الـ <b>Hub</b>.' },
+        { q: 'Takes data bits from the input port and forwards them to all other ports.', a: 1, why: 'ده الـ <b>Hub</b>.' },
+        { q: 'Regenerates analog or digital signals distorted by transmission loss due to attenuation.', a: 0, why: 'ده <b>Repeater</b>.' },
+        { q: 'Works in half duplex mode.', a: 2, why: 'السلايد: <b>الاتنين</b> half duplex.' },
+        { q: 'It is a Layer 1 device.', a: 2, why: 'السلايد بيعدّدهم تحت <b>Layer 1 devices</b>: الاتنين.' },
+        { q: '📖 If data from two devices arrive at the same time, they collide.', a: 1, why: 'الكتاب: عيب الـ <b>Hub</b>.' },
+        { q: 'In a ring topology, the network consists of a set of these joined by point-to-point links.', a: 0, why: 'سلايد 37: <b>repeaters</b>.' }
+      ]
+    },
+
+    /* ---------- LAN applications ---------- */
+    lan: {
+      cols: 2,
+      opts: [{ t: 'PC LAN', cls: 'ph-plan' }, { t: 'Back end network', cls: 'ph-ana' }],
+      cards: [
+        { q: 'A key requirement is low cost.', a: 0, why: '<b>Personal computer LANs</b>.' },
+        { q: 'Interconnects mainframes, supercomputers and mass storage devices.', a: 1, why: '<b>Back end networks</b>.' },
+        { q: 'Limited data rate.', a: 0, why: '<b>PC LAN</b>.' },
+        { q: 'High speed interface.', a: 1, why: '<b>Back end</b>.' },
+        { q: 'Bulk data transfer among a limited number of devices in a small area.', a: 1, why: 'المتطلب الأساسي للـ <b>Back end</b>.' },
+        { q: 'Distributed access, limited distance, limited number of devices.', a: 1, why: 'خصائص <b>Back end</b>.' },
+        { q: 'Connects personal computers and workstations in an organization.', a: 0, why: '<b>PC LANs</b>.' },
+        { q: 'Data rates of 100 Mbps or more are required.', a: 1, why: 'High data rate = <b>Back end</b>.' }
+      ]
+    },
+
+    /* ---------- server vs desktop ---------- */
+    srv: {
+      cols: 2,
+      opts: [{ t: 'Server', cls: 'ph-plan' }, { t: 'Desktop (PC)', cls: 'ph-ana' }],
+      cards: [
+        { q: 'It has a single processor in most cases.', a: 1, why: '<b>Desktop</b>.' },
+        { q: 'The files are stored at a secure location.', a: 0, why: '<b>Server</b>.' },
+        { q: 'It has a single hard drive; if it fails you lose the data.', a: 1, why: '<b>Desktop</b>.' },
+        { q: 'It has mirrored hard drives which hold the backup of the data.', a: 0, why: '<b>Server</b>.' },
+        { q: 'It requires more than one power supply.', a: 0, why: '<b>Server</b>.' },
+        { q: 'It is vulnerable to viruses, malware and cyber threats.', a: 1, why: '<b>Desktop</b>.' },
+        { q: 'The hardware parts are costly.', a: 0, why: '<b>Server</b>.' },
+        { q: 'It has lower processing power, memory and storage.', a: 1, why: '<b>Desktop</b>.' },
+        { q: 'More secure against viruses, malware and cyber threats.', a: 0, why: '<b>Server</b>.' }
+      ]
+    },
+
+    /* ---------- UTP categories ---------- */
+    utp: {
+      cols: 3,
+      opts: [{ t: 'CAT1', cls: 'ph-plan' }, { t: 'CAT2', cls: 'ph-plan' }, { t: 'CAT3', cls: 'ph-ana' }, { t: 'CAT4', cls: 'ph-ana' }, { t: 'CAT5', cls: 'ph-des' }, { t: 'CAT5e', cls: 'ph-des' }, { t: 'CAT6 / CAT6a', cls: 'ph-imp' }, { t: 'CAT7', cls: 't-warn' }],
+      cards: [
+        { q: 'Up to 1 Mbps, old telephone cable', a: 0, why: '<b>CAT1</b>.' },
+        { q: 'Up to 4 Mbps, Token Ring networks', a: 1, why: '<b>CAT2</b>.' },
+        { q: 'Up to 10 Mbps, Token Ring & 10BASE-T Ethernet', a: 2, why: '<b>CAT3</b>.' },
+        { q: 'Up to 16 Mbps, Token Ring networks', a: 3, why: '<b>CAT4</b>.' },
+        { q: 'Up to 100 Mbps: Ethernet, Fast Ethernet, Token Ring', a: 4, why: '<b>CAT5</b>.' },
+        { q: 'Up to 1 Gbps: Ethernet, Fast Ethernet, Gigabit Ethernet', a: 5, why: '<b>CAT5e</b>.' },
+        { q: 'Up to 10 Gbps: Gigabit Ethernet, 10G Ethernet (55 meters)', a: 6, why: '<b>CAT6 / CAT6a</b> (السلايد كاتب نفس الوصف للاتنين).' },
+        { q: 'Up to 10 Gbps: Gigabit Ethernet, 10G Ethernet (100 meters)', a: 7, why: '<b>CAT7</b>.' }
+      ]
+    },
+
+    /* ---------- cable identification ---------- */
+    cable: {
+      cols: 3,
+      opts: [{ t: 'Twisted pair', cls: 'ph-plan' }, { t: 'Coaxial', cls: 'ph-ana' }, { t: 'Fiber optic', cls: 'ph-des' }],
+      cards: [
+        { q: 'A pair of insulated wires twisted together', a: 0, why: '<b>Twisted pair</b>.' },
+        { q: 'The twisting helps reduce noise from outside sources and crosstalk', a: 0, why: '<b>Twisted pair</b>.' },
+        { q: 'Comes in two types: UTP and STP', a: 0, why: '<b>Twisted pair</b>.' },
+        { q: 'A high-frequency transmission cable with a single solid-copper core', a: 1, why: '<b>Coaxial</b>.' },
+        { q: 'Has over 80 times the transmission capability of the twisted pair', a: 1, why: '<b>Coaxial</b> (سلايد 27).' },
+        { q: 'Used for cable TV; concentric layers: conductor, dielectric, shield, outer jacket', a: 1, why: '<b>Coaxial</b>.' },
+        { q: 'Transmits data as short light pulses along glass or plastic', a: 2, why: '<b>Fiber optic</b>.' },
+        { q: 'EMI is not present (completely resistant to electromagnetic interference)', a: 2, why: '<b>Fiber optic</b>.' },
+        { q: 'Maximum distance for reliable communication: over 2 kilometres; speed over 40 terabits per second', a: 2, why: '<b>Fiber optic</b> (سلايد 28).' },
+        { q: 'Cheap; lower bandwidth (originally designed for voice only); up to 100 metres', a: 0, why: '<b>Twisted copper wire</b> (سلايد 28).' },
+        { q: 'Single-mode and multimode types (core 8–10 microns or about 50 microns)', a: 2, why: '<b>Fiber optic</b> (Extra 1).' },
+        { q: '📖 Connectors: RJ-45', a: 0, why: '<b>UTP</b> بيستخدم RJ-45.' },
+        { q: '📖 Connectors: BNC and F-type', a: 1, why: '<b>Coaxial</b> (Table 1.2 في Extra 1).' }
+      ]
+    },
+
+    /* ---------- pick the medium ---------- */
+    pick: {
+      cols: 3,
+      opts: [{ t: 'Twisted pair', cls: 'ph-plan' }, { t: 'Coaxial', cls: 'ph-ana' }, { t: 'Fiber optic', cls: 'ph-des' }],
+      cards: [
+        { q: 'Cheapest option for office Ethernet cabling over 100 m runs', a: 0, why: '<b>Twisted pair</b>: رخيص، حتى 100 m، سهل التركيب.' },
+        { q: 'A long-distance backbone link of tens of kilometres', a: 2, why: '<b>Fiber optic</b>: أكتر من 2 km (single mode حتى 40–100 km).' },
+        { q: 'Highest bandwidth and complete immunity to electromagnetic interference', a: 2, why: '<b>Fiber optic</b>.' },
+        { q: 'Cable television distribution', a: 1, why: '<b>Coaxial</b> (الكتاب + سلايد L2).' },
+        { q: 'The signal must travel several kilometres between telephone switches', a: 2, why: '<b>Fiber optic</b>: شبكات التليفون أول مستخدم (الكتاب).' },
+        { q: 'A budget LAN where cost matters more than speed', a: 0, why: '<b>Twisted pair</b>: very low cost.' },
+        { q: 'A medium needing less EMI than twisted pair, with multiple channels support', a: 1, why: '<b>Coaxial</b> (Extra 1 advantages).' }
+      ]
+    },
+
+    /* ---------- topologies ---------- */
+    topo: {
+      cols: 2,
+      opts: [{ t: 'Bus', cls: 'ph-plan' }, { t: 'Tree', cls: 'ph-ana' }, { t: 'Ring', cls: 'ph-des' }, { t: 'Star', cls: 'ph-imp' }],
+      cards: [
+        { q: 'All stations attach, through a tap, directly to a linear transmission medium', a: 0, why: '<b>Bus</b>.' },
+        { q: 'At each end there is a terminator which absorbs any signal', a: 0, why: '<b>Bus</b>.' },
+        { q: 'The layout begins at a point known as the headend', a: 1, why: '<b>Tree</b>.' },
+        { q: 'A generalization of the bus: a branching cable with no closed loops', a: 1, why: '<b>Tree</b>.' },
+        { q: 'A set of repeaters joined by point-to-point links in a closed loop', a: 2, why: '<b>Ring</b>.' },
+        { q: 'The links are unidirectional: data circulate clockwise or counterclockwise', a: 2, why: '<b>Ring</b>.' },
+        { q: 'A repeater receives data on one link and transmits them, bit by bit, on the other link', a: 2, why: '<b>Ring</b>.' },
+        { q: 'Each station is directly connected to a common central node', a: 3, why: '<b>Star</b>.' },
+        { q: 'Takes more cable, but if a cable fails only one node is brought down', a: 3, why: '<b>Star</b>.' },
+        { q: 'Each station attaches to the central node via two point-to-point links: one for transmission and one for reception', a: 3, why: '<b>Star</b>.' }
+      ]
+    },
+
+    /* ---------- True / False traps ---------- */
+    traps: {
+      cols: 2,
+      opts: [{ t: 'صح ✔ (True)', cls: 't-ok' }, { t: 'غلط ✘ (False)', cls: 't-bad' }],
+      cards: [
+        { q: 'The data link layer also adds a trailer to produce what is known as a frame.', a: 0, why: 'صح.' },
+        { q: 'The receiving station performs decapsulation: headers are stripped off at each layer.', a: 0, why: 'صح.' },
+        { q: 'A header plus data is termed a protocol data unit (PDU).', a: 0, why: 'صح.' },
+        { q: 'FCS (Frame Check Sequence) is an error-detecting code added to a frame.', a: 0, why: 'صح.' },
+        { q: 'LLC stands for Link Layer Control.', a: 1, why: 'اسمها <b>Logical Link Control</b>.' },
+        { q: 'In simplex mode the receiver can reply to the sender.', a: 1, why: 'في الـ simplex المستقبل <b>مايقدرش يرد</b>.' },
+        { q: 'In half-duplex mode each device can both transmit and receive, but not at the same time.', a: 0, why: 'صح.' },
+        { q: 'In full-duplex mode, devices can send and receive data at the same time.', a: 0, why: 'صح.' },
+        { q: 'A hub is a multi-port repeater.', a: 0, why: 'صح.' },
+        { q: 'A hub forwards data only to the destination port.', a: 1, why: 'بيبعتها لـ <b>كل الـ ports التانية</b>.' },
+        { q: 'The repeater and the hub work in full duplex mode.', a: 1, why: 'هما <b>half duplex</b>.' },
+        { q: 'A repeater regenerates signals distorted by attenuation.', a: 0, why: 'صح.' },
+        { q: 'A key requirement for personal computer LANs is a high data rate.', a: 1, why: 'المتطلب الأساسي: <b>low cost</b>.' },
+        { q: 'Back end networks interconnect mainframes, supercomputers and mass storage devices.', a: 0, why: 'صح.' },
+        { q: 'What separates a server from a workstation is the hardware rather than the function performed.', a: 1, why: 'العكس: <b>الوظيفة</b> مش الـ hardware.' },
+        { q: 'The twisting of a twisted pair helps reduce noise from outside sources and crosstalk.', a: 0, why: 'صح.' },
+        { q: 'A coaxial cable contains a single solid-copper core.', a: 0, why: 'صح.' },
+        { q: 'Fibre-optic cable is cheaper than twisted copper wire.', a: 1, why: 'الـ fibre <b>Expensive</b>.' },
+        { q: 'Per the slide table, fibre-optic can reliably cover over 2 kilometres, while twisted copper covers up to 100 metres.', a: 0, why: 'صح — سلايد 28.' },
+        { q: 'In a bus topology, a terminator at each end absorbs any signal.', a: 0, why: 'صح.' },
+        { q: 'The tree topology contains closed loops.', a: 1, why: 'الـ tree <b>من غير closed loops</b>.' },
+        { q: 'In a ring topology the links are unidirectional.', a: 0, why: 'صح.' },
+        { q: 'In a star topology, if a cable fails the whole network goes down.', a: 1, why: 'لأ — <b>node واحدة بس</b> بتقع.' },
+        { q: 'The choice of topology depends on reliability, expandability and performance.', a: 0, why: 'صح.' },
+        { q: 'The choice of transmission medium depends on capacity, reliability, types of data supported and environmental scope.', a: 0, why: 'صح — سلايد 29.' }
+      ]
+    },
+
+    /* ---------- MCQ ---------- */
+    mcq: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'The process of adding a header at each layer as data moves down the stack is called:', opts: ['Encapsulation', 'Decapsulation', 'Multiplexing', 'Modulation'], a: 0, why: '<b>Encapsulation</b>. العكس عند المستقبل = decapsulation.' },
+        { q: 'Which transmission mode allows both devices to send and receive at the same time?', opts: ['Full-duplex', 'Half-duplex', 'Simplex', 'Broadcast'], a: 0, why: '<b>Full-duplex</b>.' },
+        { q: 'A hub is best described as:', opts: ['A multi-port repeater', 'A device that forwards frames only to the destination port', 'A device that routes packets between networks', 'A full-duplex switch'], a: 0, why: 'الـ hub = <b>multi-port repeater</b>.' },
+        { q: 'Which LAN topology starts at a point known as the headend?', opts: ['Tree', 'Bus', 'Ring', 'Star'], a: 0, why: '<b>Tree</b>.' },
+        { q: 'Which of the following is a typical characteristic of back end networks?', opts: ['High data rate with a limited number of devices', 'Low cost with limited data rate', 'Unlimited distance', 'A single user'], a: 0, why: 'الـ <b>back end</b>: high data rate، limited distance وعدد أجهزة.' },
+        { q: 'Which cable has the highest bandwidth and no electromagnetic interference?', opts: ['Fiber optic', 'Coaxial', 'UTP', 'STP'], a: 0, why: '<b>Fiber optic</b>.' },
+        { q: 'In a star topology, if one cable fails:', opts: ['Only one node is brought down', 'The whole network goes down', 'The headend fails', 'All terminators are removed'], a: 0, why: 'الميزة: <b>node واحدة بس</b> بتقع.' },
+        { q: 'FCS stands for:', opts: ['Frame Check Sequence', 'Frame Control Signal', 'Fast Channel Service', 'Fiber Cable Standard'], a: 0, why: '<b>Frame Check Sequence</b>: error-detecting code.' },
+        { q: 'According to the book, the standard maximum range for twisted-pair cables in computer networks is:', opts: ['100 meters', '10 meters', '1 kilometre', '2 kilometres'], a: 0, why: '📖 الكتاب: <b>100 meters</b>.' },
+        { q: 'Which UTP category supports up to 100 Mbps (Ethernet, Fast Ethernet, Token Ring)?', opts: ['CAT5', 'CAT3', 'CAT5e', 'CAT7'], a: 0, why: '<b>CAT5</b> (سلايد 26).' }
+      ]
+    }
+  },
+
+  /* ---------- flashcards ---------- */
+  flash: {
+    main: [
+      { f: 'إيه هو الـ <span class="en">Encapsulation</span>؟', b: 'كل layer بتضيف <b>header</b> على الداتا (والـ data link بتضيف كمان trailer) فبتتولّد <span class="en">PDU</span> في كل layer. الـ header فيه معلومات للاتصال peer-to-peer.' },
+      { f: 'إيه هو الـ <span class="en">Decapsulation</span>؟', b: 'العملية العكسية عند المستقبل: بيشيل (strips off) الـ headers طبقة طبقة عشان يفصل البروتوكولات عن الداتا.' },
+      { f: 'إيه هو الـ <span class="en">PDU</span> في الـ encapsulation؟', b: 'الـ header + الداتا اللي اتغلّفت. بيتولّد PDU في كل layer.' },
+      { f: 'إيه اللي بيضيفه الـ <span class="en">Data Link</span> وبيتكوّن عنه إيه؟', b: 'بيضيف <b>header و trailer</b> فبيتكوّن <span class="en">frame</span>. وبعدين الـ frame بيتبعت على الـ physical medium.' },
+      { f: 'ترتيب أجزاء الـ <span class="en">frame</span> في سلايد 5', b: '<span class="en">MAC header · LLC header · IP header · TCP header · Upper layer data · FCS</span>' },
+      { f: '<span class="en">LLC</span> و <span class="en">FCS</span> اختصار إيه؟', b: '<span class="en">LLC = Logical Link Control</span> · <span class="en">FCS = Frame Check Sequence</span> (كود لاكتشاف الأخطاء بيتضاف على الـ frame).' },
+      { f: 'الـ <span class="en">Simplex</span>', b: 'اتجاه واحد بس. المرسل بيبعت بس والمستقبل يستقبل بس ومايقدرش يرد. 📖 أمثلة: keyboard, traditional monitors.' },
+      { f: 'الـ <span class="en">Half-duplex</span>', b: 'كل جهاز يبعت ويستقبل، لكن مش في نفس الوقت.' },
+      { f: 'الـ <span class="en">Full-duplex</span>', b: 'الأجهزة تبعت وتستقبل في نفس الوقت (طريقين).' },
+      { f: 'إيه هو الـ <span class="en">Repeater</span>؟', b: 'جهاز Layer 1 بيعمل <span class="en">regenerate</span> للإشارة (analog أو digital) اللي اتشوّهت بسبب <span class="en">attenuation</span>. بيشتغل half duplex.' },
+      { f: 'إيه هو الـ <span class="en">Hub</span>؟', b: '<span class="en">Multi-port repeater</span>. بياخد الـ bits من input port ويبعتها لكل الـ ports التانية. half duplex. 📖 عيبه: collision لو جهازين بعتوا مع بعض.' },
+      { f: 'إيه هي الـ <span class="en">LAN</span>؟', b: 'وسيط إرسال مشترك + hardware و software لتوصيل الأجهزة بالوسيط وتنظيم الوصول ليه.' },
+      { f: 'الـ <span class="en">Personal computer LANs</span>', b: 'المتطلب الأساسي: <span class="en">low cost</span>. و <span class="en">limited data rate</span>.' },
+      { f: 'الـ <span class="en">Back end networks</span>', b: 'بتوصّل mainframes و supercomputers و mass storage. <span class="en">High data rate (100 Mbps+) · high speed interface · distributed access · limited distance · limited number of devices</span>.' },
+      { f: 'مكونات الـ <span class="en">LAN hardware &amp; software</span>', b: '<span class="en">PCs (servers and clients) · NIC (physical address) · media (UTP, coaxial, fiber, air) · hub/switch · network operating system</span>' },
+      { f: 'إيه اللي بيفرّق الـ <span class="en">server</span> عن الـ <span class="en">workstation</span>؟', b: '<b>الوظيفة</b> (function) اللي بيؤديها، مش الـ hardware. وغالباً الـ server بمكونات أقوى (RAM أكتر) و OS بيشتغل 24/7.' },
+      { f: 'أمثلة على الـ <span class="en">network servers</span>', b: '<span class="en">Application · Database · Domain name service · File · Mail</span>' },
+      { f: 'تصنيف الـ <span class="en">transmission media</span>', b: '<b>Guided</b>: twisted pair, coaxial, optical fibre. <b>Unguided</b>: radiowaves, microwaves, infrared.' },
+      { f: 'الـ <span class="en">Twisted pair</span>: إيه فايدة اللف؟ وأنواعه؟', b: 'يقلل الضوضاء الخارجية والـ crosstalk. النوعين: <span class="en">UTP</span> و <span class="en">STP</span>. 📖 أقصى مدى 100 m.' },
+      { f: 'فئات الـ <span class="en">UTP</span> من CAT1 لـ CAT5e', b: '<span class="en">CAT1: 1 Mbps (telephone) · CAT2: 4 Mbps · CAT3: 10 Mbps · CAT4: 16 Mbps · CAT5: 100 Mbps · CAT5e: 1 Gbps</span>' },
+      { f: 'فئات الـ <span class="en">UTP</span> العليا', b: '<span class="en">CAT6 / CAT6a: up to 10 Gbps (55 meters) · CAT7: up to 10 Gbps (100 meters)</span> (حسب السلايد).' },
+      { f: 'الـ <span class="en">Coaxial cable</span>', b: 'كابل عالي التردد فيه <span class="en">single solid-copper core</span>، قدرته أكتر من <b>80 مرة</b> الـ twisted pair (سلايد 27). بيُستخدم في cable TV.' },
+      { f: 'تركيب الـ <span class="en">coaxial</span> (Extra 1)', b: 'موصّل مركزي نحاس ← <span class="en">dielectric</span> عازل ← <span class="en">shield</span> (foil أو braid) ← غلاف خارجي عازل.' },
+      { f: 'مميزات الـ <span class="en">coax</span> (Extra 1)', b: '<span class="en">High bandwidth · easy to install · less affected by EMI than twisted pair · multiple channels</span>' },
+      { f: 'الـ <span class="en">Fiber optic cable</span>', b: 'بينقل الداتا بنبضات ضوء قصيرة في ليف زجاج أو بلاستيك. مقاوم للـ EMI. أغلى لكن أسرع وأبعد.' },
+      { f: 'قطر الـ <span class="en">core</span> في الـ fiber', b: '<span class="en">Multimode: ≈ 50 microns</span> · <span class="en">Single-mode: 8–10 microns</span> (Extra 1).' },
+      { f: 'جدول سلايد 28: النحاس ضد الـ fibre', b: '<span class="en">Cost: cheap vs expensive · Bandwidth: lower vs faster · Max speed: up to 1 Gbps vs over 40 Tbps · Max distance: up to 100 m vs over 2 km</span>' },
+      { f: '📖 <span class="en">Repeater spacing</span> (جدول الكتاب)', b: '<span class="en">Twisted pair: 2–10 km · Coaxial: 1–10 km · Fiber: 10–100 km</span>' },
+      { f: 'عوامل اختيار الـ <span class="en">transmission medium</span>', b: '<span class="en">Capacity · Reliability · Types of data supported · Environmental scope</span>' },
+      { f: 'الـ <span class="en">Topology</span> يعني إيه؟ وإيه الأشكال الشائعة؟', b: 'الطريقة اللي بتتوصّل بيها نقط النهاية (stations). الشائع في الـ LANs: <span class="en">bus, tree, ring, star</span>.' },
+      { f: 'الـ <span class="en">Bus topology</span>', b: 'stations بتتوصّل بـ <span class="en">tap</span> على وسيط خطي. الإرسال بينتشر في الاتجاهين. <span class="en">Terminator</span> في كل طرف بيمتص الإشارة. multipoint.' },
+      { f: 'الـ <span class="en">Tree topology</span>', b: 'تعميم للـ bus. كابل متفرّع من غير closed loops. بيبدأ من <span class="en">headend</span>. multipoint.' },
+      { f: 'الـ <span class="en">Ring topology</span>', b: 'مجموعة repeaters متوصّلة بـ point-to-point links في حلقة مقفولة. اللينكات unidirectional. الـ repeater بيعدّي bit by bit.' },
+      { f: 'الـ <span class="en">Star topology</span>', b: 'كل station متوصّلة بـ central node بلينكين (إرسال واستقبال). كابلات أكتر لكن لو كابل وقع node واحدة بس بتقع.' },
+      { f: 'مشكلتين في الـ bus/tree وحلهم', b: 'ما بنعرفش الرسالة لمين، ولازم ننظّم الإرسال. الحل: إرسال الداتا في <b>frames</b> فيها header فيه address الوجهة، وكل station ليها address فريد.' },
+      { f: 'عوامل اختيار الـ <span class="en">topology</span>', b: '<span class="en">Reliability · Expandability · Performance</span>' }
+    ]
+  },
+
+  /* ---------- essay model answers ---------- */
+  essays: {
+    e1: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Encapsulation</b>: when an application has a message to send, the data goes to the application layer, which appends a header (H) containing the additional information required for peer-to-peer communication. The header plus data is a protocol data unit (PDU); each PDU is said to encapsulate the data by adding the header. This is repeated at each layer, generating a PDU at each layer. The transport layer adds a (TCP) header to make a segment, the network layer adds an (IP) header to make a packet, and the data link layer adds a header (MAC, LLC) <i>and a trailer</i> (FCS) to produce a <b>frame</b>. The frame, with all the encapsulated PDUs, is transmitted over the physical medium as bits.</p>' +
+        '<p dir="ltr" style="margin:0"><b>Decapsulation</b>: the receiving station performs the reverse operation: headers are stripped off at each layer to separate the respective communication protocols from the data units.</p>',
+      points: [
+        'Each layer appends a header with peer-to-peer control information',
+        'Header + data = PDU; a PDU at each layer',
+        'Data link layer also adds a trailer (FCS) → frame',
+        'Frame transmitted over the physical medium',
+        'Decapsulation = reverse, headers stripped at each layer'
+      ]
+    },
+    e2: {
+      model:
+        '<table class="tbl" style="margin:0 0 8px" dir="ltr"><tr><th></th><th>Twisted copper wire</th><th>Fibre-optic cable</th></tr>' +
+        '<tr><td>Cost</td><td>Cheap</td><td>Expensive</td></tr>' +
+        '<tr><td>Bandwidth</td><td>Lower (originally designed for voice only)</td><td>Faster bandwidth</td></tr>' +
+        '<tr><td>Max transmission speed</td><td>Up to 1 gigabit per second</td><td>Over 40 terabits per second</td></tr>' +
+        '<tr><td>Max distance for reliable communication</td><td>Up to 100 metres</td><td>Over 2 kilometres</td></tr></table>' +
+        '<p dir="ltr" style="margin:0"><b>Choice of transmission medium</b> is determined by: capacity (to support the expected network traffic), reliability (to meet requirements for availability), types of data supported (tailored to the application) and environmental scope (to provide service over the range of environments required).</p>',
+      points: [
+        'Cost — cheap vs expensive',
+        'Bandwidth — lower vs faster',
+        'Max speed — up to 1 Gbps vs over 40 Tbps',
+        'Max distance — up to 100 m vs over 2 km',
+        'Choice factors — capacity, reliability, types of data, environmental scope'
+      ]
+    },
+    e3: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Topology</b> is the way in which the end points (stations) attached to the network are interconnected. Common LAN topologies are:</p>' +
+        '<p dir="ltr" style="margin:0 0 6px"><b>Bus</b>: all stations attach through a tap directly to a linear transmission medium (multipoint). A transmission propagates along the medium in both directions and is received by all other stations; a terminator at each end absorbs the signal.</p>' +
+        '<p dir="ltr" style="margin:0 0 6px"><b>Tree</b>: a generalization of the bus; a branching cable with no closed loops that begins at the headend. A transmission propagates throughout the medium and is received by all stations.</p>' +
+        '<p dir="ltr" style="margin:0 0 6px"><b>Ring</b>: a set of repeaters joined by point-to-point links in a closed loop; the links are unidirectional and data circulate in one direction; each repeater passes data bit by bit.</p>' +
+        '<p dir="ltr" style="margin:0 0 6px"><b>Star</b>: each station is directly connected to a common central node, typically via two point-to-point links (one for transmission, one for reception). It takes more cable than a bus, but if a cable fails only one node is brought down.</p>' +
+        '<p dir="ltr" style="margin:0"><b>Choice of topology</b> depends on reliability, expandability and performance.</p>',
+      points: [
+        'Topology definition',
+        'Bus — taps, linear medium, terminators, multipoint',
+        'Tree — headend, branching, no closed loops',
+        'Ring — repeaters, closed loop, unidirectional',
+        'Star — central node, two links, only one node down if a cable fails',
+        'Choice factors — reliability, expandability, performance'
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ---------- encapsulation / decapsulation stepper ---------- */
+(function () {
+  var ENC = [
+    { t: 'Upper layer data', f: 'Application · Presentation · Session', n: 'نبدأ بـ <b>الداتا</b> من الطبقات العليا (<span class="en">Upper layer data</span>).',
+      v: '<span class="d">Upper layer data</span>' },
+    { t: 'Segment', f: 'Transport · بيضيف TCP header', n: 'الـ <b>Transport</b> بيضيف <b>TCP header</b> فبتتكوّن <b>segment</b>.',
+      v: '<span class="h4">TCP header</span><span class="d">Upper layer data</span>' },
+    { t: 'Packet', f: 'Network · بيضيف IP header', n: 'الـ <b>Network</b> بيضيف <b>IP header</b> فبتتكوّن <b>packet</b>.',
+      v: '<span class="h3">IP header</span><span class="h4">TCP header</span><span class="d">Upper layer data</span>' },
+    { t: 'Frame', f: 'Data Link · بيضيف MAC + LLC headers و FCS', n: 'الـ <b>Data Link</b> بيضيف <b>MAC header + LLC header</b> و<b>trailer (FCS)</b> فبتتكوّن <b>frame</b>.',
+      v: '<span class="h2">MAC header</span><span class="h2">LLC header</span><span class="h3">IP header</span><span class="h4">TCP header</span><span class="d">Upper layer data</span><span class="h2">FCS</span>' },
+    { t: 'Bits', f: 'Physical', n: 'الـ <b>Physical</b> بيبعت الـ frame كـ <b>bits</b> على الـ network media.',
+      v: '<span class="bits">11101010111101101001100101010 …</span>' }
+  ];
+  var DEC = [
+    { t: 'Bits received', f: 'Physical', n: 'المستقبل بيستقبل <b>bits</b> من الـ network media.',
+      v: '<span class="bits">11101010111101101001100101010 …</span>' },
+    { t: 'Frame → Packet', f: 'Data Link · بيشيل MAC + LLC و FCS', n: 'الـ <b>Data Link</b> بيشيل <b>MAC header + LLC header</b> و<b>FCS</b>.',
+      v: '<span class="h3">IP header</span><span class="h4">TCP header</span><span class="d">Upper layer data</span>' },
+    { t: 'Packet → Segment', f: 'Network · بيشيل IP header', n: 'الـ <b>Network</b> بيشيل <b>IP header</b>.',
+      v: '<span class="h4">TCP header</span><span class="d">Upper layer data</span>' },
+    { t: 'Segment → Data', f: 'Transport · بيشيل TCP header', n: 'الـ <b>Transport</b> بيشيل <b>TCP header</b>.',
+      v: '<span class="d">Upper layer data</span>' },
+    { t: 'Upper layer data', f: 'Application · Presentation · Session', n: 'الداتا الأصلية وصلت للطبقات العليا ولـ application.',
+      v: '<span class="d">Upper layer data ✔</span>' }
+  ];
+  var ol = document.getElementById('encStg');
+  if (!ol) return;
+  var mode = 'enc', cur = -1;
+  var next = document.getElementById('encNext'), reset = document.getElementById('encReset'), note = document.getElementById('encNote'), vis = document.getElementById('encVis');
+  function L() { return mode === 'enc' ? ENC : DEC; }
+  function build() {
+    ol.innerHTML = '';
+    L().forEach(function (x, i) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="n">' + (i + 1) + '</span><div><b class="en">' + x.t + '</b><small class="en plain">' + x.f + '</small></div>';
+      ol.appendChild(li);
+    });
+    cur = -1; draw();
+  }
+  function draw() {
+    Array.prototype.forEach.call(ol.children, function (li, i) {
+      li.classList.toggle('on', i === cur);
+      li.classList.toggle('past', i < cur);
+    });
+    vis.innerHTML = cur < 0 ? '' : L()[cur].v;
+    note.innerHTML = cur < 0 ? 'دوس «الخطوة التالية» عشان تبدأ.' : '<b>' + (cur + 1) + '.</b> ' + L()[cur].n;
+    next.disabled = cur >= L().length - 1;
+  }
+  next.addEventListener('click', function () { if (cur < L().length - 1) { cur++; draw(); } });
+  reset.addEventListener('click', function () { cur = -1; draw(); });
+  Array.prototype.forEach.call(document.querySelectorAll('#encSeg button'), function (b) {
+    b.addEventListener('click', function () {
+      mode = b.dataset.m;
+      Array.prototype.forEach.call(document.querySelectorAll('#encSeg button'), function (x) { x.classList.toggle('on', x === b); });
+      build();
+    });
+  });
+  build();
+})();
+
+/* ---------- transmission-mode simulator ---------- */
+(function () {
+  var seg = document.getElementById('modeSeg');
+  if (!seg) return;
+  var mode = 'simplex', a = false, b = false;
+  var pcA = document.getElementById('pcA'), pcB = document.getElementById('pcB'), sA = document.getElementById('pcAs'), sB = document.getElementById('pcBs');
+  var arAB = document.getElementById('arAB'), arBA = document.getElementById('arBA'), V = document.getElementById('modeV');
+  var aBtn = document.getElementById('aBtn'), bBtn = document.getElementById('bBtn');
+  function draw(msg) {
+    pcA.className = 'pc' + (a ? ' snd' : (b ? ' rcv' : ''));
+    pcB.className = 'pc' + (b ? ' snd' : (a ? ' rcv' : ''));
+    sA.textContent = a ? 'بيبعت' : (b ? 'بيستقبل' : '');
+    sB.textContent = b ? 'بيبعت' : (a ? 'بيستقبل' : '');
+    arAB.className = a ? 'on' : ''; arBA.className = b ? 'on' : '';
+    aBtn.textContent = a ? '⏹ A وقّف' : 'A يبعت ▶';
+    bBtn.textContent = b ? '⏹ B وقّف' : '◀ B يبعت';
+    V.className = 'verdict' + (msg && msg.bad ? ' neg' : (msg && msg.ok ? ' pos' : ''));
+    V.innerHTML = msg ? msg.t : 'اختار وضع وجرّب تخلّي A و B يبعتوا.';
+  }
+  function toggle(who) {
+    var self = who === 'a' ? a : b, other = who === 'a' ? b : a;
+    if (self) { if (who === 'a') a = false; else b = false; return draw({ t: 'وقف الإرسال.' }); }
+    if (mode === 'simplex' && who === 'b') return draw({ bad: true, t: '✘ في <b>Simplex</b> الاتصال في اتجاه واحد (من A ل B): <b>B مايقدرش يبعت أو يرد</b>.' });
+    if (mode === 'half' && other) return draw({ bad: true, t: '✘ في <b>Half-duplex</b> مينفعش الاتنين يبعتوا <b>في نفس الوقت</b>. استنى الطرف التاني يخلّص.' });
+    if (who === 'a') a = true; else b = true;
+    if (mode === 'full' && a && b) return draw({ ok: true, t: '✔ في <b>Full-duplex</b> الاتنين بيبعتوا ويستقبلوا <b>في نفس الوقت</b>.' });
+    draw({ ok: true, t: '✔ ' + (who === 'a' ? 'A بيبعت و B بيستقبل' : 'B بيبعت و A بيستقبل') + '.' });
+  }
+  aBtn.addEventListener('click', function () { toggle('a'); });
+  bBtn.addEventListener('click', function () { toggle('b'); });
+  Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) {
+    x.addEventListener('click', function () {
+      mode = x.dataset.m; a = false; b = false;
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (y) { y.classList.toggle('on', y === x); });
+      draw({ t: mode === 'simplex' ? 'Simplex: اتجاه واحد بس (A → B).' : mode === 'half' ? 'Half-duplex: اتجاهين لكن مش مع بعض.' : 'Full-duplex: اتجاهين في نفس الوقت.' });
+    });
+  });
+  draw();
+})();
+
+/* ---------- hub demo ---------- */
+(function () {
+  var g = document.getElementById('hubg');
+  if (!g) return;
+  var N = 4, snd = [];
+  var V = document.getElementById('hubV');
+  function draw() {
+    Array.prototype.forEach.call(g.children, function (b, i) {
+      var s = snd.indexOf(i) >= 0;
+      var cls = '', sub = 'idle';
+      if (snd.length >= 2) { cls = 'col'; sub = s ? 'بيبعت' : 'collision'; }
+      else if (snd.length === 1) { if (s) { cls = 'snd'; sub = 'بيبعت'; } else { cls = 'rcv'; sub = 'بيستقبل'; } }
+      b.className = cls; b.querySelector('small').textContent = sub;
+    });
+    V.className = 'verdict' + (snd.length >= 2 ? ' neg' : (snd.length === 1 ? ' pos' : ''));
+    V.innerHTML = snd.length === 0 ? 'دوس على جهاز تخليه يبعت.'
+      : snd.length === 1 ? '✔ PC' + (snd[0] + 1) + ' بيبعت، والـ <b>hub</b> بيبعت الـ bits لـ <b>كل الـ ports التانية</b> (الكل بيستقبل).'
+      : '💥 <b>Collision!</b> أكتر من جهاز بعت في نفس الوقت (📖 الكتاب: لو داتا من جهازين جت في نفس الوقت هيحصل collision).';
+  }
+  for (var i = 0; i < N; i++) {
+    (function (i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.innerHTML = 'PC' + (i + 1) + '<small>idle</small>';
+      b.addEventListener('click', function () {
+        var k = snd.indexOf(i);
+        if (k >= 0) snd.splice(k, 1); else snd.push(i);
+        draw();
+      });
+      g.appendChild(b);
+    })(i);
+  }
+  draw();
+})();
+
+/* ---------- UTP categories slider ---------- */
+(function () {
+  var D = [
+    { k: 'CAT1', d: 'Up to 1Mbps, Old Telephone Cable' },
+    { k: 'CAT2', d: 'Up to 4Mbps, Token Ring Networks' },
+    { k: 'CAT3', d: 'Up to 10Mbps, Token Ring & 10BASE-T Ethernet' },
+    { k: 'CAT4', d: 'Up to 16Mbps, Token Ring Networks' },
+    { k: 'CAT5', d: 'Up to 100Mbps, Ethernet, Fast Ethernet, Token Ring' },
+    { k: 'CAT5e', d: 'Up to 1Gbps, Ethernet, Fast Ethernet, Gigabit Ethernet' },
+    { k: 'CAT6', d: 'Up to 10Gbps, Gigabit Ethernet, 10G Ethernet (55 meters)' },
+    { k: 'CAT6a', d: 'Up to 10Gbps, Gigabit Ethernet, 10G Ethernet (55 meters)' },
+    { k: 'CAT7', d: 'Up to 10Gbps, Gigabit Ethernet, 10G Ethernet (100 meters)' }
+  ];
+  var r = document.getElementById('catRange'), ticks = document.getElementById('catTicks');
+  if (!r) return;
+  D.forEach(function (x, i) {
+    var s = document.createElement('span');
+    s.textContent = x.k; s.dataset.v = i;
+    s.addEventListener('click', function () { set(i); });
+    ticks.appendChild(s);
+  });
+  function set(i) {
+    r.value = i;
+    document.getElementById('catName').textContent = D[i].k;
+    document.getElementById('catDesc').textContent = D[i].d;
+    Array.prototype.forEach.call(ticks.children, function (s, k) { s.classList.toggle('on', k === i); });
+  }
+  r.addEventListener('input', function () { set(+r.value); });
+  set(0);
+})();
+
+/* ---------- bus frame demo ---------- */
+(function () {
+  var g = document.getElementById('busg');
+  if (!g) return;
+  var S = ['A', 'B', 'C', 'D'];
+  var from = document.getElementById('busFrom'), to = document.getElementById('busTo'), V = document.getElementById('busV');
+  function draw() {
+    var f = from.value, t = to.value;
+    g.innerHTML = '';
+    if (f === t) { V.className = 'verdict neg'; V.innerHTML = 'المرسل والوجهة لازم يختلفوا. اختار وجهة تانية.'; S.forEach(function (s) { g.innerHTML += '<div class="' + (s === f ? 'snd' : '') + '">' + s + '<small>' + (s === f ? 'sender' : '') + '</small></div>'; }); return; }
+    S.forEach(function (s) {
+      var cls = s === f ? 'snd' : (s === t ? 'cpy' : 'ign');
+      var sub = s === f ? 'بيبعت frame' : (s === t ? 'بينسخ الـ frame ✔' : 'بيستقبل الإشارة ويتجاهل');
+      g.innerHTML += '<div class="' + cls + '">' + s + '<small>' + sub + '</small></div>';
+    });
+    V.className = 'verdict pos';
+    V.innerHTML = 'الإشارة بتوصل <b>لكل الـ stations</b> على الـ bus، لكن <b>' + t + '</b> بس هي اللي بتنسخ الـ frame لأن عنوانها هو عنوان الوجهة في الـ header. باقي الـ stations بتتجاهله.';
+  }
+  from.addEventListener('change', draw); to.addEventListener('change', draw);
+  draw();
+})();
+</script>
+</body>
+</html>

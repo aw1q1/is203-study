@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 — Computer Networks · مذاكرة تفاعلية</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .wrap{max-width:980px;margin:0 auto;padding:30px clamp(14px,3vw,24px) 70px}
+  .hero{text-align:center;margin:18px 0 28px}
+  .hero h1{font-size:38px;line-height:1.3;margin:0 0 6px}
+  .hero p{color:var(--muted);margin:0;font-size:18px}
+  .lec{position:relative;display:flex;flex-direction:column;gap:4px;padding:22px;border-radius:22px;text-decoration:none;color:var(--text);
+       border:1px solid rgba(var(--c-rgb),.5);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);transition:.2s}
+  a.lec:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+  .lec .no{font:800 15px "Segoe UI",sans-serif;color:var(--c);letter-spacing:.5px}
+  .lec h3{margin:0;font-size:21px;direction:ltr;text-align:start;unicode-bidi:isolate}
+  .lec .en{font-size:15px;color:var(--muted);font-weight:400}
+  .lec .st{margin-top:10px;font-size:14.5px;color:var(--muted)}
+  .lec.soon{opacity:.5;filter:grayscale(.4);cursor:default}
+  .tt td:first-child{white-space:nowrap}
+  .tt .tm{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:"Segoe UI",sans-serif;font-weight:700}
+  .tt tr.brk td{color:var(--muted)}
+  .tt tr.day th{background:rgba(var(--accent-rgb),.16);color:var(--text);font-size:15px}
+</style>
+</head>
+<body data-lecture="index">
+<div class="wrap">
+  <div style="display:flex;justify-content:flex-end"><button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button></div>
+  <div class="hero">
+    <h1 dir="ltr">IS203 · Computer Networks</h1>
+    <p>مذاكرة تفاعلية للـ Midterm — الاثنين ٩ نوفمبر ٢٠٢٦، الساعة ١:٠٠ م</p>
+  </div>
+
+  <div class="note warn" dir="rtl" style="font-size:15px;line-height:1.85">
+    <b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي.
+    <b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات.
+    <span class="muted">المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — <span class="en">Computer Networks / IS203</span>) بنسختيها (<span class="en">Lecture 1–5</span> القديمة فيها الـ <span class="en">OSI</span>، و<span class="en">IS203_Lec_1–4</span> الجديدة بنفس المحتوى) وكتاب المادة <span class="en">Computer Networks Part 1</span> وملفَّي <span class="en">Extra 1</span> و <span class="en">Extra 2</span> (من النسخة القديمة للمجلد)، وسلايدات السكاشن (م. تقى مجدي وم. عبدالله حلمي) في صفحة السكاشن.</span>
+    <div dir="ltr" style="text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.45);font-size:13.5px;line-height:1.7"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203), the course book “Computer Networks - Part 1”, and the Extra 1 and Extra 2 handouts. The lecture slides exist in two versions with the same content: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files; Extra 1 and 2 come from the earlier version of the folder. The Sections page is based on the teaching assistants' section slides (Eng. Toqua Magdy and Eng. Abdallah Helmy) and chapter 5 of the book.</div>
+  </div>
+
+  <div class="note">📌 <b>الامتحان:</b> <span class="en">Essay</span> بـ ١٠ درجات + <span class="en">MCQ</span> (٢٠ سؤال). تفاصيل الأسئلة مش محددة، والمطلوب كل اللي اتاخد في المحاضرات (<span class="en">IS203_Lec_1–4</span> + الكتاب). ✅ الـ <span class="en">IP addressing / subnetting</span> (السكاشن <span class="en">2 + 4</span> + فصل ٥ من الكتاب) اتضافوا في صفحة <a href="sections.html" style="color:var(--accent)"><b>السكاشن</b></a> المنفصلة (مش جوه صفحات المحاضرات)، وبتجي في الميدتيرم السابقة.</div>
+
+  <div class="note warn" dir="rtl" style="font-size:15px;line-height:1.9">
+    🔄 <b>تحديث ملفات الدرايف (٩ نوفمبر، حوالي ٢:٣٠ ص):</b> المجلد دلوقتي فيه <span class="en">IS203_Lec_1 … IS203_Lec_4</span> + الكتاب بس. اتشالت: <span class="en">Lecture 1–5</span> القديمة، ومحاضرة الـ <span class="en">OSI</span>، و<span class="en">Extra 1</span> و<span class="en">Extra 2</span>.
+    <ul style="margin:8px 0 0;padding-inline-start:20px">
+      <li>قارنت النص في الملفات الجديدة بالقديمة سطر بسطر: <span class="en">Lec 1</span> مطابقة ١٠٠٪، و<span class="en">Lec 2 / 3 / 4</span> هما محاضرات <span class="en">3 / 4 / 5</span> القديمة بنفس المحتوى (اتغير الترقيم وتقسيم الأسطر وغلطة إملائية واحدة). <b>مفيش معلومة اتغيّرت أو اتضافت</b> (قارنت النص بس، مش الصور).</li>
+      <li>الخريطة: صفحة <b>L1</b> = <span class="en">IS203_Lec_1</span> · <b>L3</b> = <span class="en">Lec_2</span> · <b>L4</b> = <span class="en">Lec_3</span> · <b>L5</b> = <span class="en">Lec_4</span>.</li>
+      <li>صفحة <b>L2 (OSI)</b> مالهاش ملف في المجلد الجديد، <b>بس ماتسيبهاش</b>: الـ <span class="en">OSI / layers / encapsulation</span> جم في الميدتيرم السابقة (٢٠٢١-٢٢ و٢٠٢٢-٢٣ و٢٠٢٥-٢٦)، وهي كمان في <span class="en">Section 2</span> والكتاب. معرفش لو الدكتور شالها من المقرر ولا بس من الملفات.</li>
+      <li><span class="en">Extra 1 / Extra 2</span> اتشالوا من المجلد؛ محتواهم لسه في صفحتي <b>L1</b> و<b>L3</b> (علامات 📖 و⚠️) وأولويتهم أقل.</li>
+    </ul>
+  </div>
+
+  <div class="note" dir="rtl" style="font-size:15px;line-height:1.9">
+    📋 <b>اللي بيتكرر في الميدتيرم السابقة</b> (د. طارق — ساعة، ٢٠ درجة: ١٠ <span class="en">MCQ</span> + ٥ + ٥، وفيها أسئلة «صحّح الغلط من غير نفي»):
+    <ul style="margin:8px 0 0;padding-inline-start:20px">
+      <li>«كل الأجهزة متوصلة بـ <span class="en">hub</span> واحد» = <span class="en">Star</span> (٣ سنين ورا بعض) · فوايد الـ <span class="en">layering</span> (٣ سنين) · <span class="en">CSMA/CD</span>: التصادم ممكن يحصل والخوارزمية بتكتشفه وتتعامل معاه · مثال الـ <span class="en">encapsulation</span> (<span class="en">TCP</span> ثم <span class="en">IP</span> ثم <span class="en">Data-link header + trailer</span>).</li>
+      <li>أخطاء بتتكرر: <span class="en">point-to-point</span> مش «أكتر من جهازين» (ده <span class="en">multipoint</span>) · الـ <span class="en">routing</span> في الـ <span class="en">Network layer</span> مش الـ <span class="en">Transport</span> · <span class="en">half / full duplex</span> و<span class="en">simplex</span> · وحدة الـ <span class="en">Data link</span> هي الـ <span class="en">frame</span> · الـ <span class="en">presentation</span> مش في <span class="en">TCP/IP</span> · <span class="en">Router vs Switch</span>.</li>
+      <li>تعريفات: <span class="en">Reliability</span> (وفرقها عن <span class="en">availability</span>) · <span class="en">CRC</span> (الاسم + مثال) · <span class="en">Latency ≠ Bandwidth</span> · مزايا وعيوب <span class="en">twisted pair</span> و<span class="en">fiber</span> ومعايير اختيار الوسط.</li>
+      <li><b>اتضاف في <a href="sections.html" style="color:var(--accent)">صفحة السكاشن</a> (مش جوه المحاضرات):</b><span class="en">IPv6</span> = 128 bit · <span class="en">Class A / B / C</span> (أول <span class="en">octet</span> في <span class="en">Class B</span> من <span class="en">10000000</span> لـ <span class="en">10111111</span>، و<span class="en">Class A</span> أكبر عدد <span class="en">hosts</span>) · الـ <span class="en">private IP</span> مش بيتعمله <span class="en">route</span> على الإنترنت · الـ <span class="en">router</span> بيستخدم الـ <span class="en">Network ID</span>. ده كله في صفحة السكاشن (من <span class="en">Section 2 + 4</span> وفصل ٥ من الكتاب).</li>
+    </ul>
+    <span class="muted">المصدر: ٣ ميدتيرمات سابقة من الدرايف (٢٠٢١-٢٢ و٢٠٢٢-٢٣ و٢٠٢٥-٢٦). امتحان السنة دي (٢٠ <span class="en">MCQ</span> + <span class="en">Essay</span> ١٠ درجات) ممكن يختلف في الشكل.</span>
+  </div>
+
+  <div class="grid g2">
+    <a class="lec ph-plan" href="lecture1.html"><span class="no">LECTURE 1</span><h3>An Overview of Computer Networks</h3><span class="en">Network types · Protocols · Communications model · Client-Server vs P2P</span><span class="st" id="st1">ابدأ من هنا ← (١١ محطة · ⏱️ ~٦٠ د)</span></a>
+    <a class="lec ph-ana" href="lecture2.html"><span class="no">LECTURE 2 ⭐</span><h3>The OSI Reference Model</h3><span class="en">7 layers · PDUs · Service vs Protocol · OSI vs TCP/IP</span><span class="st" id="st2">أهم محاضرة (١٢ محطة · ⏱️ ~٧٠ د) ←</span></a>
+    <a class="lec ph-des" href="lecture3.html"><span class="no">LECTURE 3</span><h3>Encapsulation, Transmission Media &amp; LAN Topologies</h3><span class="en">Encapsulation · Duplex modes · Cables · Bus / Tree / Ring / Star</span><span class="st" id="st3">(١١ محطة · ⏱️ ~٧٠ د) ←</span></a>
+    <a class="lec ph-imp" href="lecture4.html"><span class="no">LECTURE 4</span><h3>Collision Detection, Error Detection &amp; Flow Control</h3><span class="en">CSMA/CD · MAC · Switch vs Router · Parity · CRC · Stop-and-Wait</span><span class="st" id="st4">(١٢ محطة · ⏱️ ~٧٠ د) ←</span></a>
+    <a class="lec ph-plan" href="lecture5.html"><span class="no">LECTURE 5</span><h3>Switched Communications Networks</h3><span class="en">Circuit vs Packet · Datagram vs Virtual circuit · X.25 · Frame Relay</span><span class="st" id="st5">(١٢ محطة · ⏱️ ~٦٠ د) ←</span></a>
+    <a class="lec ph-des" href="sections.html"><span class="no">SECTIONS 🧪</span><h3>Sections: Subnetting + Activities</h3><span class="en">IP classes · Subnet mask · Subnetting · CIDR / VLSM · OSI activity · Packet Tracer</span><span class="st" id="stS">صفحة مضافة: الـ subnetting وأنشطة السكاشن (١٣ محطة · ⏱️ ~٦٠ د) ←</span></a>
+    <a class="lec ph-ana" href="exam.html"><span class="no">MOCK EXAM</span><h3>الامتحان التجريبي 🎓</h3><span class="en">20 MCQ · Essay (10 marks)</span><span class="st" id="stx">بعد ما تخلّص المحاضرات (٢٠ MCQ + Essay) ←</span></a>
+  </div>
+
+  <h3 class="sec">⏰ جدول المذاكرة المقترح <small>(بتوقيت مصر)</small></h3>
+  <p class="muted" style="font-size:14.5px">⚠️ الجدول ده اتكتب يوم ٨ نوفمبر العصر. الوقت اتغيّر، فاعتبره ترتيب بس (<span class="en">L1 → L2 → L3 → L4 → L5 → Mock</span>) وقسّم اللي فاضل على وقتك.</p>
+  <table class="tbl tt">
+    <tr class="day"><th colspan="3">النهاردة — الأحد ٨ نوفمبر</th></tr>
+    <tr><th>الوقت</th><th>المطلوب</th><th>المدة</th></tr>
+    <tr><td><span class="tm">12:15 – 1:15</span></td><td><b>L1</b> Overview</td><td>٦٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">1:15 – 1:30</span></td><td>راحة</td><td>١٥ د</td></tr>
+    <tr><td><span class="tm">1:30 – 2:40</span></td><td><b>L2</b> OSI ⭐ (أهم محاضرة)</td><td>٧٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">2:40 – 3:40</span></td><td>غدا وراحة</td><td>٦٠ د</td></tr>
+    <tr><td><span class="tm">3:40 – 4:50</span></td><td><b>L3</b> Encapsulation + Media + Topologies</td><td>٧٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">4:50 – 5:05</span></td><td>راحة</td><td>١٥ د</td></tr>
+    <tr><td><span class="tm">5:05 – 6:15</span></td><td><b>L4</b> CSMA/CD + Errors + Flow control</td><td>٧٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">6:15 – 7:00</span></td><td>راحة وعشا</td><td>٤٥ د</td></tr>
+    <tr><td><span class="tm">7:00 – 8:00</span></td><td><b>L5</b> Switched Networks</td><td>٦٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">8:00 – 8:15</span></td><td>راحة</td><td>١٥ د</td></tr>
+    <tr><td><span class="tm">8:15 – 9:45</span></td><td><b>Mock Exam</b> (٦٠ د) + مراجعة الغلط (٣٠ د)</td><td>٩٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">10:00 PM</span></td><td>نوم 😴 (مهم جداً)</td><td></td></tr>
+    <tr class="day"><th colspan="3">بكرة — الاثنين ٩ نوفمبر (الامتحان ١:٠٠ م)</th></tr>
+    <tr><td><span class="tm">8:00 – 9:30</span></td><td>محطة «ملخص المراجعة» لكل محاضرة + Flashcards «لسه مش حافظها»</td><td>٩٠ د</td></tr>
+    <tr><td><span class="tm">9:45 – 10:30</span></td><td>إعادة أسئلة الـ Mock اللي غلطت فيها + تدريب Essay</td><td>٤٥ د</td></tr>
+    <tr><td><span class="tm">10:30 – 11:30</span></td><td>فخاخ الامتحان والجداول المقارنة</td><td>٦٠ د</td></tr>
+    <tr class="brk"><td><span class="tm">12:00</span></td><td>اتحرك للامتحان</td><td></td></tr>
+  </table>
+  <p class="muted" style="font-size:14.5px">لو محاضرة خدت وقت زيادة، خده من وقت الراحة مش من الـ Mock Exam.</p>
+</div>
+<script>
+(function () {
+  var t = 'dark';
+  try { t = localStorage.getItem('is203:theme') || 'dark'; } catch (e) {}
+  var b = document.getElementById('themeBtn');
+  function ap(x) { t = x; document.documentElement.setAttribute('data-theme', x); b.textContent = x === 'dark' ? '☀️' : '🌙'; try { localStorage.setItem('is203:theme', x); } catch (e) {} }
+  ap(t);
+  b.addEventListener('click', function () { ap(t === 'dark' ? 'light' : 'dark'); });
+  [['l1', 'st1', 11], ['l2', 'st2', 12], ['l3', 'st3', 11], ['l4', 'st4', 12], ['l5', 'st5', 12], ['sec', 'stS', 13]].forEach(function (x) {
+    try {
+      var s = JSON.parse(localStorage.getItem('is203:' + x[0]) || '{}');
+      var n = Object.keys(s.done || {}).length;
+      if (n) document.getElementById(x[1]).textContent = 'خلّصت ' + n + ' من ' + x[2] + ' محطات — كمّل ←';
+    } catch (e) {}
+  });
+  try {
+    var ex = JSON.parse(localStorage.getItem('is203:examrun') || '{}');
+    if (ex && ex.best) document.getElementById('stx').textContent = 'أحسن نتيجة ليك: ' + ex.best + '% — جرّب تاني ←';
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

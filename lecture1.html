@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Lecture 1 — An Overview of Computer Networks</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .trans5 .tnode{min-width:104px;padding:10px 8px;font-size:14px;text-align:center}
+  .trans5 .tnode b{font-size:14px}
+  .trans5 .tlink{font-size:20px}
+  #spanTicks{font-size:12px;flex-wrap:wrap;gap:2px}
+  #spanTicks span{padding:4px 6px}
+  .stg{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .stg li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);opacity:.45;transition:.25s}
+  .stg li.on{opacity:1;border-color:var(--accent);background:rgba(var(--accent-rgb),.14);transform:translateX(-4px)}
+  .stg li.past{opacity:.85}
+  .stg .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--card);border:1px solid var(--line)}
+  .stg li.on .n{background:var(--accent);color:var(--on-accent);border-color:transparent}
+  .stg small{display:block;color:var(--muted)}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+  svg.dg{width:100%;max-width:520px;height:auto;display:block;margin:6px auto}
+  svg.dg .ln{stroke:var(--accent);stroke-width:3;fill:none}
+  svg.dg .nd{fill:var(--card2);stroke:var(--accent);stroke-width:2}
+  svg.dg text{fill:var(--text);font:600 13px "Segoe UI",sans-serif;text-anchor:middle}
+</style>
+</head>
+<body data-lecture="l1">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Lecture 1</b><small class="en plain">An Overview of Computer Networks</small></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0/11</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<div class="layout">
+<nav class="nav" id="nav" aria-label="محطات المحاضرة"></nav>
+<main>
+
+<!-- =====================================================  1 · BIG PICTURE -->
+<section class="station" data-icon="🗺️" data-title="الصورة الكبيرة">
+  <h2>الصورة الكبيرة 🗺️</h2>
+  <p class="lead">قبل أي تفاصيل: إحنا بنذاكر إيه أصلاً؟ <span class="muted">(⏱️ ٥ دقايق)</span></p>
+
+  <div class="card">
+    <div class="story">
+      <div class="beat"><div class="emo">💻 📱</div><b>جهازين</b><span>عايزين يتبادلوا بيانات</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🔌</div><b>محتاجين وسيلة توصيل</b><span>كابل أو wireless</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">📜</div><b>ومحتاجين قواعد</b><span>يتفقوا عليها الأول</span></div>
+    </div>
+    <p class="punch">من غير قواعد، البيانات بتوصل... بس محدش فاهمها! 😅</p>
+    <div class="story"><div class="beat ok"><div class="emo">✅</div><b>ده الـ <span class="en">Computer Network</span></b><span>أجهزة + وسيلة توصيل + <span class="en">Protocols</span></span></div></div>
+  </div>
+
+  <h3 class="sec">خريطة المحاضرة <small>(اضغط على أي مربع تروحله)</small></h3>
+  <div class="grid g3">
+    <button type="button" class="tile ph-plan" data-go="2"><span class="emo">📏</span><b>الشبكة ومعاييرها</b><small><span class="en">Performance · Reliability · Security</span></small></button>
+    <button type="button" class="tile ph-ana" data-go="3"><span class="emo">🧱</span><b>مكونات الشبكة</b><small>أجهزة + وسيلة + Hosts</small></button>
+    <button type="button" class="tile ph-des" data-go="4"><span class="emo">🌍</span><b>أنواع الاتصال والشبكات</b><small><span class="en">PAN · LAN · MAN · WAN</span> ⭐</small></button>
+    <button type="button" class="tile ph-imp" data-go="5"><span class="emo">📜</span><b class="en">Protocols</b><small>Syntax · Semantics · Timing ⭐</small></button>
+    <button type="button" class="tile ph-plan" data-go="6"><span class="emo">📡</span><b class="en">Communications Model</b><small>Source → Destination</small></button>
+    <button type="button" class="tile ph-ana" data-go="7"><span class="emo">🖧</span><b class="en">Client-Server vs P2P</b><small>+ استخدامات الشبكات ⭐</small></button>
+  </div>
+
+  <div class="card">
+    <h4>🎯 بعد المحاضرة دي المفروض تقدر:</h4>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li>تعرّف الـ <span class="en">computer network</span> وتقول فايدتها.</li>
+      <li>تذكر معايير الشبكة: <span class="en">performance, reliability, security</span>.</li>
+      <li>تفرّق بين الـ <span class="en">PAN / LAN / MAN / WAN / Internet</span> وبين <span class="en">point-to-point</span> و <span class="en">multipoint</span>.</li>
+      <li>تشرح الـ <span class="en">protocol</span> وعناصره التلاتة.</li>
+      <li>ترسم الـ <span class="en">communications model</span> وتفهم كل عنصر فيه.</li>
+      <li>تقارن <span class="en">Client-Server</span> بـ <span class="en">Peer-to-Peer</span>.</li>
+    </ul>
+    <p class="hint" style="margin:8px 0 0">دي أهداف طلّعتها أنا من عناوين السلايدات والكتاب (الكتاب مفيهوش قايمة Learning Outcomes مكتوبة).</p>
+  </div>
+
+  <div class="note">📌 <b>الامتحان:</b> <span class="en">MCQ</span> (٢٠ سؤال) + <span class="en">Essay</span> بـ ١٠ درجات. تفاصيل الأسئلة مش محددة، والمطلوب كل اللي اتاخد في المحاضرات. المحاضرة دي ماخدها الدكتور كـ <span class="en">Revision</span>.</div>
+  <div class="note ok">💡 <b>رموز:</b> 📖 = إضافة من الكتاب. 📄 = من ملف <span class="en">Extra 2</span>. ⚠️ = تعارض أو حاجة تحتاج انتباه.</div>
+</section>
+
+<!-- =====================================================  2 · NETWORK & CRITERIA -->
+<section class="station" data-icon="📏" data-title="الشبكة ومعاييرها">
+  <h2>الشبكة ومعاييرها 📏</h2>
+  <p class="lead">إيه هي الشبكة؟ وبتفيد في إيه؟ وبنحكم إنها «كويسة» بإيه؟ <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <h3>🔗 <span class="en">What is a computer network?</span></h3>
+    <p>مجموعة أجهزة (<b>اتنين على الأقل</b>) متوصّلة ببعض بـ <span class="en">communication links</span>. الأجهزة دي ممكن تكون: <span class="chip en">laptops</span><span class="chip en">desktops</span><span class="chip en">servers</span><span class="chip en">smartphones</span><span class="chip en">tablets</span></p>
+    <div class="note">📖 الكتاب: مجموعة أجهزة إلكترونية متوصّلة بتتشارك <b>data</b> و <b>hardware</b> وإنترنت.</div>
+  </div>
+
+  <h3 class="sec">✨ أهمية الشبكات</h3>
+  <div class="grid g3">
+    <div class="card tint ph-plan" style="margin:0"><h4>📂 معلومات</h4><p style="margin:0">سهولة الوصول للمعلومات ومشاركتها.</p></div>
+    <div class="card tint ph-ana" style="margin:0"><h4>🖨️ موارد</h4><p style="margin:0">مشاركة الأجهزة الغالية (زي الطابعة) وموارد الشبكة.</p></div>
+    <div class="card tint ph-des" style="margin:0"><h4>🚀 تكنولوجيا حديثة</h4><p style="margin:0"><span class="en">IP telephony</span> و <span class="en">Video on Demand</span> وغيرها.</p></div>
+  </div>
+  <div class="note">📖 الكتاب بيزوّد: <span class="en">File sharing</span> · <span class="en">Resource sharing</span> · مشاركة اتصال إنترنت واحد · زيادة سعة التخزين.</div>
+
+  <h3 class="sec">📐 الشبكة لازم تحقق 3 معايير <small>(اضغط على كل واحد)</small></h3>
+  <div class="card" data-tabs="perf">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="perf">Performance</button>
+      <button type="button" class="ph-ana" data-tab="rel">Reliability</button>
+      <button type="button" class="ph-des" data-tab="sec">Security</button>
+    </div>
+    <div class="pane" data-pane="perf">
+      <p>بتتقاس بطرق كتير، أهمها:</p>
+      <ul>
+        <li><b class="en">Transmit time</b>: الوقت اللي الرسالة بتاخده عشان تروح من جهاز لجهاز.</li>
+        <li><b class="en">Response time</b>: الوقت بين الـ <span class="en">inquiry</span> (الطلب) والـ <span class="en">response</span> (الرد).</li>
+      </ul>
+      <p><b>بتتأثر بـ 4 عوامل:</b> <span class="chip en ph-plan">Number of users</span><span class="chip en ph-plan">Type of transmission medium</span><span class="chip en ph-plan">Capabilities of connected hardware</span><span class="chip en ph-plan">Efficiency of software</span></p>
+    </div>
+    <div class="pane" data-pane="rel">
+      <p>غير <b>دقة الوصول</b> (<span class="en">accuracy</span>) و<b>ضمان الوصول</b> (<span class="en">guaranteed delivery</span>)، الـ reliability بتتقاس بـ:</p>
+      <ol class="steps ph-ana">
+        <li><span class="en">Frequency of failure</span> — كل قد إيه الشبكة بتعطل</li>
+        <li><span class="en">Time it takes a link to recover from a failure</span> — اللينك بياخد وقت قد إيه عشان يرجع</li>
+        <li><span class="en">Robustness in a catastrophe</span> — الشبكة بتقاوم الكوارث إزاي</li>
+      </ol>
+    </div>
+    <div class="pane" data-pane="sec">
+      <p>حماية البيانات من الوصول غير المصرّح. وفيها 5 نقط:</p>
+      <span class="chip en ph-des">Access control</span><span class="chip en ph-des">Integrity</span><span class="chip en ph-des">Authentication</span><span class="chip en ph-des">Confidentiality</span><span class="chip en ph-des">Non-repudiation</span>
+      <div class="note">🧠 <b>حيلة:</b> <span class="en">Integrity</span> = البيانات ما اتغيّرتش. <span class="en">Confidentiality</span> = محدش يقراها. <span class="en">Authentication</span> = أتأكد إنت مين. <span class="en">Non-repudiation</span> = المرسل ما يقدرش ينكر إنه بعت.<br><span class="muted">(الشرح ده فهم عام مني، السلايد بيكتب الأسماء بس.)</span></div>
+    </div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده معيار إيه؟</h3>
+  <div data-deck="crit"></div>
+
+  <h3 class="sec">📄 الـ 4 خصائص الأساسية لأي <span class="en">data communications system</span> <small>(من Extra 2)</small></h3>
+  <div class="grid g4">
+    <div class="flip ph-plan"><div class="f"><span class="emo">📬</span><b class="en">Delivery</b><small>اضغط</small></div><div class="b">النظام يوصّل الداتا للمكان الصح، ولـ <b>الجهاز المقصود بس</b>.</div></div>
+    <div class="flip ph-ana"><div class="f"><span class="emo">🎯</span><b class="en">Accuracy</b><small>اضغط</small></div><div class="b">يوصّل الداتا <b>بدقة</b>. الداتا اللي اتغيّرت ومتصلحتش = <b>ملهاش لازمة</b>.</div></div>
+    <div class="flip ph-des"><div class="f"><span class="emo">⏱️</span><b class="en">Timeliness</b><small>اضغط</small></div><div class="b">يوصّل في الوقت المناسب. في الفيديو والصوت: بنفس ترتيب إنتاجها ومن غير تأخير كبير = <b class="en">real-time transmission</b>.</div></div>
+    <div class="flip ph-imp"><div class="f"><span class="emo">📈</span><b class="en">Jitter</b><small>اضغط</small></div><div class="b">التغيّر في <b>الوقت</b> اللي الـ packets بتاخده عشان توصل.</div></div>
+  </div>
+  <div data-deck="four"></div>
+</section>
+
+<!-- =====================================================  3 · COMPONENTS -->
+<section class="station" data-icon="🧱" data-title="مكونات الشبكة">
+  <h2>مكونات الشبكة 🧱</h2>
+  <p class="lead">كل شبكة مبنية من <b>3 مكونات رئيسية</b>. اضغط على كل واحد. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card" data-tabs="cp">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="cp">💻 Computers</button>
+      <button type="button" class="ph-ana" data-tab="nd">🔀 Network Devices</button>
+      <button type="button" class="ph-des" data-tab="cn">🔌 Connectivity</button>
+    </div>
+    <div class="pane" data-pane="cp">
+      <p><b>Servers و Hosts</b> — هما <b>مصدر التطبيقات</b> (<span class="en">source of applications</span>).</p>
+      <p>أمثلة على التطبيقات: <span class="chip en ph-plan">HTTP</span><span class="chip en ph-plan">FTP</span><span class="chip en ph-plan">SNMP</span><span class="chip en ph-plan">Telnet</span></p>
+      <p class="muted"><span class="en">HTTP</span> = Hyper Text Transmission Protocol · <span class="en">FTP</span> = File Transfer Protocol · <span class="en">SNMP</span> = Simple Network Management Protocol (زي ما مكتوبة في السلايد).</p>
+    </div>
+    <div class="pane" data-pane="nd">
+      <p>أجهزة <b>بتربط الكمبيوترات ببعض</b>.</p>
+      <p>أمثلة: <span class="chip en ph-ana">Repeaters</span><span class="chip en ph-ana">Hub</span><span class="chip en ph-ana">Bridge</span><span class="chip en ph-ana">Switch</span><span class="chip en ph-ana">Router</span><span class="chip en ph-ana">NIC</span><span class="chip en ph-ana">Modems</span></p>
+    </div>
+    <div class="pane" data-pane="cn">
+      <p>الوسيط اللي <b>بيوصّل فيزيائياً</b> الكمبيوترات والأجهزة ببعض.</p>
+      <p>أمثلة: <span class="chip en ph-des">Wireless</span><span class="chip en ph-des">Cables</span> (زي الـ <span class="en">fiber optic</span>)</p>
+    </div>
+  </div>
+
+  <h3 class="sec">🎯 لعبة: ده من أنهي مكوّن؟</h3>
+  <div data-deck="comp"></div>
+
+  <h3 class="sec">📖 الأجهزة بالتفصيل (من الكتاب) <small>(اقلب الكروت)</small></h3>
+  <div class="grid g3">
+    <div class="flip ph-plan"><div class="f"><span class="emo">🔲</span><b class="en">NIC</b><small>Network Interface Card</small></div><div class="b">الواجهة بين الكمبيوتر والشبكة. كل NIC ليها <b class="en">MAC address</b> بتميّز الجهاز. الـ <span class="en">RJ-45</span> = كونكتور 8 pins لكابل الـ Ethernet.</div></div>
+    <div class="flip ph-ana"><div class="f"><span class="emo">📞</span><b class="en">Modem</b><small>MOdulator DEModulator</small></div><div class="b">بيحوّل بين <b>digital</b> و <b>analog</b>. عند المرسل = modulator (digital → analog). عند المستقبل = demodulator (analog → digital).</div></div>
+    <div class="flip ph-des"><div class="f"><span class="emo">🔁</span><b class="en">Hub</b><small>اضغط</small></div><div class="b">الداتا اللي بتوصل على أي خط بتتبعت لـ <b>كل</b> الخطوط التانية. عيبه: لو جهازين بعتوا مع بعض <b>بيحصل collision</b>.</div></div>
+    <div class="flip ph-imp"><div class="f"><span class="emo">🔀</span><b class="en">Switch</b><small>اضغط</small></div><div class="b">بيقرا الـ <b>destination address</b> ويدوّر عليه في جدول، فبيبعت للجهاز المطلوب بس. بيقدر يبعت أكتر من packet في نفس الوقت.</div></div>
+    <div class="flip ph-plan"><div class="f"><span class="emo">🧭</span><b class="en">Router</b><small>اضغط</small></div><div class="b">بيوصّل الـ <span class="en">LAN</span> بالإنترنت (شبكات مختلفة). بيحلل الداتا وبيبعتها لشبكة تانية (حتى لو من نوع مختلف).</div></div>
+    <div class="flip ph-ana"><div class="f"><span class="emo">🚪</span><b class="en">Gateway</b><small>اضغط</small></div><div class="b">نقطة دخول وخروج الشبكة. بيوصّل شبكتين <b>بيشتغلوا بـ protocols مختلفة</b>.</div></div>
+  </div>
+  <div class="note">📖 <b>Firewall</b> = زي الحارس الأمني: بيمنع الـ traffic غير المرغوب. و<b>Server</b> = كمبيوتر قوي بيستقبل requests وينفّذها ويرد.<br>⚠️ الكتاب بيقول إن الـ switch <b>بيرمي الإشارات الملخبطة (noisy/corrupted)</b> ويطلب من المرسل يعيد. السلايدات ما قالتش كده.</div>
+
+  <h3 class="sec">📄 <span class="en">End device</span> ضد <span class="en">Intermediary device</span> <small>(Extra 2)</small></h3>
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0"><h4>💻 <span class="en">End device (host)</span></h4><p style="margin:0">أي كمبيوتر على الشبكة. هو المكان اللي الرسالة <b>بتبدأ منه أو بتوصله</b>. فيه <b>servers</b> (بتدّي معلومات) و<b>clients</b> (بتطلبها).</p></div>
+    <div class="card tint ph-ana" style="margin:0"><h4>🔀 <span class="en">Intermediary device</span></h4><p style="margin:0">بتوصّل الـ end devices: <span class="en">switches, wireless access points, routers, firewalls</span>. وبتدير الداتا وهي ماشية: تعيد توليد الإشارات، تحتفظ بمعلومات عن المسارات، وتبلّغ الباقي بالأخطاء.</p></div>
+  </div>
+</section>
+
+<!-- =====================================================  4 · CONNECTION & TYPES -->
+<section class="station" data-icon="🌍" data-title="أنواع الاتصال والشبكات ⭐">
+  <h2>أنواع الاتصال والشبكات ⭐</h2>
+  <p class="lead">أولاً: <b>الأجهزة بتتوصل إزاي</b>؟ وثانياً: <b>الشبكة كبيرة قد إيه</b>؟ <span class="muted">(⏱️ ١٢ دقيقة)</span></p>
+
+  <h3 class="sec">① نوع الاتصال <small>(Type of Connection)</small></h3>
+  <div class="card" data-tabs="p2p">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="p2p">Point-to-Point</button>
+      <button type="button" class="ph-ana" data-tab="mp">Multipoint</button>
+    </div>
+    <div class="pane" data-pane="p2p">
+      <svg class="dg" viewBox="0 0 520 110" role="img" aria-label="point to point"><line class="ln" x1="110" y1="55" x2="410" y2="55"/><circle class="nd" cx="90" cy="55" r="24"/><circle class="nd" cx="430" cy="55" r="24"/><text x="90" y="100">A</text><text x="430" y="100">B</text><text x="260" y="44">dedicated link</text></svg>
+      <ul>
+        <li>لينك <b>مخصوص</b> بين جهازين بس (<span class="en">dedicated link</span>).</li>
+        <li><b>كل سعة اللينك محجوزة</b> للجهازين دول.</li>
+        <li>ممكن بكابل أو <span class="en">wireless</span> (<span class="en">microwave</span> أو <span class="en">satellite</span>).</li>
+        <li>لو فيه مرسل واحد ومستقبل واحد بالظبط = <b class="en">unicasting</b>.</li>
+      </ul>
+    </div>
+    <div class="pane" data-pane="mp">
+      <svg class="dg" viewBox="0 0 520 130" role="img" aria-label="multipoint"><line class="ln" x1="40" y1="50" x2="480" y2="50"/><line class="ln" x1="100" y1="50" x2="100" y2="84"/><line class="ln" x1="210" y1="50" x2="210" y2="84"/><line class="ln" x1="320" y1="50" x2="320" y2="84"/><line class="ln" x1="430" y1="50" x2="430" y2="84"/><circle class="nd" cx="100" cy="98" r="14"/><circle class="nd" cx="210" cy="98" r="14"/><circle class="nd" cx="320" cy="98" r="14"/><circle class="nd" cx="430" cy="98" r="14"/><text x="260" y="34">shared link</text></svg>
+      <ul>
+        <li><b>أكتر من جهازين</b> بيتشاركوا <b>لينك واحد</b>.</li>
+        <li>سعة القناة <b>متقسّمة</b> بينهم: إما بشكل دائم (<span class="en">permanently</span>) أو مؤقت (<span class="en">temporally</span>).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="sec">② أنواع الشبكات حسب المساحة <small>(اسحب السلايدر)</small></h3>
+  <p>الشبكات بتتفرّق حسب <b>المدى الجغرافي</b> (<span class="en">geographical span</span>). اسحب وشوف إيه النوع عند كل مسافة:</p>
+  <div class="card" id="spanCard">
+    <div class="range-wrap">
+      <input type="range" id="spanRange" min="0" max="7" step="1" value="0" aria-label="distance">
+      <div class="ticks" id="spanTicks"></div>
+    </div>
+    <p class="muted" style="margin:10px 0 0">الأجهزة موجودة في: <b id="spanPlace" class="en"></b></p>
+    <h4 class="en" id="spanName" style="margin-top:8px;font-size:22px"></h4>
+    <div id="spanDesc"></div>
+  </div>
+  <div class="note">🧠 <b>حيلة:</b> متر = <span class="en">PAN</span> · (غرفة، مبنى، كامبس) = <span class="en">LAN</span> · مدينة = <span class="en">MAN</span> · (دولة، قارة) = <span class="en">WAN</span> · الكوكب كله = <span class="en">Internet</span>.</div>
+
+  <div class="note ok">📌 <b>الـ Internet:</b> شبكات كتير في العالم، والناس المتوصّلة بشبكة عايزة تكلّم ناس في شبكة تانية. <b>مجموعة الشبكات المتوصّلة دي</b> بتسمّى <span class="en">an Internet</span>.</div>
+
+  <h3 class="sec">🎯 لعبة: ده أنهي نوع شبكة؟</h3>
+  <div data-deck="span"></div>
+</section>
+
+<!-- =====================================================  5 · PROTOCOLS -->
+<section class="station" data-icon="📜" data-title="الـ Protocols ⭐">
+  <h2>الـ <span class="en">Protocols</span> ⭐</h2>
+  <p class="lead">جهازين مينفعش يبعتوا <span class="en">bit streams</span> لبعض ويتوقعوا إنهم يفهموا بعض. لازم يتفقوا على <b>protocol</b>. <span class="muted">(⏱️ ١٢ دقيقة)</span></p>
+
+  <div class="card">
+    <h3>📜 التعريف</h3>
+    <p>الـ <b class="en">protocol</b> = <b>مجموعة قواعد</b> بتحكم الـ data communication. بيحدد: <span class="chip en ph-plan">what is communicated</span><span class="chip en ph-ana">how it is communicated</span><span class="chip en ph-des">when it is communicated</span></p>
+    <p class="punch" style="font-size:19px">العناصر الأساسية التلاتة: <span class="en">Syntax · Semantics · Timing</span></p>
+  </div>
+
+  <div class="grid g3">
+    <div class="flip ph-plan"><div class="f"><span class="emo">🧩</span><b class="en">Syntax</b><small>الشكل والترتيب</small></div><div class="b"><b>صيغة</b> الداتا: الترتيب اللي بتتعرض بيه.<br><b>مثال:</b> أول 8 bits = عنوان المرسل، تاني 8 bits = عنوان المستقبل، والباقي = الرسالة.</div></div>
+    <div class="flip ph-ana"><div class="f"><span class="emo">💡</span><b class="en">Semantics</b><small>المعنى</small></div><div class="b"><b>معنى</b> كل جزء من الـ bits: إزاي نفسّر الـ pattern ونعمل إيه بناءً عليه.<br><b>مثال:</b> العنوان بيحدد المسار أو الوجهة النهائية للرسالة.</div></div>
+    <div class="flip ph-des"><div class="f"><span class="emo">⏱️</span><b class="en">Timing</b><small>التوقيت والسرعة</small></div><div class="b">حاجتين: <b>إمتى</b> الداتا تتبعت، و<b>بأي سرعة</b>.<br><b>مثال:</b> المرسل بيبعت 100Mbps والمستقبل يعالج 1Mbps بس، فهيحصل overload والداتا هتضيع.</div></div>
+  </div>
+
+  <h3 class="sec">🔢 جرّب الـ <span class="en">Timing</span> بنفسك <small>(توضيح مني، مش من السلايد)</small></h3>
+  <div class="card calc" id="tmCard">
+    <div class="calc-top">
+      <label>سرعة المرسل <input type="number" id="tmS" value="100" min="1" step="1"> <span class="en plain">Mbps</span></label>
+      <label>سرعة معالجة المستقبل <input type="number" id="tmR" value="1" min="1" step="1"> <span class="en plain">Mbps</span></label>
+    </div>
+    <div class="res-row">
+      <div class="res"><small>المستقبل يقدر يعالج</small><b id="tmOk"></b></div>
+      <div class="res neg" id="tmBadBox"><small>اللي هيضيع (من غير buffer أو flow control)</small><b id="tmBad"></b></div>
+    </div>
+    <p class="muted" style="margin:10px 0 0" id="tmMsg"></p>
+  </div>
+  <div class="note">🔗 الحل الحقيقي لمشكلة الـ timing ده اسمه <span class="en">Flow Control</span> وهتشوفه في Lecture 4.</div>
+
+  <h3 class="sec">🎯 تدريب: ده Syntax ولا Semantics ولا Timing؟</h3>
+  <div data-deck="proto"></div>
+
+  <h3 class="sec">🏗️ ليه محتاجين <span class="en">Protocol Architecture</span>؟</h3>
+  <div class="card">
+    <p><b>Protocol architecture</b> = البنية <b>الطبقية</b> (<span class="en">layered structure</span>) من hardware و software اللي بتدعم تبادل البيانات بين الأنظمة وتدعم التطبيقات الموزعة (<span class="en">distributed applications</span>) زي الـ email ونقل الملفات.</p>
+    <ul>
+      <li>في كل layer بيتطبّق protocol أو أكتر في الأنظمة المتواصلة.</li>
+      <li>كل protocol بيدّي مجموعة قواعد لتبادل البيانات.</li>
+    </ul>
+    <h4>مثال السلايد: نقل ملف بين كمبيوترين — 4 مهام:</h4>
+    <ol class="steps ph-plan">
+      <li>الـ source يفعّل مسار الاتصال المباشر، أو يعرّف الشبكة بهوية الـ destination.</li>
+      <li>الـ source يتأكد إن الـ destination جاهز يستقبل داتا.</li>
+      <li>برنامج نقل الملفات يتأكد إن برنامج إدارة الملفات عند الـ destination جاهز يقبل الملف ويخزّنه لليوزر ده.</li>
+      <li>لو صيغة الملفات مختلفة، واحد من السيستمين يعمل <span class="en">format translation</span>.</li>
+    </ol>
+    <p>لازم تعاون كبير بين السيستمين. فبدل ما نعمل المنطق ده في module واحد، <b>بنقسّم المهمة لمهام صغيرة</b> وكل واحدة تتنفذ لوحدها، والـ modules بتترتب في <b>stack عمودي</b> وكل layer بتعمل جزء مرتبط من الوظائف.</p>
+    <div class="note warn">⚠️ <b>عدد طبقات TCP/IP:</b> سلايد Lecture 1 كتب <b>5 طبقات</b> (<span class="en">physical, network access, Internet, transport, application</span>) وقال إن في الأشهر كمان <span class="en">OSI</span> بـ 7 طبقات. أما الكتاب ورسمة Lecture 2 فبيرسموها <b>4 طبقات</b> (<span class="en">Application, Transport, Internet, Network Access</span>). لو السؤال جه «كام طبقة في TCP/IP» اكتب اللي السؤال بيلمّح له، والأرجح 4 لأنها في الكتاب ورسمة L2.</div>
+  </div>
+</section>
+
+<!-- =====================================================  6 · COMMUNICATIONS MODEL -->
+<section class="station" data-icon="📡" data-title="Communications Model">
+  <h2>الـ <span class="en">Communications Model</span> 📡</h2>
+  <p class="lead">الغرض الأساسي من أي نظام اتصالات: <b>تبادل البيانات بين طرفين</b>. اتكوّن من 5 عناصر، اضغط على كل واحد. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <div class="card" data-tabs="tr">
+    <div class="trans trans5">
+      <button type="button" class="tnode ph-plan" data-tab="src"><span class="emo">💻</span><b>Source</b></button>
+      <div class="tlink">➜</div>
+      <button type="button" class="tnode ph-ana" data-tab="tr"><span class="emo">📞</span><b>Transmitter</b></button>
+      <div class="tlink">➜</div>
+      <button type="button" class="tnode ph-des" data-tab="ts"><span class="emo">☁️</span><b>Transmission system</b></button>
+      <div class="tlink">➜</div>
+      <button type="button" class="tnode ph-imp" data-tab="rc"><span class="emo">📞</span><b>Receiver</b></button>
+      <div class="tlink">➜</div>
+      <button type="button" class="tnode ph-plan" data-tab="dst"><span class="emo">🖥️</span><b>Destination</b></button>
+    </div>
+    <div class="pane" data-pane="src"><p><b class="en">Source</b>: الجهاز اللي <b>بيولّد الداتا</b> اللي هتتبعت. أمثلة: <span class="en">telephones</span> و <span class="en">personal computers</span>.</p><p class="muted">في المثال: الـ <span class="en">Workstation</span>.</p></div>
+    <div class="pane" data-pane="tr"><p><b class="en">Transmitter</b>: الداتا اللي بيولّدها الـ source <b>مبتتبعتش زي ما هي</b>. الـ transmitter <b>بيحوّلها ويشفّرها</b> لإشارات كهرومغناطيسية (<span class="en">electromagnetic signals</span>) تقدر تعدّي في الـ transmission system.</p><p>📖 مثال: الـ <span class="en">modem</span> بياخد digital bit stream من الـ PC ويحوّله لإشارة analog تناسب شبكة التليفون.</p><p class="muted">في المثال: الـ <span class="en">Modem</span> الأول.</p></div>
+    <div class="pane" data-pane="ts"><p><b class="en">Transmission system</b>: ممكن يكون <b>خط نقل واحد</b>، وممكن يكون <b>شبكة معقدة</b> بتوصّل الـ source بالـ destination.</p><p class="muted">في المثال: الـ <span class="en">Public telephone network</span>.</p></div>
+    <div class="pane" data-pane="rc"><p><b class="en">Receiver</b>: بيستقبل الإشارة من الـ transmission system و<b>بيحوّلها لشكل</b> يقدر الـ destination يتعامل معاه.</p><p>📖 مثال: الـ modem بياخد الإشارة analog من الشبكة ويحوّلها digital bit stream.</p><p class="muted">في المثال: الـ <span class="en">Modem</span> التاني.</p></div>
+    <div class="pane" data-pane="dst"><p><b class="en">Destination</b>: <b>بياخد الداتا الداخلة</b> من الـ receiver.</p><p class="muted">في المثال: الـ <span class="en">Server</span>.</p></div>
+  </div>
+
+  <div class="note">🖼️ مثال السلايد: <span class="en">Workstation → Modem → Public telephone network → Modem → Server</span></div>
+
+  <h3 class="sec">📖 الداتا بتتحوّل إزاي في الطريق؟ <small>(6 مراحل من الكتاب)</small></h3>
+  <p>دوس «الخطوة التالية» وشوف شكل الداتا في كل مرحلة. مثال: مستخدم بيكتب email.</p>
+  <div class="card" id="stepCard">
+    <ol class="stg" id="stg"></ol>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="stepNext">الخطوة التالية ←</button>
+      <button type="button" class="btn ghost" id="stepReset">🔁 من الأول</button>
+    </div>
+    <div class="note" id="stepNote">دوس «الخطوة التالية» عشان تبدأ.</div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده أنهي عنصر في الـ model؟</h3>
+  <div data-deck="model"></div>
+</section>
+
+<!-- =====================================================  7 · USES + CS vs P2P -->
+<section class="station" data-icon="🖧" data-title="الاستخدامات و Client-Server ⭐">
+  <h2>الاستخدامات و <span class="en">Client-Server vs P2P</span> ⭐</h2>
+  <p class="lead">الشبكات بتستخدم في إيه؟ ومنها بنوصل لنوعين مشهورين من الـ architecture. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <h3 class="sec">🏢 استخدامات الشبكات</h3>
+  <div class="card" data-tabs="biz">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="biz">Business</button>
+      <button type="button" class="ph-ana" data-tab="home">Home</button>
+      <button type="button" class="ph-des" data-tab="mob">Mobile Users</button>
+    </div>
+    <div class="pane" data-pane="biz">
+      <p><b>القضية هنا هي مشاركة الموارد</b> (<span class="en">resource sharing</span>): نخلّي كل البرامج والمعدات و<b>خصوصاً الداتا</b> متاحة لأي حد على الشبكة <b>بغض النظر عن مكان المورد والمستخدم</b>.</p>
+      <ul>
+        <li>مثال: موظفين بيتشاركوا <b>طابعة شبكة</b> واحدة، وهي أرخص وأسرع وأسهل في الصيانة من مجموعة طابعات فردية.</li>
+        <li>مشاركة المعلومات: سجلات العملاء، المخزون، القوائم المالية... كلها <span class="en">online</span> في <span class="en">databases</span> والموظفين بيوصلولها عن بُعد.</li>
+        <li>الموظفين معاهم أجهزة بسيطة اسمها <b class="en">Clients</b>، والداتا متخزنة على كمبيوترات قوية اسمها <b class="en">Servers</b>. الترتيب ده كله = <b class="en">client-server model</b>.</li>
+      </ul>
+    </div>
+    <div class="pane" data-pane="home">
+      <p>أشهر استخدامات الإنترنت للبيت:</p>
+      <span class="chip en ph-ana">Access to remote information</span><span class="chip en ph-ana">Person-to-person communication (E-mail, instant messaging, chat rooms)</span><span class="chip en ph-ana">Interactive entertainment</span><span class="chip en ph-ana">Electronic commerce</span>
+    </div>
+    <div class="pane" data-pane="mob">
+      <p>الكمبيوترات المحمولة (زي اللابتوب) من أسرع القطاعات نمواً. الناس عايزة تقرا وتبعت email، تتويّت، تتفرج على أفلام، تحمّل موسيقى، تلعب... وعايزة تعمل كل اللي بتعمله في البيت والمكتب <b>من أي مكان: أرض أو بحر أو جو</b>.</p>
+    </div>
+  </div>
+
+  <h3 class="sec">🙋 مين الـ Client ومين الـ Server؟</h3>
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0"><h4>📱 <span class="en">Client</span></h4><p style="margin:0">بيطلب خدمات أو موارد، وهو اللي <b>بيبدأ</b> الاتصال. مثال: <span class="en">web browser</span> و <span class="en">email app</span>.</p></div>
+    <div class="card tint ph-ana" style="margin:0"><h4>🖥️ <span class="en">Server</span></h4><p style="margin:0">كمبيوتر قوي <b>بيستنى الطلبات</b> ويرد عليها. مثال: <span class="en">Web server, Email server, Database server</span>.</p></div>
+  </div>
+
+  <h3 class="sec">📄 <span class="en">Computer Network Architecture</span> <small>(Extra 2)</small></h3>
+  <p>تصميم وترتيب الشبكة اسمه <b class="en">Network Architecture</b>، وأشهر نوعين: <b class="en">Client-Server</b> و <b class="en">Peer-to-Peer</b>. اضغط:</p>
+  <div class="card" data-tabs="cs">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="cs">Client-Server</button>
+      <button type="button" class="ph-imp" data-tab="pp">Peer-to-Peer</button>
+    </div>
+    <div class="pane" data-pane="cs">
+      <p>فيه <b>server مركزي واحد على الأقل</b> بيتحكم في الشبكة، والـ clients بيتوصلوا بيه. اسمها كمان <b>centralized architecture</b>. الداتا المشتركة <b>متخزنة في الـ server بس</b>، وهو بيعمل المهام الأساسية (الأمان وإدارة الشبكة). الـ clients بيتواصلوا مع بعض <b>عن طريق الـ server</b>.</p>
+      <div class="grid g2">
+        <div class="card tint t-ok" style="margin:0"><h4>✅ المميزات</h4><span class="chip en t-ok">Centralized management</span><span class="chip en t-ok">Scalability</span><span class="chip en t-ok">Enhanced security</span><span class="chip en t-ok">Easy management</span><span class="chip en t-ok">Seamless feature integration</span></div>
+        <div class="card tint t-bad" style="margin:0"><h4>❌ العيوب</h4><span class="chip en t-bad">Network traffic congestion</span><span class="chip en t-bad">High cost</span><span class="chip en t-bad">Technical expertise requirement</span><span class="chip en t-bad">Risk of network disruption</span><span class="chip en t-bad">Maintenance challenges</span><span class="chip en t-bad">Limited resource accessibility</span></div>
+      </div>
+      <div class="note">🧠 <b>أهم عيب:</b> لو الـ server وقع، <b>الشبكة كلها بتتأثر</b> (<span class="en">single point of failure</span> — المصطلح ده فهم عام مني).</div>
+    </div>
+    <div class="pane" data-pane="pp">
+      <p><b>مفيش server مركزي</b>. كل الكمبيوترات متوصلة ببعض وبتتشارك الموارد (ملفات، تطبيقات، برامج). كل كمبيوتر ممكن يبقى <b>client أو server</b> (يطلب أو يقدّم). كل واحد اسمه <b class="en">peer</b> وليه نفس الصلاحيات، <b>ومفيش peer بيتحكم في التاني</b>. لأن الإدارة والأمان مش مركزيين، لازم <b>backup محلي</b> لكل كمبيوتر.</p>
+      <div class="grid g2">
+        <div class="card tint t-ok" style="margin:0"><h4>✅ المميزات</h4><span class="chip en t-ok">Streamlined file sharing</span><span class="chip en t-ok">Flexibility and scalability</span><span class="chip en t-ok">Optimized resource usage</span><span class="chip en t-ok">Cost-effective setup</span><span class="chip en t-ok">Fault tolerance</span><span class="chip en t-ok">Improved privacy and security</span></div>
+        <div class="card tint t-bad" style="margin:0"><h4>❌ العيوب</h4><span class="chip en t-bad">Lack of centralized control</span><span class="chip en t-bad">Increased network management complexity</span><span class="chip en t-bad">Dependency on peer availability</span><span class="chip en t-bad">Security concerns</span><span class="chip en t-bad">Additional costs</span><span class="chip en t-bad">Performance considerations</span></div>
+      </div>
+      <div class="note warn">⚠️ <b>تعارض جوه الـ Extra 2 نفسه:</b> بيحط «<span class="en">Improved privacy and security</span>» في المميزات، وبعدين بيقول في العيوب إن الأمان بتديره كل جهاز لوحده فالـ P2P <b>عادةً أقل أماناً</b>. وكمان بيقول في المميزات «<span class="en">scalability</span>» والجدول بيقول «<span class="en">Network may suffer with more computers</span>». لو السؤال «أي نوع أكتر أماناً؟» الإجابة الأقرب: <b>Client-Server</b>.</div>
+    </div>
+  </div>
+
+  <h3 class="sec">📋 الجدول المقارن <small>(Extra 2)</small></h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">Client-Server</th><th class="en">Peer-to-Peer</th></tr>
+    <tr><td class="en">Basic</td><td class="en plain">Multiple clients connect to a central server.</td><td class="en plain">Each computer acts as a server or client.</td></tr>
+    <tr><td class="en">Service</td><td class="en plain">Clients request services, and the server responds.</td><td class="en plain">Each computer can request or provide services.</td></tr>
+    <tr><td class="en">Focus</td><td class="en plain">Emphasis on information sharing.</td><td class="en plain">Focus on connectivity.</td></tr>
+    <tr><td class="en">Data</td><td class="en plain">Stored and managed centrally.</td><td class="en plain">Each computer manages its own data.</td></tr>
+    <tr><td class="en">Traffic bottleneck</td><td class="en plain">Multiple client requests may cause bottlenecks.</td><td class="en plain">Less likely, as services come from multiple peers.</td></tr>
+    <tr><td class="en">Expense</td><td class="en plain">Setup can be expensive.</td><td class="en plain">Setup costs are lower.</td></tr>
+    <tr><td class="en">Scalability</td><td class="en plain">Adding a new client is easy.</td><td class="en plain">Network may suffer with more computers.</td></tr>
+    <tr><td class="en">Usage</td><td class="en plain">Common in enterprise networks.</td><td class="en plain">Found in homes, small businesses, and file-sharing networks.</td></tr>
+  </table>
+
+  <h3 class="sec">🎯 لعبة: Client-Server ولا Peer-to-Peer؟</h3>
+  <div data-deck="csp2p"></div>
+</section>
+
+<!-- =====================================================  8 · TRAPS -->
+<section class="station" data-icon="⚠️" data-title="فخاخ الامتحان">
+  <h2>فخاخ الامتحان ⚠️</h2>
+  <p class="lead">الجمل دي هي اللي بتتعمل منها <span class="en">True/False</span>. قرر: صح ولا غلط؟ (⏱️ ٥ دقايق)</p>
+  <div data-deck="traps"></div>
+</section>
+
+<!-- =====================================================  9 · FLASHCARDS -->
+<section class="station" data-icon="🧠" data-title="Flashcards">
+  <h2>Flashcards 🧠</h2>
+  <p class="lead">فكّر في الإجابة الأول، وبعدين اقلب الكارت. علّم اللي عرفته ✅ واللي لسه 🔁 — وراجع الأخير بس. (⏱️ ٨ دقايق)</p>
+  <div data-flash="main"></div>
+  <p class="hint" style="text-align:center;margin-top:10px">⌨️ مسطرة (Space) تقلب · الأسهم تنقل بين الكروت</p>
+</section>
+
+<!-- =====================================================  10 · QUIZ -->
+<section class="station" data-icon="📝" data-title="الكويز النهائي">
+  <h2>الكويز النهائي 📝</h2>
+  <p class="lead">10 أسئلة <span class="en">MCQ</span> بتصحيح فوري، وبعدها 3 أسئلة <span class="en">Essay</span> تكتب إجابتك وتقارنها بالنموذجية. (⏱️ ١٠ دقايق)</p>
+
+  <h3 class="sec">① MCQ</h3>
+  <div data-deck="mcq"></div>
+
+  <h3 class="sec">② Essay</h3>
+  <div class="card essay" data-essay="e1">
+    <h3>سؤال 1</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">A computer network must meet a certain number of criteria. List them and explain how each one is measured or what it includes.</p>
+    <textarea placeholder="اكتب إجابتك هنا (بتتحفظ في المتصفح بس)…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e2">
+    <h3>سؤال 2</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">What is a protocol? Explain its three key elements and give an example for each.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e3">
+    <h3>سؤال 3</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Networks are distinguished based on their geographical span. Describe PAN, LAN, MAN and WAN, and give an example for each.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+</section>
+
+<!-- =====================================================  11 · SUMMARY -->
+<section class="station summary" data-icon="⚡" data-title="ملخص المراجعة">
+  <h2>ملخص المراجعة ⚡ <span class="en plain" style="font-size:18px">Lecture 1</span></h2>
+  <p class="lead noprint">ده اللي تراجعه الليلة اللي قبل الامتحان. <button type="button" class="btn" onclick="window.print()">🖨️ اطبع / احفظ PDF</button></p>
+
+  <h3 class="sec">🌍 أنواع الشبكات حسب المساحة</h3>
+  <table class="tbl">
+    <tr><th>النوع</th><th>المسافة</th><th>الوصف</th><th>مثال</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">PAN</span></td><td class="en" style="white-space:nowrap">1 m</td><td>مدى شخص واحد</td><td>Bluetooth بين الكمبيوتر والـ peripherals</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">LAN</span></td><td class="en" style="white-space:nowrap">10 m – 1 km</td><td>مكتب أو مبنى أو كامبس، بتتشارك hardware/software/data</td><td>جهازين وطابعة في البيت</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">MAN</span></td><td class="en" style="white-space:nowrap">10 km</td><td>مدينة كاملة، أو ربط LANs ببعض</td><td>cable TV network، شركة بتربط فروعها في المدينة</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">WAN</span></td><td class="en" style="white-space:nowrap">100 – 1000 km</td><td>مسافات طويلة: data/voice/image/video لدولة أو قارة أو العالم</td><td>ربط LANs و MANs ببعض</td></tr>
+    <tr class="t-warn"><td><span class="dot"></span><span class="en">Internet</span></td><td class="en" style="white-space:nowrap">10,000 km</td><td>مجموعة شبكات متوصلة ببعض</td><td>الإنترنت</td></tr>
+  </table>
+
+  <h3 class="sec">📜 الـ Protocol</h3>
+  <table class="tbl">
+    <tr><th>العنصر</th><th>معناه</th><th>مثال</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Syntax</span></td><td>صيغة الداتا وترتيبها</td><td>أول 8 bits = المرسل، تاني 8 = المستقبل، الباقي رسالة</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Semantics</span></td><td>معنى كل جزء وإيه الإجراء المطلوب</td><td>العنوان بيحدد المسار أو الوجهة</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Timing</span></td><td>إمتى تتبعت وبأي سرعة</td><td>100Mbps ضد 1Mbps = overload وضياع</td></tr>
+  </table>
+
+  <h3 class="sec">📏 معايير الشبكة</h3>
+  <table class="tbl">
+    <tr><th>المعيار</th><th>بيتقاس / بيشمل</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Performance</span></td><td><span class="en">Transmit time, Response time</span> — وبيتأثر بعدد المستخدمين، نوع الـ medium، قدرات الـ hardware، كفاءة الـ software</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Reliability</span></td><td>دقة وضمان الوصول، <span class="en">frequency of failure</span>، وقت التعافي، <span class="en">robustness in a catastrophe</span></td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Security</span></td><td><span class="en">Access control, Integrity, Authentication, Confidentiality, Non-repudiation</span></td></tr>
+  </table>
+
+  <h3 class="sec">🧱 المكونات والـ Communications Model</h3>
+  <div class="grid g2">
+    <div class="card"><h4>🧱 3 مكونات</h4><p style="margin:0"><span class="en">Computers</span> (servers, hosts) · <span class="en">Network devices</span> (repeater, hub, bridge, switch, router, NIC, modem) · <span class="en">Connectivity</span> (cables, wireless)</p></div>
+    <div class="card"><h4>📡 5 عناصر</h4><p style="margin:0" class="en plain">Source → Transmitter → Transmission system → Receiver → Destination</p><p style="margin:6px 0 0" class="muted">مثال: Workstation → Modem → Public telephone network → Modem → Server</p></div>
+    <div class="card"><h4>🔗 أنواع الاتصال</h4><p style="margin:0"><span class="en">Point-to-point</span>: لينك مخصوص لجهازين (<span class="en">unicasting</span>). <span class="en">Multipoint</span>: أكتر من جهازين بيتشاركوا لينك.</p></div>
+    <div class="card"><h4>📄 الـ 4 خصائص</h4><p style="margin:0" class="en plain">Delivery · Accuracy · Timeliness · Jitter</p></div>
+  </div>
+
+  <h3 class="sec">🖧 <span class="en">Client-Server</span> ضد <span class="en">P2P</span></h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">Client-Server</th><th class="en">Peer-to-Peer</th></tr>
+    <tr><td>التحكم</td><td>server مركزي (centralized)</td><td>مفيش server، كل جهاز client وserver</td></tr>
+    <tr><td>الداتا</td><td>متخزنة ومدارة مركزياً</td><td>كل جهاز بيدير داتاه</td></tr>
+    <tr><td>التكلفة</td><td>أغلى، ومحتاج خبرة</td><td>أرخص، من غير admin متفرغ</td></tr>
+    <tr><td>الأمان</td><td>أعلى (مركزي)</td><td>عادةً أقل (كل جهاز لوحده)</td></tr>
+    <tr><td>العيب الأكبر</td><td>وقوع الـ server يعطّل الكل</td><td>غياب التحكم المركزي</td></tr>
+    <tr><td>الاستخدام</td><td>الشركات</td><td>البيوت والشركات الصغيرة وملفات الـ sharing</td></tr>
+  </table>
+
+  <h3 class="sec">⚠️ الفخاخ</h3>
+  <div class="note bad">
+    ❌ شبكة = 3 أجهزة (هي 2 على الأقل) &nbsp;·&nbsp; ❌ unicasting = multicasting &nbsp;·&nbsp; ❌ Syntax = المعنى (ده Semantics) &nbsp;·&nbsp; ❌ Hub/Router من الـ connectivity (دي network devices) &nbsp;·&nbsp; ❌ المودم عند المرسل = demodulator (هو modulator) &nbsp;·&nbsp; ❌ الـ Receiver بيحوّل الداتا لإشارة (ده الـ Transmitter) &nbsp;·&nbsp; ❌ الـ clients أجهزة قوية والـ servers بسيطة (العكس)
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+window.DATA = {
+  decks: {
+    /* ---------- criteria ---------- */
+    crit: {
+      cols: 3,
+      opts: [{ t: 'Performance', cls: 'ph-plan' }, { t: 'Reliability', cls: 'ph-ana' }, { t: 'Security', cls: 'ph-des' }],
+      cards: [
+        { q: 'Transmit time (الوقت اللي الرسالة بتاخده من جهاز لجهاز)', a: 0, why: 'الـ <b>Transmit time</b> من مقاييس الـ <b>Performance</b>.' },
+        { q: 'Response time (الوقت بين الطلب والرد)', a: 0, why: 'الـ <b>Response time</b> من مقاييس الـ <b>Performance</b>.' },
+        { q: 'Number of users on the network', a: 0, why: 'عدد المستخدمين من العوامل المؤثرة في <b>Performance</b>.' },
+        { q: 'Efficiency of the software', a: 0, why: 'كفاءة الـ software من العوامل المؤثرة في <b>Performance</b>.' },
+        { q: 'Frequency of failure', a: 1, why: 'تكرار الأعطال بيقيس الـ <b>Reliability</b>.' },
+        { q: 'Time it takes a link to recover from a failure', a: 1, why: 'وقت التعافي من العطل = <b>Reliability</b>.' },
+        { q: "The network's robustness in a catastrophe", a: 1, why: 'مقاومة الكوارث = <b>Reliability</b>.' },
+        { q: 'Protecting data from unauthorized access', a: 2, why: 'ده التعريف العام للـ <b>Security</b>.' },
+        { q: 'Authentication', a: 2, why: 'من نقط الـ <b>Security</b> الخمسة.' },
+        { q: 'Non-repudiation', a: 2, why: 'من نقط الـ <b>Security</b> الخمسة.' },
+        { q: 'Accuracy of delivery and guaranteed delivery', a: 1, why: 'السلايد بيذكرهم مع الـ <b>Reliability</b>.' },
+        { q: 'Integrity and Confidentiality', a: 2, why: 'الاتنين من نقط الـ <b>Security</b>.' }
+      ]
+    },
+
+    /* ---------- 4 characteristics ---------- */
+    four: {
+      cols: 2,
+      opts: [{ t: 'Delivery', cls: 'ph-plan' }, { t: 'Accuracy', cls: 'ph-ana' }, { t: 'Timeliness', cls: 'ph-des' }, { t: 'Jitter', cls: 'ph-imp' }],
+      cards: [
+        { q: 'Data must be received by the intended device or user and only by that device or user.', a: 0, why: 'ده <b>Delivery</b>.' },
+        { q: 'Data that have been altered in transmission and left uncorrected are unusable.', a: 1, why: 'ده <b>Accuracy</b>.' },
+        { q: 'Data delivered late are useless (real-time transmission of audio/video).', a: 2, why: 'ده <b>Timeliness</b>.' },
+        { q: 'Changes in the time it takes data packets to reach their destination.', a: 3, why: 'ده تعريف الـ <b>Jitter</b>.' },
+        { q: 'Delivering data in the same order they are produced, without significant delay.', a: 2, why: 'ده معنى <b>Timeliness</b> للفيديو والصوت.' }
+      ]
+    },
+
+    /* ---------- components ---------- */
+    comp: {
+      cols: 3,
+      opts: [{ t: 'Computers', cls: 'ph-plan' }, { t: 'Network Devices', cls: 'ph-ana' }, { t: 'Connectivity', cls: 'ph-des' }],
+      cards: [
+        { q: 'Web server', a: 0, why: 'الـ servers والـ hosts = <b>Computers</b>.' },
+        { q: 'Smartphone or laptop', a: 0, why: 'الأجهزة النهائية (hosts) = <b>Computers</b>.' },
+        { q: 'Switch', a: 1, why: 'الـ switch من الـ <b>Network devices</b>.' },
+        { q: 'Router', a: 1, why: 'الـ router من الـ <b>Network devices</b>.' },
+        { q: 'Hub', a: 1, why: 'الـ hub من الـ <b>Network devices</b>.' },
+        { q: 'Modem', a: 1, why: 'الـ modem من الـ <b>Network devices</b> حسب السلايد.' },
+        { q: 'NIC', a: 1, why: 'الـ NIC من الـ <b>Network devices</b> حسب السلايد.' },
+        { q: 'Repeater', a: 1, why: 'الـ repeater من الـ <b>Network devices</b>.' },
+        { q: 'Fiber optic cable', a: 2, why: 'الكابلات = <b>Connectivity</b>.' },
+        { q: 'Wireless link (microwave or satellite)', a: 2, why: 'الـ wireless = <b>Connectivity</b>.' },
+        { q: 'Host running HTTP and FTP applications', a: 0, why: 'الـ hosts هي <b>مصدر التطبيقات</b> زي HTTP و FTP.' },
+        { q: 'Bridge', a: 1, why: 'الـ bridge من الـ <b>Network devices</b>.' }
+      ]
+    },
+
+    /* ---------- network types ---------- */
+    span: {
+      cols: 3,
+      opts: [{ t: 'PAN', cls: 'ph-plan' }, { t: 'LAN', cls: 'ph-ana' }, { t: 'MAN', cls: 'ph-des' }, { t: 'WAN', cls: 'ph-imp' }, { t: 'Internet', cls: 't-warn' }],
+      cards: [
+        { q: 'Bluetooth connecting a computer with its peripherals', a: 0, why: 'مدى شخص واحد = <b>PAN</b>.' },
+        { q: 'Two PCs and a printer in a home office', a: 1, why: 'مثال السلايد على الـ <b>LAN</b>.' },
+        { q: 'A cable television network covering a city', a: 2, why: 'مثال السلايد على الـ <b>MAN</b>.' },
+        { q: 'Long-distance transmission of data, voice, image and video across a country or continent', a: 3, why: 'ده تعريف الـ <b>WAN</b>.' },
+        { q: 'A company connecting the LANs of all its offices throughout a city', a: 2, why: 'مثال السلايد على الـ <b>MAN</b>.' },
+        { q: 'A network linking devices in a single office, building or campus', a: 1, why: 'ده تعريف الـ <b>LAN</b>.' },
+        { q: 'A collection of interconnected networks', a: 4, why: 'مجموعة الشبكات المتوصلة = <b>Internet</b>.' },
+        { q: 'Distance about 10,000 km (the planet)', a: 4, why: 'في جدول المسافات: الكوكب = <b>The Internet</b>.' },
+        { q: 'Distance about 100 m (a building)', a: 1, why: 'المبنى = <b>LAN</b>.' },
+        { q: 'Distance about 100 km (a country)', a: 3, why: 'الدولة = <b>WAN</b>.' }
+      ]
+    },
+
+    /* ---------- protocol elements ---------- */
+    proto: {
+      cols: 3,
+      opts: [{ t: 'Syntax', cls: 'ph-plan' }, { t: 'Semantics', cls: 'ph-ana' }, { t: 'Timing', cls: 'ph-des' }],
+      cards: [
+        { q: 'The first 8 bits are the sender address, the next 8 bits the receiver address, and the rest is the message.', a: 0, why: 'ترتيب وشكل الداتا = <b>Syntax</b>.' },
+        { q: 'An address field identifies the route to be taken or the final destination.', a: 1, why: 'معنى الجزء ده = <b>Semantics</b>.' },
+        { q: 'The sender produces data at 100 Mbps but the receiver processes only 1 Mbps.', a: 2, why: 'السرعة = <b>Timing</b>.' },
+        { q: 'The order in which the parts of the data are presented.', a: 0, why: 'الترتيب = <b>Syntax</b>.' },
+        { q: 'How a bit pattern is interpreted and what action is taken based on it.', a: 1, why: 'التفسير والإجراء = <b>Semantics</b>.' },
+        { q: 'When data should be sent and how fast it can be sent.', a: 2, why: 'ده تعريف الـ <b>Timing</b>.' },
+        { q: 'The format of the data.', a: 0, why: 'الصيغة = <b>Syntax</b>.' },
+        { q: 'The meaning of each section of bits.', a: 1, why: 'ده تعريف الـ <b>Semantics</b>.' }
+      ]
+    },
+
+    /* ---------- communications model ---------- */
+    model: {
+      cols: 2,
+      opts: [{ t: 'Source', cls: 'ph-plan' }, { t: 'Transmitter', cls: 'ph-ana' }, { t: 'Transmission system', cls: 'ph-des' }, { t: 'Receiver', cls: 'ph-imp' }, { t: 'Destination', cls: 't-warn' }],
+      cards: [
+        { q: 'A telephone or a PC that generates the data to be transmitted', a: 0, why: 'اللي بيولّد الداتا = <b>Source</b>.' },
+        { q: 'A modem that converts a digital bit stream into an analog signal for the telephone network', a: 1, why: 'بيحوّل الداتا لإشارة = <b>Transmitter</b>.' },
+        { q: 'The public telephone network between the two modems', a: 2, why: 'ده الـ <b>Transmission system</b> في مثال السلايد.' },
+        { q: 'A modem that converts the incoming analog signal back into a digital bit stream', a: 3, why: 'بيحوّل الإشارة لشكل مفهوم = <b>Receiver</b>.' },
+        { q: 'The server that takes the incoming data from the receiver', a: 4, why: 'بياخد الداتا من الـ receiver = <b>Destination</b>.' },
+        { q: 'Can be a single transmission line or a complex network connecting source and destination', a: 2, why: 'ده تعريف الـ <b>Transmission system</b>.' },
+        { q: 'Transforms and encodes the information to produce electromagnetic signals', a: 1, why: 'ده تعريف الـ <b>Transmitter</b>.' },
+        { q: 'Accepts the signal from the transmission system and converts it into a form the destination can handle', a: 3, why: 'ده تعريف الـ <b>Receiver</b>.' }
+      ]
+    },
+
+    /* ---------- client-server vs p2p ---------- */
+    csp2p: {
+      cols: 2,
+      opts: [{ t: 'Client-Server', cls: 'ph-plan' }, { t: 'Peer-to-Peer', cls: 'ph-imp' }],
+      cards: [
+        { q: 'One powerful central computer serves all the requests of the other computers.', a: 0, why: 'ده <b>Client-Server</b> (centralized).' },
+        { q: 'Every computer can act as both a client and a server.', a: 1, why: 'ده <b>Peer-to-Peer</b>.' },
+        { q: 'All shared data is stored solely on one server.', a: 0, why: '<b>Client-Server</b>: الداتا في الـ server بس.' },
+        { q: 'There is no central server and no peer controls another.', a: 1, why: '<b>Peer-to-Peer</b>: كل الـ peers ليهم نفس الصلاحيات.' },
+        { q: 'Setup can be expensive and needs a qualified network manager.', a: 0, why: '<b>Client-Server</b>: تكلفة عالية وخبرة تقنية.' },
+        { q: 'Cost-effective: no investment in central servers and no full-time administrator.', a: 1, why: '<b>Peer-to-Peer</b>: أرخص.' },
+        { q: 'Failure of the central machine may disrupt all connected devices.', a: 0, why: '<b>Client-Server</b>: خطر تعطل الشبكة لو الـ server وقع.' },
+        { q: 'Each computer needs its own backup system and antivirus.', a: 1, why: '<b>Peer-to-Peer</b>: التكلفة الإضافية دي من عيوبه.' },
+        { q: 'Common in enterprise networks.', a: 0, why: '<b>Client-Server</b>.' },
+        { q: 'Found in homes, small businesses and file-sharing networks.', a: 1, why: '<b>Peer-to-Peer</b>.' },
+        { q: 'Security and administration are handled centrally.', a: 0, why: '<b>Client-Server</b>: الـ server بيعمل المهام الأساسية زي الأمان.' },
+        { q: 'Security is managed by individual computers, so it is typically less secure.', a: 1, why: '<b>Peer-to-Peer</b>.' }
+      ]
+    },
+
+    /* ---------- True / False traps ---------- */
+    traps: {
+      cols: 2,
+      opts: [{ t: 'صح ✔ (True)', cls: 't-ok' }, { t: 'غلط ✘ (False)', cls: 't-bad' }],
+      cards: [
+        { q: 'A computer network needs at least three devices connected by communication links.', a: 1, why: 'الشبكة = <b>اتنين على الأقل</b>.' },
+        { q: 'A point-to-point connection reserves the entire capacity of the link for the two devices.', a: 0, why: 'صح — اللينك مخصوص لجهازين.' },
+        { q: 'In a multipoint connection, the capacity of the channel is shared either permanently or temporally.', a: 0, why: 'صح — السعة متقسّمة بين الأجهزة.' },
+        { q: 'Point-to-point transmission with exactly one sender and one receiver is called multicasting.', a: 1, why: 'اسمها <b>unicasting</b>.' },
+        { q: 'A MAN is designed to extend over an entire city.', a: 0, why: 'صح — ممكن cable TV network أو ربط LANs.' },
+        { q: 'A LAN usually links devices across a whole country.', a: 1, why: 'ده الـ <b>WAN</b>. الـ LAN = مكتب أو مبنى أو كامبس.' },
+        { q: 'PANs let devices communicate over the range of a person, and Bluetooth is an example.', a: 0, why: 'صح.' },
+        { q: 'A collection of interconnected networks is called an Internet.', a: 0, why: 'صح.' },
+        { q: 'A protocol defines what is communicated, how it is communicated and when it is communicated.', a: 0, why: 'صح — دي الـ 3 حاجات اللي بيحددها.' },
+        { q: 'Syntax refers to the meaning of each section of bits.', a: 1, why: 'ده <b>Semantics</b>. الـ Syntax = الصيغة والترتيب.' },
+        { q: 'Timing refers to when data should be sent and how fast it can be sent.', a: 0, why: 'صح.' },
+        { q: 'A network has three main components: computers, network devices and connectivity.', a: 0, why: 'صح.' },
+        { q: 'Hubs, bridges and routers are examples of connectivity.', a: 1, why: 'دي <b>Network devices</b>. الـ connectivity = كابلات و wireless.' },
+        { q: 'Network performance is measured only by transmit time.', a: 1, why: 'بيتقاس بـ <b>transmit time و response time</b> (وعوامل تانية).' },
+        { q: 'Non-repudiation is one of the network security issues.', a: 0, why: 'صح — مع access control وintegrity وauthentication وconfidentiality.' },
+        { q: 'In the communications model, the transmitter converts the incoming signal into a form the destination device can handle.', a: 1, why: 'ده شغل الـ <b>Receiver</b>.' },
+        { q: 'In a client-server network, all shared data is stored solely on the server.', a: 0, why: 'صح.' },
+        { q: 'In a peer-to-peer network, each computer can function as either a client or a server.', a: 0, why: 'صح.' },
+        { q: 'In the client-server model, employees use powerful servers and the data is stored on simple clients.', a: 1, why: 'العكس: <b>clients</b> بسيطة والـ <b>servers</b> قوية وفيها الداتا.' },
+        { q: 'Jitter refers to changes in the time it takes data packets to reach their destination.', a: 0, why: 'صح — من الـ 4 خصائص (Extra 2).' },
+        { q: 'At the sender side, the modem acts as a demodulator.', a: 1, why: 'عند المرسل = <b>modulator</b> (digital → analog).' },
+        { q: 'According to the book, the peer-to-peer network is typically less secure because security is managed by individual computers.', a: 0, why: 'صح — ده في عيوب الـ P2P (Extra 2).' }
+      ]
+    },
+
+    /* ---------- MCQ ---------- */
+    mcq: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'Which of the following is a network device?', opts: ['Switch', 'Fiber optic cable', 'Web server', 'Wireless medium'], a: 0, why: 'الـ switch من الـ <b>Network devices</b>. الكابل والـ wireless = connectivity، والـ server = computer.' },
+        { q: 'A network that extends over an entire city is called a:', opts: ['PAN', 'LAN', 'MAN', 'WAN'], a: 2, why: '<b>MAN</b> = Metropolitan Area Network.' },
+        { q: 'A sender produces data at 100 Mbps but the receiver can process data at only 1 Mbps. Which element of the protocol is concerned?', opts: ['Syntax', 'Semantics', 'Timing', 'Addressing'], a: 2, why: 'السرعة وإمتى تتبعت = <b>Timing</b>.' },
+        { q: 'Which of the following is used to measure network reliability?', opts: ['Transmit time', 'Frequency of failure', 'Number of users', 'Authentication'], a: 1, why: '<b>Frequency of failure</b> من مقاييس الـ reliability.' },
+        { q: 'In the communications model, the component that transforms and encodes information into electromagnetic signals is the:', opts: ['Source', 'Transmitter', 'Receiver', 'Destination'], a: 1, why: 'ده شغل الـ <b>Transmitter</b>.' },
+        { q: 'A dedicated link between exactly two devices is called:', opts: ['Multipoint connection', 'Point-to-point connection', 'Broadcast connection', 'Metropolitan connection'], a: 1, why: '<b>Point-to-point</b>.' },
+        { q: 'Which statement describes a peer-to-peer network?', opts: ['All shared data is stored on one central server', 'Each computer can act as both client and server', 'One server controls the network security', 'Clients interact with each other only via the server'], a: 1, why: 'في الـ P2P كل جهاز ممكن يكون client أو server.' },
+        { q: 'Which of the following is a limitation of the client-server model?', opts: ['Lack of centralized control', 'The failure of the central server may disrupt all connected devices', 'Each computer needs its own antivirus', 'Dependency on peer availability'], a: 1, why: 'باقي الاختيارات من عيوب الـ P2P.' },
+        { q: 'Which of the following is NOT a key element of a protocol?', opts: ['Syntax', 'Semantics', 'Timing', 'Topology'], a: 3, why: 'العناصر التلاتة: <b>Syntax, Semantics, Timing</b>.' },
+        { q: 'A network that links the devices in a single building or campus (about 1 km) is a:', opts: ['PAN', 'LAN', 'MAN', 'WAN'], a: 1, why: 'مكتب / مبنى / كامبس = <b>LAN</b>.' }
+      ]
+    }
+  },
+
+  /* ---------- flashcards ---------- */
+  flash: {
+    main: [
+      { f: 'يعني إيه <span class="en">Computer Network</span>؟', b: 'مجموعة أجهزة (<b>اتنين على الأقل</b>) متوصّلة ببعض بـ <span class="en">communication links</span>: laptops, desktops, servers, smartphones, tablets.' },
+      { f: 'أهمية الشبكات (3 حاجات)', b: '① سهولة الوصول للمعلومات ومشاركتها<br>② مشاركة الأجهزة الغالية وموارد الشبكة<br>③ تكنولوجيا حديثة (<span class="en">IP telephony, Video on Demand</span>)' },
+      { f: 'معايير الشبكة التلاتة', b: '<span class="en">Performance · Reliability · Security</span>' },
+      { f: 'بيتقاس بإيه الـ <span class="en">Performance</span>؟ وبيتأثر بإيه؟', b: 'بـ <span class="en">Transmit time</span> و <span class="en">Response time</span>.<br>بيتأثر بـ: عدد المستخدمين، نوع الـ medium، قدرات الـ hardware، كفاءة الـ software.' },
+      { f: 'الـ <span class="en">Reliability</span> بتتقاس بإيه؟', b: 'دقة وضمان الوصول + <span class="en">frequency of failure</span> + وقت التعافي من العطل + <span class="en">robustness in a catastrophe</span>.' },
+      { f: 'نقط الـ <span class="en">Security</span> الخمسة', b: '<span class="en">Access control · Integrity · Authentication · Confidentiality · Non-repudiation</span>' },
+      { f: 'الـ 4 خصائص الأساسية لـ <span class="en">data communications</span> (Extra 2)', b: '<span class="en">Delivery · Accuracy · Timeliness · Jitter</span>' },
+      { f: 'الـ <span class="en">Jitter</span> يعني إيه؟', b: 'التغيّر في الوقت اللي الـ packets بتاخده عشان توصل لوجهتها.' },
+      { f: 'المكونات التلاتة لأي شبكة', b: '<span class="en">Computers</span> (servers & hosts) · <span class="en">Network devices</span> · <span class="en">Connectivity</span> (media)' },
+      { f: 'أمثلة على <span class="en">Network devices</span>', b: '<span class="en">Repeaters, hub, bridge, switch, router, NIC, modems</span>' },
+      { f: 'أمثلة على <span class="en">Connectivity</span>', b: 'Wireless و cables (زي الـ <span class="en">fiber optic</span>).' },
+      { f: '<span class="en">Point-to-point connection</span>', b: 'لينك مخصوص بين جهازين، وكل السعة محجوزة ليهم. بكابل أو wireless. مرسل واحد ومستقبل واحد = <span class="en">unicasting</span>.' },
+      { f: '<span class="en">Multipoint connection</span>', b: 'أكتر من جهازين بيتشاركوا لينك واحد. السعة متقسّمة بشكل <span class="en">permanent</span> أو <span class="en">temporal</span>.' },
+      { f: 'أنواع الشبكات حسب المساحة', b: '<span class="en">PAN (1 m) · LAN (10 m–1 km) · MAN (10 km) · WAN (100–1000 km) · Internet (10,000 km)</span>' },
+      { f: '<span class="en">PAN</span>', b: 'مدى شخص واحد. مثال: Bluetooth بيوصّل الكمبيوتر بالـ peripherals من غير أسلاك.' },
+      { f: '<span class="en">LAN</span>', b: 'بتربط أجهزة في مكتب أو مبنى أو كامبس. ممكن جهازين وطابعة. بتتشارك hardware و software و data.' },
+      { f: '<span class="en">MAN</span>', b: 'بتغطي مدينة كاملة. ممكن cable TV network، أو ربط LANs ببعض. ممكن تتملكها شركة خاصة أو تتقدم كخدمة من شركة عامة (زي شركة التليفونات).' },
+      { f: '<span class="en">WAN</span>', b: 'نقل لمسافات طويلة لـ data و voice و image و video على مساحة دولة أو قارة أو العالم.' },
+      { f: 'إيه هو الـ <span class="en">Internet</span> (بـ I كبيرة)؟', b: 'مجموعة شبكات متوصّلة ببعض. <span class="en">"A collection of interconnected networks is called an Internet."</span>' },
+      { f: 'تعريف الـ <span class="en">Protocol</span>', b: 'مجموعة قواعد بتحكم الـ data communication. بتحدد <b>what, how, when</b> الداتا بتتبادل.' },
+      { f: 'العناصر التلاتة للـ <span class="en">Protocol</span>', b: '<span class="en">Syntax · Semantics · Timing</span>' },
+      { f: '<span class="en">Syntax</span>', b: 'صيغة الداتا وترتيبها. مثال: أول 8 bits = المرسل، تاني 8 bits = المستقبل، والباقي الرسالة.' },
+      { f: '<span class="en">Semantics</span>', b: 'معنى كل جزء من الـ bits، وإزاي تتفسّر وإيه الإجراء. مثال: العنوان بيحدد المسار أو الوجهة.' },
+      { f: '<span class="en">Timing</span>', b: 'إمتى الداتا تتبعت وبأي سرعة. مثال: مرسل 100Mbps ومستقبل 1Mbps = overload وضياع داتا.' },
+      { f: 'الـ <span class="en">Business applications</span> للشبكات', b: 'القضية <b>resource sharing</b>: كل البرامج والمعدات والداتا متاحة بغض النظر عن المكان. مثال: طابعة شبكة. + <span class="en">client-server model</span>.' },
+      { f: '<span class="en">Home applications</span> (4)', b: '<span class="en">Remote information · Person-to-person communication · Interactive entertainment · Electronic commerce</span>' },
+      { f: 'عناصر الـ <span class="en">Communications model</span> (5)', b: '<span class="en">Source → Transmitter → Transmission system → Receiver → Destination</span>' },
+      { f: 'مثال الـ <span class="en">Communications model</span> في السلايد', b: '<span class="en">Workstation → Modem → Public telephone network → Modem → Server</span>' },
+      { f: '<span class="en">Modem</span>', b: '<b>MOdulator DEModulator</b>. بيحوّل بين digital و analog. عند المرسل modulator، وعند المستقبل demodulator.' },
+      { f: 'المراحل الـ 6 للداتا (الكتاب)', b: '<span class="en">Input information → Input data → Transmitted signal → Received signal → Output data → Output information</span>' },
+      { f: 'تعريف <span class="en">Protocol architecture</span>', b: 'البنية <b>الطبقية</b> من hardware و software اللي بتدعم تبادل البيانات والتطبيقات الموزعة (email, file transfer). في كل layer protocol أو أكتر.' },
+      { f: 'ليه بنقسّم الاتصال لـ layers؟', b: 'لأن المهام معقدة (مثال نقل ملف: فعّل المسار، اتأكد الطرف التاني جاهز، اتأكد إنه يقبل الملف، ترجم الصيغة لو مختلفة). فبنقسّمها لمهام صغيرة في <b>stack عمودي</b>.' },
+      { f: '<span class="en">Client</span> و <span class="en">Server</span>', b: '<b>Client</b> بيطلب وبيبدأ الاتصال (browser). <b>Server</b> قوي بيستنى الطلبات ويرد (web/email/database server).' },
+      { f: '<span class="en">Client-Server architecture</span>', b: 'centralized: server مركزي بيتحكم، الداتا فيه بس، والـ clients بيتواصلوا من خلاله. أمان أعلى. العيب: وقوع الـ server يعطّل الكل.' },
+      { f: '<span class="en">Peer-to-Peer architecture</span>', b: 'مفيش server مركزي. كل جهاز client و server، ونفس الصلاحيات. أرخص، بس أقل أماناً وصعب في الإدارة، ومحتاج backup لكل جهاز.' },
+      { f: '<span class="en">End device</span> ضد <span class="en">Intermediary device</span>', b: '<b>End device (host)</b>: الرسالة بتبدأ منه أو بتوصله (client/server).<br><b>Intermediary</b>: بتوصّل الـ end devices: switches, routers, access points, firewalls.' }
+    ]
+  },
+
+  /* ---------- essay model answers ---------- */
+  essays: {
+    e1: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>1. Performance</b>: measured by <i>transmit time</i> (time for a message to travel from one device to another) and <i>response time</i> (time between an inquiry and a response). It depends on the number of users, the type of transmission medium, the capabilities of the connected hardware and the efficiency of the software.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>2. Reliability</b>: besides accuracy and guaranteed delivery, it is measured by the frequency of failure, the time a link takes to recover from a failure, and the network’s robustness in a catastrophe.</p>' +
+        '<p dir="ltr" style="margin:0"><b>3. Security</b>: protecting data from unauthorized access — access control, integrity, authentication, confidentiality and non-repudiation.</p>',
+      points: [
+        'Three criteria: performance, reliability, security',
+        'Performance — transmit time and response time',
+        'Performance factors — users, medium, hardware, software',
+        'Reliability — frequency of failure, recovery time, robustness in a catastrophe',
+        'Security — access control, integrity, authentication, confidentiality, non-repudiation'
+      ]
+    },
+    e2: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px">A <b>protocol</b> is a set of rules that governs data communication. It defines <i>what</i> is communicated, <i>how</i> and <i>when</i>. Its key elements are:</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>Syntax</b>: the format of the data, i.e. the order in which it is presented. <i>Example:</i> the first 8 bits are the sender address, the next 8 bits the receiver address, and the rest is the message.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>Semantics</b>: the meaning of each section of bits — how a pattern is interpreted and what action is taken. <i>Example:</i> an address identifies the route to be taken or the final destination.</p>' +
+        '<p dir="ltr" style="margin:0"><b>Timing</b>: when data should be sent and how fast it can be sent. <i>Example:</i> a sender at 100 Mbps and a receiver that processes only 1 Mbps would overload the receiver and data would be largely lost.</p>',
+      points: [
+        'Definition — a set of rules governing data communication (what, how, when)',
+        'Syntax — format / order of data — example',
+        'Semantics — meaning of each section and the action taken — example',
+        'Timing — when and how fast — example'
+      ]
+    },
+    e3: {
+      model:
+        '<table class="tbl" style="margin:0" dir="ltr"><tr><th>Type</th><th>Description</th><th>Example</th></tr>' +
+        '<tr><td>PAN</td><td class="en plain">Lets devices communicate over the range of a person (about 1 m).</td><td class="en plain">Bluetooth linking a computer with its peripherals.</td></tr>' +
+        '<tr><td>LAN</td><td class="en plain">Links devices in a single office, building or campus; designed to share resources (hardware, software, data).</td><td class="en plain">Two PCs and a printer in a home office.</td></tr>' +
+        '<tr><td>MAN</td><td class="en plain">Extends over an entire city; a single network or a way to connect LANs; privately owned or a public service.</td><td class="en plain">Cable TV network; a company connecting its offices in a city.</td></tr>' +
+        '<tr><td>WAN</td><td class="en plain">Long-distance transmission of data, voice, image and video over a country, a continent or the world.</td><td class="en plain">Connecting LANs and MANs across countries.</td></tr></table>',
+      points: [
+        'Networks are distinguished by geographical span',
+        'PAN — range of a person — Bluetooth',
+        'LAN — office/building/campus, shares resources — two PCs and a printer',
+        'MAN — a city — cable TV / company offices in a city',
+        'WAN — country, continent or world — long-distance data, voice, image, video'
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ---------- network types slider ---------- */
+(function () {
+  var D = [
+    { d: '1 m', p: 'Square meter', k: 'PAN' },
+    { d: '10 m', p: 'Room', k: 'LAN' },
+    { d: '100 m', p: 'Building', k: 'LAN' },
+    { d: '1 km', p: 'Campus', k: 'LAN' },
+    { d: '10 km', p: 'City', k: 'MAN' },
+    { d: '100 km', p: 'Country', k: 'WAN' },
+    { d: '1000 km', p: 'Continent', k: 'WAN' },
+    { d: '10,000 km', p: 'Planet', k: 'The Internet' }
+  ];
+  var T = {
+    'PAN': { n: 'Personal Area Network (PAN)', c: 'ph-plan', h: '<p>بتخلّي الأجهزة تتواصل على <b>مدى شخص واحد</b>. مثال شائع: شبكة wireless بتوصّل الكمبيوتر بالـ <span class="en">peripherals</span>. شركات اتجمّعت وصمّمت شبكة wireless قصيرة المدى اسمها <b class="en">Bluetooth</b> عشان توصّل مكونات مختلفة من غير أسلاك.</p>' },
+    'LAN': { n: 'Local Area Network (LAN)', c: 'ph-ana', h: '<p>غالباً بيملكها طرف واحد وبتربط الأجهزة في <b>مكتب واحد أو مبنى أو كامبس</b>. ممكن تبقى بسيطة زي <b>جهازين PC وطابعة</b> في مكتب بيتي، وممكن تمتد في شركة كاملة.</p><p>اتصممت عشان <b>تتشارك الموارد</b> بين الـ PCs: <span class="en">hardware</span> (طابعة) أو <span class="en">software</span> (برنامج) أو <span class="en">data</span>.</p>' },
+    'MAN': { n: 'Metropolitan Area Network (MAN)', c: 'ph-des', h: '<p>اتصممت <b>تغطي مدينة كاملة</b>. ممكن تبقى شبكة واحدة زي <b>cable television network</b>، أو وسيلة لربط عدد من الـ LANs في شبكة أكبر. مثال: شركة بتستخدم MAN عشان تربط الـ LANs في كل مكاتبها في المدينة.</p><p>ممكن تتملكها وتشغّلها شركة خاصة، أو تكون <b>خدمة من شركة عامة</b> زي شركة التليفونات المحلية.</p>' },
+    'WAN': { n: 'Wide Area Network (WAN)', c: 'ph-imp', h: '<p>بتوفّر <b>نقل لمسافات طويلة</b> لـ <span class="en">data, voice, image, video</span> على مساحات جغرافية كبيرة ممكن تشمل <b>دولة أو قارة أو العالم كله</b>.</p>' },
+    'The Internet': { n: 'The Internet', c: 't-warn', h: '<p>شبكات كتير موجودة في العالم، والناس المتوصّلة بشبكة عايزة تتواصل مع ناس في شبكة تانية. <b>مجموعة الشبكات المتوصّلة دي</b> بتسمّى <span class="en">an Internet</span>.</p>' }
+  };
+  var r = document.getElementById('spanRange');
+  if (!r) return;
+  var ticks = document.getElementById('spanTicks');
+  D.forEach(function (x, i) {
+    var s = document.createElement('span');
+    s.textContent = x.d; s.dataset.v = i;
+    s.addEventListener('click', function () { set(i); });
+    ticks.appendChild(s);
+  });
+  function set(i) {
+    var x = D[i], t = T[x.k];
+    r.value = i;
+    document.getElementById('spanPlace').textContent = x.p + ' (' + x.d + ')';
+    document.getElementById('spanName').textContent = t.n;
+    document.getElementById('spanDesc').innerHTML = t.h;
+    document.getElementById('spanCard').className = 'card ' + t.c;
+    Array.prototype.forEach.call(ticks.children, function (s, k) { s.classList.toggle('on', k === i); });
+  }
+  r.addEventListener('input', function () { set(+r.value); });
+  set(0);
+})();
+
+/* ---------- timing calculator ---------- */
+(function () {
+  var S = document.getElementById('tmS'), R = document.getElementById('tmR');
+  if (!S || !R) return;
+  function fmt(x) { return (Math.round(x * 100) / 100) + '%'; }
+  function upd() {
+    var s = Math.max(1, +S.value || 1), r = Math.max(1, +R.value || 1);
+    var ok = Math.min(1, r / s) * 100, bad = 100 - ok;
+    document.getElementById('tmOk').textContent = fmt(ok);
+    document.getElementById('tmBad').textContent = fmt(bad);
+    document.getElementById('tmBadBox').className = 'res ' + (bad > 0 ? 'neg' : 'pos');
+    document.getElementById('tmMsg').textContent = bad > 0
+      ? 'المرسل أسرع من المستقبل، فالمستقبل هيتحمّل زيادة (overload) واللي مش قادر يعالجه بيضيع.'
+      : 'المستقبل بيلحق على سرعة المرسل، مفيش ضياع.';
+  }
+  S.addEventListener('input', upd); R.addEventListener('input', upd);
+  upd();
+})();
+
+/* ---------- 6-stage data flow stepper ---------- */
+(function () {
+  var L = [
+    { t: 'Input information (m)', f: 'Text', n: 'المستخدم بيكتب الرسالة على الكيبورد. دي المعلومة الأصلية اللي بتدخل على الـ <b>Source</b>.' },
+    { t: 'Input data (g(t))', f: 'Digital bit stream', n: 'الـ <b>Source</b> حوّل الرسالة لسلسلة bits (0 و 1) متخزنة في الـ memory.' },
+    { t: 'Transmitted signal (s(t))', f: 'Analog signal', n: 'الـ <b>Transmitter</b> (modem) حوّل الـ bits لإشارة analog تناسب شبكة التليفون.' },
+    { t: 'Received signal (r(t))', f: 'Analog signal — ممكن تتشوّه بالـ noise', n: 'الإشارة عدّت في الـ <b>Transmission system</b> وممكن توصل متشوّهة.' },
+    { t: 'Output data (g′(t))', f: 'Digital bit stream', n: 'الـ <b>Receiver</b> (modem) حوّل الإشارة لـ bits تاني.' },
+    { t: 'Output information (m′)', f: 'Text', n: 'الـ <b>Destination</b> سلّم للمستخدم المعلومة النهائية (تقدير للرسالة الأصلية).' }
+  ];
+  var ol = document.getElementById('stg');
+  if (!ol) return;
+  var cur = -1;
+  L.forEach(function (x, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="n">' + (i + 1) + '</span><div><b class="en">' + x.t + '</b><small class="en plain">' + x.f + '</small></div>';
+    ol.appendChild(li);
+  });
+  var next = document.getElementById('stepNext'), reset = document.getElementById('stepReset'), note = document.getElementById('stepNote');
+  function draw() {
+    Array.prototype.forEach.call(ol.children, function (li, i) {
+      li.classList.toggle('on', i === cur);
+      li.classList.toggle('past', i < cur);
+    });
+    note.innerHTML = cur < 0 ? 'دوس «الخطوة التالية» عشان تبدأ.' : '<b>' + (cur + 1) + '.</b> ' + L[cur].n;
+    next.disabled = cur >= L.length - 1;
+  }
+  next.addEventListener('click', function () { if (cur < L.length - 1) { cur++; draw(); } });
+  reset.addEventListener('click', function () { cur = -1; draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

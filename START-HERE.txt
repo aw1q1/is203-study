@@ -1,0 +1,54 @@
+IS203 - Computer Networks | مذاكرة تفاعلية للـ Midterm (الاثنين ٩ نوفمبر ٢٠٢٦، ١:٠٠ م)
+================================================================================
+
+إزاي تفتحها:
+  1) فك الضغط عن الملف في فولدر على جهازك (مهم: فكّه الأول، متفتحش الملفات من جوه الـ zip).
+  2) دوس دوبل كليك على  index.html  (يفتح في أي متصفح: Chrome أو Edge أو Firefox أو Safari).
+  3) من الصفحة الرئيسية اختار المحاضرة. فيه كمان Mock Exam وجدول مذاكرة مقترح.
+
+الملفات:
+  index.html      الصفحة الرئيسية + جدول المذاكرة
+  lecture1.html   An Overview of Computer Networks
+  lecture2.html   The OSI Reference Model            (الأهم)
+  lecture3.html   Encapsulation, Transmission Media and LAN Topologies
+  lecture4.html   Collision Detection, Error Detection and Flow Control
+  lecture5.html   Switched Communications Networks
+  sections.html   السكاشن: IP / Subnetting / CIDR / VLSM + أنشطة OSI و Packet Tracer (صفحة مضافة منفصلة، مش جزء من المحاضرات)
+  exam.html       Mock Exam (20 MCQ + Essay)
+
+ملحوظات:
+  - مش محتاجة إنترنت، وبتشتغل على الموبايل والكمبيوتر.
+  - تقدمك (المحطات اللي خلّصتها، إجابات الـ Essay، نتيجة الـ Mock Exam) بيتحفظ في نفس المتصفح
+    على نفس الجهاز بس. لو غيّرت المتصفح أو الجهاز أو مسحت بيانات الموقع هتبدأ من الأول.
+  - الأسئلة والدرجات في الـ Mock Exam تقديرية (الامتحان الحقيقي ممكن يختلف).
+  - الـ IP addressing و subnetting (السكاشن 2 و 4 + فصل 5 من الكتاب) في صفحة sections.html المنفصلة
+    (مش جوه صفحات المحاضرات). الصفحة دي اتعملت من صور سلايدات السكاشن، فلو في رقم مختلف عن السلايد، السلايد هو الأصل.
+  - تحديث ملفات الدرايف (9 نوفمبر): المجلد بقى فيه IS203_Lec_1 لـ 4 بس. Lec 1 مطابقة للقديمة، و Lec 2/3/4 هما
+    محاضرات 3/4/5 القديمة بنفس المحتوى (صفحات L3/L4/L5 هنا). محاضرة الـ OSI (صفحة L2) و Extra 1 و 2 اتشالوا من
+    المجلد، بس الـ OSI بيجي في الميدتيرم السابقة فماتسيبهوش. التفاصيل في أول index.html.
+
+================================================================================
+⚠️ تنبيه مهم
+================================================================================
+دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي مش مادة رسمية ومش معتمدة من الدكتور
+ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي.
+ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي): ذاكر منهم الأول وارجع لهم عشان تتأكد
+من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص
+غير مسئول عن أي نتيجة أو خسارة درجات.
+
+المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات - Computer Networks / IS203)
+بنسختيها (Lecture 1-5 القديمة فيها الـ OSI، و IS203_Lec_1-4 الجديدة بنفس المحتوى)
+وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود) وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد)،
+وسلايدات السكاشن (م. تقى مجدي وم. عبدالله حلمي) لصفحة السكاشن.
+
+Disclaimer: Unofficial, student-made study notes shared to help classmates - not official course
+material and not endorsed by the instructor or the university. They may contain mistakes or
+omissions, and the practice questions may differ from the real exam. These pages are NOT a
+substitute for the textbook and the lectures (the primary source): study those first and use them
+to verify anything written here. Anyone relying on these pages directly does so at their own risk;
+the author accepts no responsibility for any result or loss of marks.
+Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City,
+Computer Networks / IS203), the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud),
+and the Extra 1 and Extra 2 handouts. The lecture slides exist in two versions with the same content: the
+earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files; Extra 1 and 2
+come from the earlier version of the folder. The Sections page is based on the teaching assistants' section slides (Eng. Toqua Magdy and Eng. Abdallah Helmy) and chapter 5 of the book.

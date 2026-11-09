@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Lecture 2 — The OSI Reference Model</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+  svg.dg{width:100%;max-width:560px;height:auto;display:block;margin:6px auto}
+  svg.dg .ln{stroke:var(--accent);stroke-width:3;fill:none}
+  svg.dg .dash{stroke:var(--accent);stroke-width:2.5;fill:none;stroke-dasharray:7 6}
+  svg.dg .nd{fill:var(--card2);stroke:var(--accent);stroke-width:2}
+  svg.dg .hl{fill:rgba(var(--accent-rgb),.18);stroke:var(--accent);stroke-width:2}
+  svg.dg text{fill:var(--text);font:600 13px "Segoe UI",sans-serif;text-anchor:middle}
+  svg.dg text.sm{font-size:11.5px;font-weight:500;fill:var(--muted)}
+  /* layer stack explorer */
+  .stack{display:grid;gap:6px;margin:8px 0 12px;direction:ltr}
+  .lyr{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;padding:9px 12px;border-radius:14px;border:1px solid rgba(var(--c-rgb),.5);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;text-align:start;font:inherit;transition:.18s}
+  .lyr:hover{transform:translateX(3px)}
+  .lyr .no{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.28);color:var(--c)}
+  .lyr b{font-size:17px}
+  .lyr small{display:block;color:var(--muted);font-size:13px}
+  .lyr.on{background:rgba(var(--c-rgb),.26);border-color:var(--c);box-shadow:0 8px 20px rgba(var(--c-rgb),.25)}
+  .lyr.on .no{background:var(--c);color:var(--bg)}
+  .dtl h3{margin:0 0 4px;direction:ltr;text-align:start;unicode-bidi:isolate}
+  .dtl .one{font-weight:800;font-size:18px;direction:ltr;text-align:start;unicode-bidi:isolate;margin:2px 0 8px;color:var(--c)}
+  /* order game */
+  .ordgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  .slots{list-style:none;margin:0;padding:0;display:grid;gap:6px;direction:ltr}
+  .slots li{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;border:1px dashed var(--line);min-height:44px;color:var(--muted)}
+  .slots li .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--card);border:1px solid var(--line)}
+  .slots li.fill{border-style:solid;border-color:rgba(var(--c-rgb),.6);background:rgba(var(--c-rgb),.14);color:var(--text);font-weight:700}
+  .slots li.next{border-color:var(--accent);color:var(--text)}
+  .pool{display:flex;flex-wrap:wrap;gap:8px;direction:ltr}
+  .pool button{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:600 15px "Segoe UI",sans-serif;cursor:pointer}
+  .pool button:hover:not(:disabled){border-color:var(--accent)}
+  .pool button:disabled{opacity:.3;cursor:default}
+  .pool button.bad{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+  /* PDU stepper */
+  .stg{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .stg li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);opacity:.45;transition:.25s}
+  .stg li.on{opacity:1;border-color:var(--accent);background:rgba(var(--accent-rgb),.14);transform:translateX(-4px)}
+  .stg li.past{opacity:.85}
+  .stg .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--card);border:1px solid var(--line)}
+  .stg li.on .n{background:var(--accent);color:var(--on-accent);border-color:transparent}
+  .stg small{display:block;color:var(--muted)}
+  .pdu{direction:ltr;display:flex;flex-wrap:wrap;gap:4px;align-items:stretch;justify-content:center;margin:6px 0 10px;min-height:46px}
+  .pdu span{display:grid;place-items:center;padding:8px 12px;border-radius:8px;font:700 14px "Segoe UI",sans-serif;border:1px solid var(--line);background:var(--card2)}
+  .pdu .d{background:rgba(var(--c-plan-rgb),.25);border-color:var(--c-plan)}
+  .pdu .h4{background:rgba(var(--c-ana-rgb),.28);border-color:var(--c-ana)}
+  .pdu .h3{background:rgba(var(--c-des-rgb),.28);border-color:var(--c-des)}
+  .pdu .h2{background:rgba(var(--c-imp-rgb),.28);border-color:var(--c-imp)}
+  .pdu .bits{font-family:Consolas,monospace;letter-spacing:1px;word-break:break-all;background:rgba(var(--warn-rgb),.18);border-color:var(--warn)}
+  /* OSI / TCP-IP map */
+  .mapw{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(7,44px);gap:5px;direction:ltr;margin:8px 0}
+  .mapw .o,.mapw .t{display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--line);background:var(--card2);font:600 14px "Segoe UI",sans-serif;text-align:center;transition:.2s}
+  .mapw .o{justify-content:flex-start;padding-inline-start:12px;gap:8px}
+  .mapw .o i{font-style:normal;font-weight:800;color:var(--muted);width:16px}
+  .mapw .o.hi{background:rgba(var(--accent-rgb),.28);border-color:var(--accent);font-weight:800}
+  .mapw .t{cursor:pointer;color:var(--text)}
+  .mapw .t.on{background:rgba(var(--accent-rgb),.28);border-color:var(--accent);font-weight:800}
+  .mapw .t:hover{border-color:var(--accent)}
+</style>
+</head>
+<body data-lecture="l2">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Lecture 2</b><small class="en plain">The OSI Reference Model</small></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0/12</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<div class="layout">
+<nav class="nav" id="nav" aria-label="محطات المحاضرة"></nav>
+<main>
+
+<!-- =====================================================  1 · BIG PICTURE -->
+<section class="station" data-icon="🗺️" data-title="الصورة الكبيرة">
+  <h2>الصورة الكبيرة 🗺️</h2>
+  <p class="lead">دي <b>أهم محاضرة</b> في المادة: باقي المحاضرات بتبني عليها. <span class="muted">(⏱️ ٤ دقايق)</span></p>
+
+  <div class="card">
+    <div class="story">
+      <div class="beat"><div class="emo">💬</div><b>مشكلة كبيرة</b><span>تبعت رسالة لجهاز بعيد</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">✂️</div><b>نقسّمها</b><span>لـ 7 مشاكل أصغر</span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🥞</div><b>كل مشكلة = Layer</b><span>وليها شغل محدد</span></div>
+    </div>
+    <p class="punch">ده اسمه <span class="en">layering</span> — والـ <span class="en">OSI model</span> هو التقسيم القياسي لـ 7 طبقات.</p>
+  </div>
+
+  <h3 class="sec">خريطة المحاضرة <small>(اضغط على أي مربع تروحله)</small></h3>
+  <div class="grid g3">
+    <button type="button" class="tile ph-plan" data-go="2"><span class="emo">🧩</span><b>ليه Layers؟</b><small>ISO 1984 · المميزات</small></button>
+    <button type="button" class="tile ph-ana" data-go="3"><span class="emo">🥞</span><b>الـ 7 طبقات</b><small>مستكشف + لعبة ترتيب ⭐</small></button>
+    <button type="button" class="tile ph-des" data-go="4"><span class="emo">🔝</span><b>الطبقات 7 · 6 · 5</b><small><span class="en">App · Presentation · Session</span></small></button>
+    <button type="button" class="tile ph-imp" data-go="5"><span class="emo">🚚</span><b>الطبقات 4 · 3</b><small><span class="en">Transport · Network</span> ⭐</small></button>
+    <button type="button" class="tile ph-plan" data-go="6"><span class="emo">🔌</span><b>الطبقات 2 · 1</b><small><span class="en">Data Link · Physical</span> ⭐</small></button>
+    <button type="button" class="tile ph-ana" data-go="7"><span class="emo">🤝</span><b>Service · Protocol · Interface</b><small>الفرق بينهم</small></button>
+    <button type="button" class="tile ph-des" data-go="8"><span class="emo">🔁</span><b>OSI ضد TCP/IP + PDUs</b><small>الاتنين + أسماء الـ PDU ⭐</small></button>
+  </div>
+
+  <div class="card">
+    <h4>🎯 بعد المحاضرة دي المفروض تقدر:</h4>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li>تقول إيه هو الـ <span class="en">OSI model</span> ومين عمله وليه بنستخدم الـ <span class="en">layering</span>.</li>
+      <li>تعدّد الـ 7 طبقات <b>بالترتيب</b> وتقول وظيفة كل واحدة.</li>
+      <li>تعرف الـ <span class="en">PDU</span> بتاع كل طبقة (<span class="en">data / segment / packet / frame / bits</span>).</li>
+      <li>تفرّق بين <span class="en">Transport</span> (<span class="en">end-to-end</span>) و <span class="en">Data Link</span> (<span class="en">hop-by-hop</span>).</li>
+      <li>تفرّق بين <span class="en">service</span> و <span class="en">protocol</span> و <span class="en">interface</span>.</li>
+      <li>تقارن <span class="en">OSI</span> بـ <span class="en">TCP/IP</span>.</li>
+    </ul>
+    <p class="hint" style="margin:8px 0 0">دي أهداف طلّعتها أنا من عناوين السلايدات وفصل الكتاب (الكتاب مفيهوش قايمة Learning Outcomes مكتوبة).</p>
+  </div>
+
+  <div class="note">💡 <b>رموز:</b> 📖 = إضافة من الكتاب (مش في السلايدات). 🧠 = حيلة أو تشبيه (فهم عام مني). ⚠️ = تعارض أو حاجة تحتاج انتباه.</div>
+</section>
+
+<!-- =====================================================  2 · WHY LAYERS -->
+<section class="station" data-icon="🧩" data-title="ليه Layers؟">
+  <h2>ليه بنقسّم لـ <span class="en">Layers</span>؟ 🧩</h2>
+  <p class="lead">قبل ما نحفظ الطبقات: ليه اتعمل الـ <span class="en">OSI</span> أصلاً؟ <span class="muted">(⏱️ ٦ دقايق)</span></p>
+
+  <div class="card">
+    <h3>🌐 <span class="en">The OSI Reference Model</span></h3>
+    <ul>
+      <li><span class="en">OSI = Open Systems Interconnection</span>.</li>
+      <li>اتعمل بواسطة <b class="en">ISO</b> (<span class="en">International Organisation for Standardisation</span>) سنة <b class="en">1984</b>.</li>
+      <li>بيتعتبر دلوقتي <b>الموديل المعماري الأساسي</b> للاتصال بين الكمبيوترات (<span class="en">primary architectural model for inter-computer communications</span>).</li>
+      <li>هو <span class="en">descriptive network scheme</span> (مخطط وصفي للشبكة).</li>
+      <li>بيضمن <b>توافق وتشغيل متبادل أكبر</b> (<span class="en">compatibility and interoperability</span>) بين أنواع تكنولوجيا الشبكات المختلفة.</li>
+    </ul>
+    <p>بيوصف إزاي المعلومة بتتحرك من <b>برنامج تطبيق</b> (زي الـ <span class="en">spreadsheet</span>) عبر <b>وسيط الشبكة</b> (زي السلك) لحد برنامج تطبيق تاني على شبكة تانية.</p>
+    <p class="punch" style="font-size:19px">بيقسّم مشكلة نقل المعلومات لـ <b class="en">SEVEN</b> مشاكل أصغر وأسهل = <b class="en">layering</b>.</p>
+  </div>
+
+  <h3 class="sec">✨ 3 فوايد أساسية للتقسيم <small>(اضغط على الكارت)</small></h3>
+  <div class="grid g3">
+    <div class="flip ph-plan"><div class="f"><span class="emo">🧮</span><b>تقليل التعقيد</b><small>اضغط</small></div><div class="b">تقسيم وظايف الشبكة لطبقات بيقلّل التعقيد ويسهّل الفهم، وبيقسّم الاتصال لأجزاء أبسط <b>أسهل في التطوير</b>.</div></div>
+    <div class="flip ph-ana"><div class="f"><span class="emo">🔗</span><b>توافق</b><small>اضغط</small></div><div class="b">بيسمح لأنواع <b>مختلفة من الـ hardware والـ software</b> إنها تتواصل مع بعض.</div></div>
+    <div class="flip ph-des"><div class="f"><span class="emo">🛡️</span><b>استقلال الطبقات</b><small>اضغط</small></div><div class="b">بيمنع إن <b>تغيير في layer واحدة</b> يأثر على باقي الـ layers.</div></div>
+  </div>
+
+  <h3 class="sec">📋 ملخص مميزات الـ <span class="en">OSI Model</span> <small>(سلايد 6)</small></h3>
+  <ol class="steps ph-plan">
+    <li>يساعد الـ <span class="en">network administrators</span> يحددوا الـ hardware والـ software المطلوبين لبناء شبكتهم.</li>
+    <li>يشجّع مصنّعي الـ hardware يعملوا منتجات تتواصل مع بعض على الشبكة.</li>
+    <li>أداة تعليمية لفهم عملية الاتصال بين مكونات الشبكة (<span class="en">teaching tool</span>).</li>
+    <li>يفصل الوظيفة المعقدة لمكونات أبسط.</li>
+    <li><b>يسهّل الـ troubleshooting</b>: تدوّر على المشكلة في الـ layer اللي بتسببها بدل ما تدوّر في الشبكة كلها.</li>
+  </ol>
+
+  <div class="note">📖 <b>الكتاب بيزوّد:</b> أسباب استخدام الـ OSI: (1) يقسّم عمليات الشبكة لعناصر أبسط، (2) يوحّد الـ interfaces ويخلّي المهندسين يتخصصوا في وظايف معينة، (3) يسهّل الـ modular engineering ويمنع تأثير تغيير على الباقي، (4) يضمن الـ interoperability، (5) يسرّع التطور والاختبار والـ troubleshooting.<br>
+  و<b>3 مبادئ</b> اتطبقت لاختيار الـ 7 طبقات: layer تتعمل <b>لما نحتاج abstraction مختلف</b> · كل layer لها <b>وظيفة محددة</b> · وظيفة كل layer تتختار بحيث تؤدي لـ <b>protocols قياسية دولياً</b>.<br>
+  وكل layer بتتصرف زي <span class="en">virtual machine</span> بتقدّم خدمات للـ layer اللي فوقها وبتخبّي عنها تفاصيل التنفيذ.</div>
+
+  <h3 class="sec">🎯 صح ولا غلط؟ <small>(مقدمة الـ OSI)</small></h3>
+  <div data-deck="intro"></div>
+</section>
+
+<!-- =====================================================  3 · SEVEN LAYERS -->
+<section class="station" data-icon="🥞" data-title="الـ 7 طبقات ⭐">
+  <h2>الـ 7 طبقات <span class="en">Layers</span> ⭐</h2>
+  <p class="lead">اضغط على كل layer وشوف وظيفتها والـ <span class="en">PDU</span> بتاعها. بعدين العب لعبة الترتيب. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card tint ph-plan">
+    <p style="margin:0">من <b>فوق لتحت</b>: <b class="en">7 Application · 6 Presentation · 5 Session · 4 Transport · 3 Network · 2 Data link · 1 Physical</b></p>
+  </div>
+
+  <div class="stack" id="stack"></div>
+  <div class="card dtl" id="dtl"></div>
+
+  <div class="note">📖 <b>الكتاب:</b> الـ network <b>hardware</b> بيشتغل في طبقات <span class="en">Physical + Data link + Network</span> (1 و 2 و 3)، لكن أغلب الـ <b>software</b> بيشتغل في <span class="en">Transport + Session + Presentation + Application</span> (4 لـ 7).</div>
+
+  <div class="note">🧠 <b>حيلة حفظ (فهم عام، مش من الكتاب):</b> من فوق لتحت: <b class="en">All People Seem To Need Data Processing</b> (Application · Presentation · Session · Transport · Network · Data link · Physical). ومن تحت لفوق: <b class="en">Please Do Not Throw Sausage Pizza Away</b>.</div>
+
+  <h3 class="sec">🎮 لعبة: رتّب الطبقات <small>(من 7 لـ 1)</small></h3>
+  <div class="card" id="ordCard">
+    <p class="muted" id="ordMsg" style="margin-top:0">دوس على الطبقة اللي المفروض تيجي في الخانة اللي عليها السهم (من فوق: رقم 7).</p>
+    <div class="ordgrid">
+      <ul class="slots" id="slots"></ul>
+      <div class="pool" id="pool"></div>
+    </div>
+    <div class="btnrow"><button type="button" class="btn ghost" id="ordReset">🔁 من الأول</button></div>
+  </div>
+
+  <h3 class="sec">🧠 تشبيه يفهّمك الفكرة <small>(فهم عام مني، مش من السلايدات)</small></h3>
+  <div class="card">
+    <p>تخيّل إنك بتبعت <b>جواب مهم</b> لصاحبك في بلد تانية:</p>
+    <table class="tbl">
+      <tr><th>الطبقة</th><th>في الجواب</th></tr>
+      <tr class="ph-plan"><td><span class="dot"></span><span class="en">Application (7)</span></td><td>إنت بتكتب الجواب (اللي هتتعامل معاه)</td></tr>
+      <tr class="ph-plan"><td><span class="dot"></span><span class="en">Presentation (6)</span></td><td>تترجمه للغة مفهومة وتشفّره وتضغطه</td></tr>
+      <tr class="ph-plan"><td><span class="dot"></span><span class="en">Session (5)</span></td><td>تفتح المكالمة وتتأكد إن الطرف التاني معاك وتقفلها</td></tr>
+      <tr class="ph-ana"><td><span class="dot"></span><span class="en">Transport (4)</span></td><td>تقسّم الجواب لطرود مرقّمة وتتأكد إنها كلها وصلت (من أول لآخر)</td></tr>
+      <tr class="ph-des"><td><span class="dot"></span><span class="en">Network (3)</span></td><td>تكتب العنوان وتختار أحسن مسار</td></tr>
+      <tr class="ph-imp"><td><span class="dot"></span><span class="en">Data Link (2)</span></td><td>الطرد بينتقل بين كل مكتب بريد والتاني (خطوة بخطوة)</td></tr>
+      <tr class="t-warn"><td><span class="dot"></span><span class="en">Physical (1)</span></td><td>الطريق والشاحنة نفسها (الإشارات والأسلاك)</td></tr>
+    </table>
+  </div>
+
+  <h3 class="sec">🎯 الجملة دي بتوصف أنهي طبقة؟</h3>
+  <p class="muted" style="margin-top:0">سلايد 18 وسلايد 6 من L3 (<span class="en">Summary of Layer Functions</span>).</p>
+  <div data-deck="all7"></div>
+</section>
+
+<!-- =====================================================  4 · UPPER LAYERS -->
+<section class="station" data-icon="🔝" data-title="الطبقات 7 · 6 · 5">
+  <h2>الطبقات العليا <span class="en">7 · 6 · 5</span> 🔝</h2>
+  <p class="lead"><span class="en">Application</span> و <span class="en">Presentation</span> و <span class="en">Session</span>: بتتعامل مع المستخدم والداتا والجلسة. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card" data-tabs="a7">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="a7">7 Application</button>
+      <button type="button" class="ph-ana" data-tab="p6">6 Presentation</button>
+      <button type="button" class="ph-des" data-tab="s5">5 Session</button>
+    </div>
+
+    <div class="pane" data-pane="a7">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">Network Processes to Applications</p>
+      <p>الـ layer اللي بتتعامل مع <b>تطبيقات الشبكة</b>:</p>
+      <ul>
+        <li><b class="en">File transfer, access, and management</b>: تسمح لليوزر يدخل على ملفات في كمبيوتر بعيد، ويجيبها ويديرها.</li>
+        <li><b class="en">Mail services</b>: بتوفّر <span class="en">email forwarding and storage</span>.</li>
+        <li>أمثلة السلايد: <span class="chip en ph-plan">Email</span><span class="chip en ph-plan">Web browsers</span></li>
+      </ul>
+      <div class="note warn">⚠️ <b>فخ:</b> الـ application layer <b>مش الـ application نفسه</b>! هي <b>نافذة (window)</b> للمستخدمين وعمليات التطبيقات عشان توصل لخدمات الشبكة، وبتوفّر الخدمات دي للمستخدم النهائي.</div>
+      <div class="note">📖 الكتاب: بتوفّر <span class="en">user interface</span> للإرسال والاستقبال. بروتوكولاتها: <span class="chip en">HTTP (web browsing)</span><span class="chip en">FTP (file transfer)</span><span class="chip en">SMTP (sending email)</span><span class="chip en">DNS (domain name → IP address)</span></div>
+      <p class="muted">كل application بتستخدم خدمة من الـ <span class="en">Transport layer</span>. الـ PDU: <b class="en">data</b>.</p>
+    </div>
+
+    <div class="pane" data-pane="p6">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">Data Representation</p>
+      <p>وظايفها التلاتة (احفظهم):</p>
+      <ol class="steps ph-ana">
+        <li><b class="en">Translation</b>: الأنظمة بتتبادل character strings وأرقام، وكل كمبيوتر بيستخدم <b>encoding مختلف</b>. الـ presentation layer بتحوّل من <b>صيغة تعتمد على المرسل</b> لـ <b>صيغة مشتركة</b> (<span class="en">common format</span>)، وفي الاستقبال من المشتركة لصيغة <b>تعتمد على المستقبل</b>.</li>
+        <li><b class="en">Encryption</b>: للحفاظ على الخصوصية (<span class="en">privacy</span>): بتحوّل المعلومة لشكل تاني وتبعته على الشبكة.</li>
+        <li><b class="en">Compression</b>: بتقلّل عدد الـ bits اللي هتتبعت، وده مهم جداً في الـ <span class="en">multimedia</span> (text, audio, video).</li>
+      </ol>
+      <div class="note">📖 الكتاب: بتضمن إن الداتا بتتقدّم بصيغة يفهمها الـ application layer: <span class="en">encoding/decoding · compression/decompression · encryption/decryption</span>.</div>
+      <p class="muted">الشكل في السلايد: <span class="en">Encoded, encrypted, and compressed data</span> + <span class="en">H6</span> (الـ header بتاعها).</p>
+    </div>
+
+    <div class="pane" data-pane="s5">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">Interhost Communication</p>
+      <ul>
+        <li>بتـ<b>تأسس (establish)</b> وبتدير (<span class="en">manage / maintain</span>) وبتنهي (<span class="en">terminate</span>) <b>الجلسات (sessions)</b> بين جهازين بيتواصلوا.</li>
+        <li>وكمان بتعمل <b class="en">synchronization</b> للتفاعل بين الأجهزة.</li>
+        <li>مثال السلايد: <span class="chip en ph-des">Client software (used for logging in)</span></li>
+      </ul>
+      <div class="note">📖 الكتاب: مسؤولة عن <span class="en">network coordination</span> بين تطبيقين منفصلين في جلسة.</div>
+    </div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده شغل أنهي طبقة؟</h3>
+  <div data-deck="up"></div>
+</section>
+
+<!-- =====================================================  5 · TRANSPORT + NETWORK -->
+<section class="station" data-icon="🚚" data-title="الطبقات 4 · 3 ⭐">
+  <h2>الطبقات <span class="en">4 · 3</span> ⭐</h2>
+  <p class="lead"><span class="en">Transport</span> و <span class="en">Network</span>: مين بيوصّل الداتا وإزاي بتلاقي طريقها. <span class="muted">(⏱️ ٩ دقايق)</span></p>
+
+  <div class="card" data-tabs="t4">
+    <div class="seg">
+      <button type="button" class="ph-imp" data-tab="t4">4 Transport</button>
+      <button type="button" class="ph-des" data-tab="n3">3 Network</button>
+    </div>
+
+    <div class="pane" data-pane="t4">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">End-to-end Connections · PDU = Segments</p>
+      <ul>
+        <li>بتاخد الداتا من الطبقة اللي فوقها وبتقسّمها لوحدات أصغر اسمها <b class="en">segments</b> (<span class="en">segmentation</span>)، وبتجمّعها تاني عند المستقبل (<span class="en">reassembly</span>).</li>
+        <li>بتضمن نقل <b>موثوق</b> (<span class="en">reliability and flow control</span>).</li>
+        <li>بتضمن إن الرسايل تتبعت <b>بنفس ترتيبها</b> و<b>من غير تكرار</b> للداتا. المسؤولية الأساسية: تنقل الداتا <b>كاملة</b>.</li>
+        <li>اسمها <b class="en">end-to-end layer</b> لأنها بتوفّر اتصال <span class="en">point-to-point</span> بين المصدر والوجهة.</li>
+        <li>وظايفها: <span class="chip en ph-imp">Segmentation and reassembly</span><span class="chip en ph-imp">Flow control</span><span class="chip en ph-imp">Error control</span><span class="chip en ph-imp">Connection control</span></li>
+        <li>البروتوكولين: <b class="en">TCP</b> (<span class="en">Transmission Control Protocol</span>) و <b class="en">UDP</b> (<span class="en">User Datagram Protocol</span>).</li>
+      </ul>
+      <div class="note">📖 <b>الكتاب بيزوّد:</b> <b class="en">Multiplexing / Demultiplexing</b> باستخدام <span class="en">port numbers</span> (تجميع داتا من تطبيقات كتير في header واحد وإرسالها، والعكس عند المستقبل). الـ <span class="en">error correction</span> بتتم بـ <b>إعادة الإرسال (retransmission)</b>. وطريقتين للـ flow control: <span class="en">Stop-and-wait</span> و <span class="en">Sliding Window</span>.</div>
+      <table class="tbl">
+        <tr><th></th><th class="en">TCP</th><th class="en">UDP</th></tr>
+        <tr class="ph-imp"><td>📖 النوع</td><td class="en plain">Connection-oriented</td><td class="en plain">Connectionless</td></tr>
+        <tr class="ph-imp"><td>📖 الموثوقية</td><td>تسليم موثوق + flow control + error control + multiplexing</td><td>أسرع، لكن <b>مفيش ضمان</b> للتسليم</td></tr>
+      </table>
+    </div>
+
+    <div class="pane" data-pane="n3">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">Address and Best Path · PDU = Packets</p>
+      <ul>
+        <li><b class="en">Logical addressing</b> (الـ <span class="en">IP address</span>): بتدير عناوين الأجهزة وبتتابع مكانها على الشبكة.</li>
+        <li><b class="en">Best path determination (routing)</b>: بتختار أحسن مسار من المصدر للوجهة حسب <b>ظروف الشبكة</b> و<b>أولوية الخدمة</b> وعوامل تانية.</li>
+        <li>الـ <b class="en">Routers</b> هي أجهزة الـ network layer، وبتقدّم خدمات الـ routing جوه الـ <span class="en">internetwork</span>.</li>
+        <li>بروتوكولاتها: <b class="en">IP</b> و <b class="en">IPv6</b>.</li>
+      </ul>
+      <div class="note">📖 <b>الكتاب بيزوّد:</b> <b class="en">Gateways</b> (بتوصّل شبكات بـ protocols مختلفة وبتعمل <span class="en">protocol conversion</span>)، و<span class="en">Routing protocols</span>: <span class="en">RIP · OSPF · BGP</span>.</div>
+    </div>
+  </div>
+
+  <h3 class="sec">⚖️ <span class="en">Transport</span> ضد <span class="en">Data Link</span> — أهم فخ في المحاضرة</h3>
+  <div class="card tint ph-imp">
+    <p style="margin:0"><b>Transport</b> = <b class="en">end-to-end</b> (من الجهاز المصدر للجهاز الوجهة كله). &nbsp; <b>Data Link</b> = <b class="en">hop-by-hop</b> (خطوة بخطوة على لينك واحد، بين جهازين متجاورين).</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Transport ولا Network؟</h3>
+  <div data-deck="mid"></div>
+</section>
+
+<!-- =====================================================  6 · DATA LINK + PHYSICAL -->
+<section class="station" data-icon="🔌" data-title="الطبقات 2 · 1 ⭐">
+  <h2>الطبقات <span class="en">2 · 1</span> ⭐</h2>
+  <p class="lead"><span class="en">Data Link</span> و <span class="en">Physical</span>: الإطارات والـ bits والأسلاك. <span class="muted">(⏱️ ٧ دقايق)</span></p>
+
+  <div class="card" data-tabs="d2">
+    <div class="seg">
+      <button type="button" class="ph-plan" data-tab="d2">2 Data Link</button>
+      <button type="button" class="ph-ana" data-tab="p1">1 Physical</button>
+    </div>
+
+    <div class="pane" data-pane="d2">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">Access to Media · PDU = Frames</p>
+      <ul>
+        <li>مسؤولة عن <b>نقل موثوق للـ frames من غير أخطاء</b> (<span class="en">error-free transfer of data frames</span>) <b>عبر لينك فيزيائي خطوة بخطوة (hop by hop)</b>.</li>
+        <li>بتحدد <b>صيغة الداتا</b> على الشبكة (<span class="en">format</span>).</li>
+        <li>بتحوّل الـ <b>raw bit stream</b> من الـ Physical لـ <b>frames</b>.</li>
+        <li>بتضيف <b>header</b> و<b>trailer</b> للـ frame. الـ header فيه <b>عنوان الـ hardware</b> للوجهة والمصدر.</li>
+        <li>بتاخد قرارات بناءً على <b>العناوين الفيزيائية</b> (غالباً <span class="en">MAC addresses</span>).</li>
+      </ul>
+      <div class="note">📖 <b>الكتاب:</b> بتتقسم لـ <b>sub-layerين</b>: <b class="en">LLC</b> (<span class="en">Logical Link Control</span>): بتدير الـ <span class="en">error detection</span> والـ <span class="en">flow control</span> وبتتعامل مع الـ network layer. و <b class="en">MAC</b> (<span class="en">Media Access Control</span>): بتتحكم في <b>الوصول للوسط المشترك</b> وتمنع الـ collisions.</div>
+    </div>
+
+    <div class="pane" data-pane="p1">
+      <p class="en plain" style="font-weight:800;margin:0 0 6px">Binary Transmission · PDU = Bits</p>
+      <ul>
+        <li>الوظيفة الأساسية: <b>تنقل الـ bits</b> الفردية من node لـ node تاني.</li>
+        <li>هي الـ <b>physical media</b> اللي الداتا (إشارات إلكترونية) بتتبعت فيها من الـ source host للـ destination host.</li>
+        <li>بتحدد <b>transmission mode</b>: <span class="chip en ph-ana">Simplex</span><span class="chip en ph-ana">Half-duplex</span><span class="chip en ph-ana">Full-duplex</span> بين الجهازين.</li>
+        <li>أمثلة: <span class="chip en ph-ana">UTP</span><span class="chip en ph-ana">Coaxial (like cable TV)</span><span class="chip en ph-ana">Fiber optic</span></li>
+      </ul>
+      <div class="note">📖 <b>الكتاب بيزوّد:</b> بتحوّل الداتا لإشارات (<span class="en">encoding</span>) وترجّعها (<span class="en">decoding</span>)، وبتستخدم <span class="en">modulation / demodulation</span>. بروتوكولات: <span class="en">DSL (ADSL, VDSL)</span> · <span class="en">IEEE 802.11 PHY (Wi-Fi)</span> · <span class="en">Bluetooth PHY (IEEE 802.15.1)</span>. وأمثلة الـ simplex: <span class="en">Keyboard, Traditional Monitors</span>.</div>
+      <p class="muted">تفاصيل الـ <span class="en">simplex / half / full duplex</span> هتتشرح في Lecture 3.</p>
+    </div>
+  </div>
+
+  <h3 class="sec">🧭 <span class="en">End-to-end</span> ضد <span class="en">hop-by-hop</span> بالرسم <small>(توضيح مني)</small></h3>
+  <div class="card">
+    <svg class="dg" viewBox="0 0 540 190" role="img" aria-label="end to end vs hop by hop">
+      <path class="dash" d="M70 60 Q270 -10 470 60"/>
+      <text x="270" y="22">Transport: end-to-end</text>
+      <line class="ln" x1="95" y1="100" x2="175" y2="100"/><line class="ln" x1="235" y1="100" x2="305" y2="100"/><line class="ln" x1="365" y1="100" x2="445" y2="100"/>
+      <rect class="nd" x="30" y="76" width="64" height="48" rx="10"/><text x="62" y="105">Host A</text>
+      <rect class="hl" x="176" y="76" width="58" height="48" rx="10"/><text x="205" y="105">Router</text>
+      <rect class="hl" x="306" y="76" width="58" height="48" rx="10"/><text x="335" y="105">Router</text>
+      <rect class="nd" x="446" y="76" width="64" height="48" rx="10"/><text x="478" y="105">Host B</text>
+      <text x="135" y="148" class="sm">hop 1</text><text x="270" y="148" class="sm">hop 2</text><text x="405" y="148" class="sm">hop 3</text>
+      <text x="270" y="176">Data Link: hop-by-hop (frame جديد على كل لينك)</text>
+    </svg>
+    <p class="hint" style="margin:0;text-align:center">الـ <span class="en">Transport</span> بتهتم بالمصدر والوجهة النهائيين بس، والـ <span class="en">Data Link</span> بتهتم بكل لينك لوحده.</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Data Link ولا Physical؟</h3>
+  <div data-deck="low"></div>
+</section>
+
+<!-- =====================================================  7 · SERVICE / PROTOCOL / INTERFACE -->
+<section class="station" data-icon="🤝" data-title="Service · Protocol · Interface">
+  <h2>الـ <span class="en">Service</span> و <span class="en">Protocol</span> و <span class="en">Interface</span> 🤝</h2>
+  <p class="lead">تلات كلمات بتتلخبط. افهم الفرق ومين بيتكلم مع مين. <span class="muted">(⏱️ ٥ دقايق)</span></p>
+
+  <div class="card">
+    <h3>3 عناصر لازم تتوحّد في كل layer <small class="muted">(سلايد 11–12)</small></h3>
+    <div class="grid g3">
+      <div class="flip ph-plan"><div class="f"><span class="emo">📜</span><b class="en">Protocol specification</b><small>اضغط</small></div><div class="b">كيانين (<span class="en">entities</span>) في <b>نفس الـ layer</b> في نظامين مختلفين بيتعاونوا بواسطة <b>protocol</b>. لأن النظامين <b>open</b> ومختلفين، لازم الـ protocol يتحدد بدقة: <b>format</b> الـ PDUs، و<b>semantics</b> كل الحقول، و<b>التسلسل المسموح</b> للـ PDUs.</div></div>
+      <div class="flip ph-ana"><div class="f"><span class="emo">🛎️</span><b class="en">Service definition</b><small>اضغط</small></div><div class="b">إيه <b>الخدمات</b> اللي كل layer بتقدّمها للـ layer اللي فوقها؟ وصف وظيفي بيحدد <b>إيه</b> الخدمة <b>مش إزاي</b> بتتنفذ.</div></div>
+      <div class="flip ph-des"><div class="f"><span class="emo">📍</span><b class="en">Addressing</b><small>اضغط</small></div><div class="b">كل layer بتقدّم خدمات لكيانات الـ layer الأعلى، والكيانات دي بتتحدد بـ <b class="en">service access point (SAP)</b>. مثال: الـ <b class="en">NSAP</b> بيحدد <span class="en">transport entity</span> بتستخدم خدمة الـ network.</div></div>
+    </div>
+  </div>
+
+  <h3 class="sec">🖼️ الفرق بالرسم <small>(زي سلايد 13 و 14)</small></h3>
+  <div class="card">
+    <svg class="dg" viewBox="0 0 540 240" role="img" aria-label="layers protocols and interfaces">
+      <text x="130" y="18">Host 1</text><text x="410" y="18">Host 2</text>
+      <rect class="nd" x="90" y="30" width="80" height="34" rx="8"/><text x="130" y="52">Layer k+1</text>
+      <rect class="nd" x="370" y="30" width="80" height="34" rx="8"/><text x="410" y="52">Layer k+1</text>
+      <rect class="hl" x="90" y="100" width="80" height="34" rx="8"/><text x="130" y="122">Layer k</text>
+      <rect class="hl" x="370" y="100" width="80" height="34" rx="8"/><text x="410" y="122">Layer k</text>
+      <rect class="nd" x="90" y="170" width="80" height="34" rx="8"/><text x="130" y="192">Layer k-1</text>
+      <rect class="nd" x="370" y="170" width="80" height="34" rx="8"/><text x="410" y="192">Layer k-1</text>
+      <line class="dash" x1="172" y1="117" x2="368" y2="117"/><text x="270" y="108">Protocol (virtual)</text>
+      <line class="ln" x1="130" y1="66" x2="130" y2="98"/><line class="ln" x1="130" y1="136" x2="130" y2="168"/>
+      <line class="ln" x1="410" y1="66" x2="410" y2="98"/><line class="ln" x1="410" y1="136" x2="410" y2="168"/>
+      <text x="38" y="86" class="sm">Service</text><text x="38" y="98" class="sm">+ Interface</text>
+      <line class="ln" x1="130" y1="206" x2="410" y2="206" style="stroke-width:4"/><text x="270" y="230">Physical medium (الاتصال الحقيقي)</text>
+    </svg>
+    <ul style="margin-bottom:0">
+      <li><b>Protocol</b> (خط متقطع): الكلام <b>الأفقي</b> بين <b>نفس الـ layer</b> في الجهازين. <b>اتفاق</b> بين الأطراف على إزاي الاتصال هيمشي.</li>
+      <li><b>Service</b>: اللي <b>layer k</b> بتقدّمه للـ layer <b>k+1</b> (رأسي).</li>
+      <li><b>Interface</b>: بين <b>كل layer ولاصقتها</b> (رأسي). بيحدد <b>أنهي primitive operations وخدمات</b> الـ layer التحتانية بتقدمها للفوقانية.</li>
+    </ul>
+  </div>
+
+  <div class="card tint ph-imp">
+    <h4>↔️ الاتصال الافتراضي ضد الفعلي</h4>
+    <p style="margin:0">في الحقيقة <b>مفيش داتا بتتنقل مباشرة</b> من layer n في جهاز لـ layer n في جهاز تاني. كل layer <b>بتمرر الداتا ومعلومات التحكم للـ layer اللي تحتها</b> لحد ما توصل لأقل layer، وتحتها الـ <b>physical medium</b> اللي فيها الاتصال الفعلي. الخط المتقطع = <b>virtual communication</b>، والخط المتصل = <b>physical communication</b>.</p>
+  </div>
+
+  <div class="note">📌 مجموعة الـ <b>layers والـ protocols</b> بتتسمى <b class="en">network architecture</b>. ومواصفات الـ architecture لازم تحتوي معلومات كافية تخلّي المنفّذ يكتب البرنامج أو يبني الـ hardware لكل layer بحيث يطيع الـ protocol الصح.</div>
+  <div class="note ok">🔑 <b>تعريف مهم:</b> <span class="en">"a protocol is an agreement between the communicating parties on how communication is to proceed."</span></div>
+
+  <h3 class="sec">🎯 تدريب: Service ولا Protocol ولا Interface؟</h3>
+  <div data-deck="svc"></div>
+</section>
+
+<!-- =====================================================  8 · OSI vs TCP/IP + PDUs -->
+<section class="station" data-icon="🔁" data-title="OSI ضد TCP/IP + PDUs ⭐">
+  <h2><span class="en">OSI vs TCP/IP</span> + الـ <span class="en">PDUs</span> ⭐</h2>
+  <p class="lead">أولاً: الداتا بتتغير شكلها وهي نازلة في الطبقات. ثانياً: مقارنة الموديلين. <span class="muted">(⏱️ ٧ دقايق)</span></p>
+
+  <h3 class="sec">📦 الداتا وهي نازلة في الطبقات <small>(سلايد 17)</small></h3>
+  <p>دوس «الخطوة التالية» وشوف الـ <span class="en">PDU</span> في كل مرحلة (<span class="en">PDU = Protocol Data Unit</span>: المصطلح اللي بنوصف بيه الداتا وهي بتنتقل من layer للتانية).</p>
+  <div class="card" id="pduCard">
+    <ol class="stg" id="stg"></ol>
+    <div class="pdu" id="pduVis"></div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="stepNext">الخطوة التالية ←</button>
+      <button type="button" class="btn ghost" id="stepReset">🔁 من الأول</button>
+    </div>
+    <div class="note" id="stepNote">دوس «الخطوة التالية» عشان تبدأ.</div>
+  </div>
+  <div class="note ok">🔑 <b>احفظ:</b> <span class="en">Layer 4 = Segment · Layer 3 = Packet · Layer 2 = Frame (header + trailer) · Layer 1 = Bits</span> · وفوق (7 · 6 · 5) = <span class="en">data</span>.</div>
+  <p class="hint">تفاصيل الـ <span class="en">encapsulation</span> و<span class="en">decapsulation</span> كاملة في Lecture 3.</p>
+
+  <h3 class="sec">🎯 تدريب: ده الـ PDU بتاع أنهي طبقة؟</h3>
+  <div data-deck="pdu"></div>
+
+  <h3 class="sec">🔁 <span class="en">OSI</span> ضد <span class="en">TCP/IP</span> <small>(اضغط على طبقة TCP/IP)</small></h3>
+  <div class="card">
+    <div class="seg" id="mapSeg" style="margin-bottom:8px">
+      <button type="button" data-m="4" class="on">4 طبقات (الكتاب + رسمة L2)</button>
+      <button type="button" data-m="5">5 طبقات (سلايد L1)</button>
+    </div>
+    <div class="mapw" id="mapw"></div>
+    <div class="note" id="mapNote">اضغط على طبقة من التانية جنب وشوف بتقابل أنهي طبقات في الـ OSI.</div>
+  </div>
+  <div class="note warn">⚠️ <b>عدد طبقات TCP/IP:</b> الكتاب (Chapter 4) ورسمة سلايد 9 في L2 بيرسموها <b>4 طبقات</b>. أما سلايد L1 فقال <b>5 طبقات</b> (فصل الـ Physical). لو السؤال «كام طبقة؟» الأرجح <b>4</b>. وكمان التسمية: الكتاب وسلايد 8 بيسمّوا الأخيرة <b class="en">Network Access</b>، وسلايد 9 بيسمّيها <b class="en">Network Interface</b>.</div>
+  <div class="note">📖 <b>من الكتاب:</b> الـ <span class="en">TCP/IP</span> أربع طبقات: <span class="en">Application · Transport · Internet · Network Access</span>. مفيش <span class="en">session</span> كطبقة منفصلة، وبدل كلمة «session» بيستخدم <b class="en">socket</b> و<b class="en">port</b> لوصف المسار اللي التطبيقات بتتواصل منه. وبروتوكولاتها: الـ application layer فيها <span class="en">FTP, Telnet, SMTP, HTTP, DNS, RIP, SNMP, DHCP</span>، والـ transport فيها <span class="en">TCP / UDP</span>، والـ internet layer فيها <span class="en">IP</span>، والـ network access فيها <span class="en">Ethernet</span> (في الـ LAN) و<span class="en">PPP / Frame Relay</span> (في الـ WAN).<br>⚠️ جملة في الكتاب بتقول إن «أول أربع طبقات» تتقابل مع أول أربع طبقات من الـ OSI وإن الأربعة دول متمثلين في طبقة الـ application: الجملة دي مش متسقة مع الرسمة، <b>اعتمد على الرسمة</b> (الـ application = 7 + 6 + 5).</div>
+
+  <h3 class="sec">🎯 تدريب: OSI ضد TCP/IP</h3>
+  <div data-deck="tcpip"></div>
+</section>
+
+<!-- =====================================================  9 · TRAPS -->
+<section class="station" data-icon="⚠️" data-title="فخاخ الامتحان">
+  <h2>فخاخ الامتحان ⚠️</h2>
+  <p class="lead">الجمل دي هي اللي بتتعمل منها <span class="en">True/False</span>. قرر: صح ولا غلط؟ (⏱️ ٤ دقايق)</p>
+  <div data-deck="traps"></div>
+</section>
+
+<!-- =====================================================  10 · FLASHCARDS -->
+<section class="station" data-icon="🧠" data-title="Flashcards">
+  <h2>Flashcards 🧠</h2>
+  <p class="lead">فكّر في الإجابة الأول، وبعدين اقلب الكارت. علّم اللي عرفته ✅ واللي لسه 🔁 — وراجع الأخير بس. (⏱️ ٦ دقايق)</p>
+  <div data-flash="main"></div>
+  <p class="hint" style="text-align:center;margin-top:10px">⌨️ مسطرة (Space) تقلب · الأسهم تنقل بين الكروت</p>
+</section>
+
+<!-- =====================================================  11 · QUIZ -->
+<section class="station" data-icon="📝" data-title="الكويز النهائي">
+  <h2>الكويز النهائي 📝</h2>
+  <p class="lead">10 أسئلة <span class="en">MCQ</span> بتصحيح فوري، وبعدها 3 أسئلة <span class="en">Essay</span> تكتب إجابتك وتقارنها بالنموذجية. (⏱️ ٨ دقايق)</p>
+
+  <h3 class="sec">① MCQ</h3>
+  <div data-deck="mcq"></div>
+
+  <h3 class="sec">② Essay</h3>
+  <div class="card essay" data-essay="e1">
+    <h3>سؤال 1</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Describe the seven layers of the OSI reference model, stating the main function and the PDU of each layer.</p>
+    <textarea placeholder="اكتب إجابتك هنا (بتتحفظ في المتصفح بس)…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e2">
+    <h3>سؤال 2</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Explain the three key elements of standardization required at each layer, and distinguish between a service and a protocol.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e3">
+    <h3>سؤال 3</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">What are the advantages of the OSI layered model? Then compare the transport layer and the data link layer.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+</section>
+
+<!-- =====================================================  12 · SUMMARY -->
+<section class="station summary" data-icon="⚡" data-title="ملخص المراجعة">
+  <h2>ملخص المراجعة ⚡ <span class="en plain" style="font-size:18px">Lecture 2</span></h2>
+  <p class="lead noprint">ده اللي تراجعه الليلة اللي قبل الامتحان. <button type="button" class="btn" onclick="window.print()">🖨️ اطبع / احفظ PDF</button></p>
+
+  <h3 class="sec">🥞 الـ 7 طبقات في جدول واحد</h3>
+  <table class="tbl">
+    <tr><th>الطبقة</th><th>الجملة المختصرة</th><th>الوظيفة</th><th>PDU</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">7 Application</span></td><td class="en plain">Network Processes to Applications</td><td>نافذة المستخدم لخدمات الشبكة: file transfer, mail. (مش الـ application نفسه)</td><td class="en">data</td></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">6 Presentation</span></td><td class="en plain">Data Representation</td><td><span class="en">Translation · Encryption · Compression</span></td><td class="en">data</td></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">5 Session</span></td><td class="en plain">Interhost Communication</td><td><span class="en">Establish · manage · terminate</span> الجلسات + synchronize</td><td class="en">data</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">4 Transport</span></td><td class="en plain">End-to-end Connections</td><td><span class="en">Segmentation/reassembly · flow · error · connection control</span> · ترتيب ومن غير تكرار · TCP / UDP</td><td class="en">segment</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">3 Network</span></td><td class="en plain">Address and Best Path</td><td><span class="en">Logical addressing (IP)</span> + <span class="en">best path (routing)</span> · Routers · IP / IPv6</td><td class="en">packet</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">2 Data Link</span></td><td class="en plain">Access to Media</td><td>frames من غير أخطاء <span class="en">hop by hop</span> · <span class="en">header + trailer</span> · عناوين فيزيائية (MAC)</td><td class="en">frame</td></tr>
+    <tr class="t-warn"><td><span class="dot"></span><span class="en">1 Physical</span></td><td class="en plain">Binary Transmission</td><td>نقل الـ <span class="en">bits</span> · transmission mode (simplex / half / full) · UTP, coax, fiber</td><td class="en">bits</td></tr>
+  </table>
+
+  <h3 class="sec">⚖️ مقارنات سريعة</h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">Transport (4)</th><th class="en">Data Link (2)</th></tr>
+    <tr><td>النطاق</td><td class="en plain">End-to-end</td><td class="en plain">Hop-by-hop</td></tr>
+    <tr><td>PDU</td><td class="en">Segment</td><td class="en">Frame (header + trailer)</td></tr>
+    <tr><td>العنوان</td><td>رقم الـ port (📖)</td><td>عنوان فيزيائي <span class="en">MAC</span></td></tr>
+  </table>
+  <table class="tbl">
+    <tr><th></th><th class="en">OSI</th><th class="en">TCP/IP (الكتاب)</th></tr>
+    <tr><td>الطبقات</td><td>7</td><td>4: <span class="en">Application · Transport · Internet · Network Access</span></td></tr>
+    <tr><td>7 · 6 · 5</td><td class="en plain">Application · Presentation · Session</td><td class="en plain">Application</td></tr>
+    <tr><td>4</td><td class="en plain">Transport</td><td class="en plain">Transport</td></tr>
+    <tr><td>3</td><td class="en plain">Network</td><td class="en plain">Internet</td></tr>
+    <tr><td>2 · 1</td><td class="en plain">Data Link · Physical</td><td class="en plain">Network Access (Network Interface)</td></tr>
+  </table>
+
+  <h3 class="sec">🤝 Service · Protocol · Interface</h3>
+  <table class="tbl">
+    <tr><th>المصطلح</th><th>المعنى</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Protocol</span></td><td>اتفاق بين الأطراف على إزاي الاتصال هيمشي (أفقي، بين نفس الـ layer: format الـ PDUs + semantics + التسلسل المسموح)</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Service</span></td><td>اللي layer بتقدّمه للي فوقها: <b>إيه</b> مش <b>إزاي</b> (رأسي)</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Interface</span></td><td>بين كل layer ولاصقتها: بيحدد الـ primitive operations والخدمات المتاحة</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">SAP</span></td><td>بيحدد كيانات الـ layer الأعلى اللي بتستخدم الخدمة (<span class="en">NSAP</span> للـ transport entity)</td></tr>
+  </table>
+
+  <h3 class="sec">📖 الكتاب ضد السلايدات</h3>
+  <table class="tbl">
+    <tr><th>الموضوع</th><th>السلايدات</th><th>الكتاب 📖</th></tr>
+    <tr><td>OSI</td><td>ISO 1984، 7 طبقات، فوايد 5 نقط</td><td>5 أسباب + 3 مبادئ لاختيار الطبقات + layer = virtual machine</td></tr>
+    <tr><td>Application</td><td>file transfer, mail services</td><td>+ HTTP, FTP, SMTP, DNS · user interface</td></tr>
+    <tr><td>Transport</td><td>segmentation, flow/error/connection control, TCP/UDP</td><td>+ multiplexing بالـ ports · TCP connection-oriented / UDP connectionless · Stop-and-wait و Sliding window</td></tr>
+    <tr><td>Network</td><td>logical address, best path, routers, IP/IPv6</td><td>+ Gateways · RIP, OSPF, BGP</td></tr>
+    <tr><td>Data Link</td><td>frames, header/trailer, MAC</td><td>+ LLC و MAC sublayers</td></tr>
+    <tr><td>Physical</td><td>bits, simplex/half/full, UTP/coax/fiber</td><td>+ encoding/decoding, modulation · DSL, Wi-Fi PHY, Bluetooth PHY · أمثلة simplex</td></tr>
+    <tr><td>TCP/IP</td><td>L2 رسمة 4 طبقات · L1 قال 5</td><td>4 طبقات (Network Access) · جملة المقارنة غير متسقة مع الرسمة</td></tr>
+  </table>
+
+  <h3 class="sec">⚠️ الفخاخ</h3>
+  <div class="note bad">
+    ❌ Application layer = التطبيق نفسه (هي نافذة للخدمات) &nbsp;·&nbsp; ❌ Transport = hop-by-hop (هي end-to-end، والـ Data Link هي hop-by-hop) &nbsp;·&nbsp; ❌ PDU الـ Network = frame (هو packet) &nbsp;·&nbsp; ❌ الـ Session بتعمل encryption (ده Presentation) &nbsp;·&nbsp; ❌ الـ Service بتحدد إزاي بتتنفذ الخدمة (بتحدد إيه مش إزاي) &nbsp;·&nbsp; ❌ الداتا بتتنقل مباشرة من layer n لـ layer n (الاتصال virtual، والفعلي عبر الـ physical medium) &nbsp;·&nbsp; ❌ TCP/IP 7 طبقات (4 في الكتاب)
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+window.DATA = {
+  decks: {
+    /* ---------- OSI intro T/F ---------- */
+    intro: {
+      cols: 2,
+      opts: [{ t: 'صح ✔ (True)', cls: 't-ok' }, { t: 'غلط ✘ (False)', cls: 't-bad' }],
+      cards: [
+        { q: 'The OSI reference model was developed by the International Organisation for Standardisation (ISO) in 1984.', a: 0, why: 'صح — سلايد 2.' },
+        { q: 'The OSI model divides the problem of moving information between computers into five smaller problems.', a: 1, why: 'السلايد بيقول <b>SEVEN</b> (سبعة) مش خمسة.' },
+        { q: 'The OSI reference model is a descriptive network scheme.', a: 0, why: 'صح.' },
+        { q: 'Layering allows different types of hardware and software to communicate with each other.', a: 0, why: 'صح — من فوايد التقسيم لطبقات.' },
+        { q: 'Layering means that a change in one layer affects all the other layers.', a: 1, why: 'العكس: التقسيم <b>بيمنع</b> تغيير layer من التأثير على الباقي.' },
+        { q: 'The OSI model makes troubleshooting easier because the administrator can look in the layer that is causing the issue.', a: 0, why: 'صح — سلايد 6.' },
+        { q: 'The OSI model ensures greater compatibility and interoperability between various types of network technologies.', a: 0, why: 'صح — سلايد 2.' },
+        { q: 'The process of breaking up networking functions into layers increases complexity and makes learning harder.', a: 1, why: 'العكس: بيقلّل التعقيد ويسهّل الفهم.' }
+      ]
+    },
+
+    /* ---------- one-liners -> layer ---------- */
+    all7: {
+      cols: 3,
+      opts: [{ t: '7 Application', cls: 'ph-plan' }, { t: '6 Presentation', cls: 'ph-plan' }, { t: '5 Session', cls: 'ph-plan' }, { t: '4 Transport', cls: 'ph-ana' }, { t: '3 Network', cls: 'ph-des' }, { t: '2 Data Link', cls: 'ph-imp' }, { t: '1 Physical', cls: 't-warn' }],
+      cards: [
+        { q: 'Network Processes to Applications', a: 0, why: 'الجملة المختصرة بتاعة <b>Application</b> (سلايد 18).' },
+        { q: 'Data Representation', a: 1, why: 'دي <b>Presentation</b>.' },
+        { q: 'Interhost Communication', a: 2, why: 'دي <b>Session</b>.' },
+        { q: 'End-to-end Connections', a: 3, why: 'دي <b>Transport</b>.' },
+        { q: 'Address and Best Path', a: 4, why: 'دي <b>Network</b>.' },
+        { q: 'Access to Media', a: 5, why: 'دي <b>Data Link</b>.' },
+        { q: 'Binary Transmission', a: 6, why: 'دي <b>Physical</b>.' },
+        { q: 'To allow access to network resources', a: 0, why: 'ده ملخص وظيفة <b>Application</b> (L3 سلايد 6).' },
+        { q: 'To translate, encrypt, and compress data', a: 1, why: 'ده ملخص وظيفة <b>Presentation</b>.' },
+        { q: 'To establish, manage, and terminate sessions', a: 2, why: 'ده ملخص وظيفة <b>Session</b>.' },
+        { q: 'To provide end-to-end message delivery and error recovery', a: 3, why: 'ده ملخص وظيفة <b>Transport</b>.' },
+        { q: 'To move packets from source to destination; to provide internetworking', a: 4, why: 'ده ملخص وظيفة <b>Network</b>.' },
+        { q: 'To organize bits into frames; to provide node-to-node delivery', a: 5, why: 'ده ملخص وظيفة <b>Data Link</b>.' },
+        { q: 'To transmit bits; to provide mechanical and electrical specifications', a: 6, why: 'ده ملخص وظيفة <b>Physical</b>.' }
+      ]
+    },
+
+    /* ---------- upper layers ---------- */
+    up: {
+      cols: 3,
+      opts: [{ t: 'Application', cls: 'ph-plan' }, { t: 'Presentation', cls: 'ph-ana' }, { t: 'Session', cls: 'ph-des' }],
+      cards: [
+        { q: 'Email forwarding and storage (mail services)', a: 0, why: '<b>Mail services</b> من وظايف الـ Application.' },
+        { q: 'Allows a user to access, retrieve and manage files in a remote computer', a: 0, why: '<b>File transfer, access, and management</b> = Application.' },
+        { q: 'Serves as a window for users and application processes to access network services', a: 0, why: 'ده وصف الـ <b>Application layer</b> (مش الـ application نفسه).' },
+        { q: 'Converts data from a sender-dependent format into a common format', a: 1, why: 'ده الـ <b>Translation</b> بتاع الـ Presentation.' },
+        { q: 'Encryption to maintain privacy', a: 1, why: '<b>Encryption</b> من وظايف الـ Presentation.' },
+        { q: 'Reduces the number of bits to be transmitted (important for multimedia)', a: 1, why: 'ده الـ <b>Compression</b> = Presentation.' },
+        { q: 'Establishes, maintains and synchronizes the interaction between communicating devices', a: 2, why: 'ده الـ <b>Session</b>.' },
+        { q: 'Example in the slides: client software used for logging in', a: 2, why: 'مثال السلايد على الـ <b>Session</b>.' },
+        { q: 'Handles the interoperability between different encoding methods', a: 1, why: 'الـ <b>Presentation</b> بتتعامل مع اختلاف الـ encoding.' },
+        { q: 'Examples in the slide figure: Email and Web browsers', a: 0, why: 'أمثلة <b>Application</b>.' },
+        { q: '📖 HTTP, FTP, SMTP and DNS protocols exist at this layer', a: 0, why: 'الكتاب: بروتوكولات الـ <b>Application</b>.' },
+        { q: '📖 Encoding/decoding, compression/decompression and encryption/decryption', a: 1, why: 'الكتاب: وظايف الـ <b>Presentation</b>.' },
+        { q: 'An application layer is not an application, but it performs the application layer functions.', a: 0, why: 'جملة سلايد 21 عن الـ <b>Application layer</b>.' },
+        { q: '📖 Network coordination between two separate applications in a session', a: 2, why: 'الكتاب: وصف الـ <b>Session</b>.' }
+      ]
+    },
+
+    /* ---------- transport vs network ---------- */
+    mid: {
+      cols: 2,
+      opts: [{ t: 'Transport (4)', cls: 'ph-ana' }, { t: 'Network (3)', cls: 'ph-des' }],
+      cards: [
+        { q: 'Segmentation and reassembly', a: 0, why: 'الـ <b>Transport</b> بتقسّم لـ segments وبتجمّعها.' },
+        { q: 'Logical addressing (IP address)', a: 1, why: 'الـ <b>Network</b>.' },
+        { q: 'Best path determination (routing)', a: 1, why: 'الـ <b>Network</b>.' },
+        { q: 'End-to-end layer: provides a point-to-point connection between source and destination for reliable delivery', a: 0, why: 'الـ <b>Transport</b> هي الـ end-to-end layer.' },
+        { q: 'Its PDU is a packet', a: 1, why: 'الـ packet = <b>Network</b>.' },
+        { q: 'Its PDU is a segment', a: 0, why: 'الـ segment = <b>Transport</b>.' },
+        { q: 'TCP and UDP', a: 0, why: 'بروتوكولات الـ <b>Transport</b>.' },
+        { q: 'IP and IPv6', a: 1, why: 'بروتوكولات الـ <b>Network</b>.' },
+        { q: 'Routers are the devices specified in this layer', a: 1, why: 'الـ routers = <b>Network layer devices</b>.' },
+        { q: 'Ensures messages are transmitted in the order in which they are sent with no duplication of data', a: 0, why: 'ده الـ <b>Transport</b>.' },
+        { q: 'Flow control, error control and connection control', a: 0, why: 'من وظايف الـ <b>Transport</b> في السلايد.' },
+        { q: 'Determines the best path based on network conditions and the priority of service', a: 1, why: 'الـ <b>Network</b>.' },
+        { q: '📖 Multiplexing and demultiplexing using port numbers', a: 0, why: 'الكتاب: الـ <b>Transport</b>.' },
+        { q: '📖 Routing protocols such as RIP, OSPF and BGP', a: 1, why: 'الكتاب: الـ <b>Network</b>.' },
+        { q: '📖 Gateways perform protocol conversion', a: 1, why: 'الكتاب: الـ <b>Gateways</b> من أجهزة الـ <b>Network</b>.' }
+      ]
+    },
+
+    /* ---------- data link vs physical ---------- */
+    low: {
+      cols: 2,
+      opts: [{ t: 'Data Link (2)', cls: 'ph-imp' }, { t: 'Physical (1)', cls: 't-warn' }],
+      cards: [
+        { q: 'Transmits the individual bits from one node to another node', a: 1, why: 'الوظيفة الأساسية للـ <b>Physical</b>.' },
+        { q: 'Organizes bits into frames', a: 0, why: '<b>Data Link</b>.' },
+        { q: 'Adds a header and a trailer to the data', a: 0, why: 'الـ <b>Data Link</b> بتضيف header وtrailer لتكوين الـ frame.' },
+        { q: 'The header contains the hardware destination and source address', a: 0, why: '<b>Data Link</b>.' },
+        { q: 'Defines the transmission mode: simplex, half-duplex or full-duplex', a: 1, why: '<b>Physical</b>.' },
+        { q: 'Makes decisions based on physical addresses (usually MAC addresses)', a: 0, why: '<b>Data Link</b>.' },
+        { q: 'Its PDU is frames', a: 0, why: 'الـ frames = <b>Data Link</b>.' },
+        { q: 'Its PDU is bits', a: 1, why: 'الـ bits = <b>Physical</b>.' },
+        { q: 'UTP, coaxial cable and fiber optic are examples of this layer', a: 1, why: 'أمثلة الـ <b>Physical</b>.' },
+        { q: 'Reliable transit of data across a physical link, hop by hop', a: 0, why: '<b>Data Link</b>.' },
+        { q: 'Error-free transfer of data frames', a: 0, why: '<b>Data Link</b>.' },
+        { q: 'Provides mechanical and electrical specifications', a: 1, why: '<b>Physical</b>.' },
+        { q: '📖 It is divided into two sub-layers: LLC and MAC', a: 0, why: 'الكتاب: <b>Data Link</b>.' },
+        { q: '📖 Uses modulation and demodulation to prepare data for transmission', a: 1, why: 'الكتاب: <b>Physical</b>.' }
+      ]
+    },
+
+    /* ---------- service / protocol / interface ---------- */
+    svc: {
+      cols: 2,
+      opts: [{ t: 'Protocol', cls: 'ph-plan' }, { t: 'Service', cls: 'ph-ana' }, { t: 'Interface', cls: 'ph-des' }, { t: 'SAP', cls: 'ph-imp' }],
+      cards: [
+        { q: 'An agreement between the communicating parties on how communication is to proceed', a: 0, why: 'ده تعريف الـ <b>Protocol</b>.' },
+        { q: 'Defines what a layer provides to the next higher layer, but not how it is provided', a: 1, why: 'ده الـ <b>Service definition</b>.' },
+        { q: 'Defines which primitive operations and services the lower layer makes available to the upper one', a: 2, why: 'ده الـ <b>Interface</b>.' },
+        { q: 'The way entities at the next higher layer are referenced', a: 3, why: 'ده الـ <b>service access point (SAP)</b>.' },
+        { q: 'Two entities at the same layer in different systems cooperate by means of it', a: 0, why: 'ده الـ <b>Protocol</b> (أفقي بين نفس الـ layer).' },
+        { q: 'Includes the format of the PDUs, the semantics of all fields, and the allowable sequence of PDUs', a: 0, why: 'ده الـ <b>Protocol specification</b>.' },
+        { q: 'Typically equivalent to a functional description', a: 1, why: 'ده الـ <b>Service definition</b>.' },
+        { q: 'A network service access point (NSAP) indicates a transport entity that is a user of the network service', a: 3, why: 'ده الـ <b>NSAP</b> وهو نوع من الـ <b>SAP</b>.' },
+        { q: 'Exists between each pair of adjacent layers', a: 2, why: 'الـ <b>Interface</b> بين كل layer ولاصقتها.' }
+      ]
+    },
+
+    /* ---------- PDUs ---------- */
+    pdu: {
+      cols: 3,
+      opts: [{ t: 'data', cls: 'ph-plan' }, { t: 'Segment', cls: 'ph-ana' }, { t: 'Packet', cls: 'ph-des' }, { t: 'Frame', cls: 'ph-imp' }, { t: 'Bits', cls: 't-warn' }],
+      cards: [
+        { q: 'The PDU of layer 4 (Transport)', a: 1, why: 'Transport → <b>Segment</b>.' },
+        { q: 'The PDU of layer 3 (Network)', a: 2, why: 'Network → <b>Packet</b>.' },
+        { q: 'The PDU of layer 2 (Data Link)', a: 3, why: 'Data Link → <b>Frame</b>.' },
+        { q: 'The PDU of layer 1 (Physical)', a: 4, why: 'Physical → <b>Bits</b>.' },
+        { q: 'User data at layers 7, 6 and 5', a: 0, why: 'في الطبقات العليا بنسمّيها <b>data</b> (سلايد 17).' },
+        { q: 'H4 + data', a: 1, why: 'الـ header بتاع الـ Transport (H4) على الداتا = <b>Segment</b>.' },
+        { q: 'H3 + L4 data', a: 2, why: 'الـ header بتاع الـ Network (H3) = <b>Packet</b>.' },
+        { q: 'H2 + L3 data + T2', a: 3, why: 'header وtrailer بتاعين الـ Data Link = <b>Frame</b>.' },
+        { q: 'The data link layer adds a trailer to produce this unit', a: 3, why: 'الـ trailer بيتضاف في الـ Data Link فبتتكوّن <b>Frame</b> (L3 سلايد 3).' },
+        { q: 'A series of 0s and 1s sent over the medium', a: 4, why: '<b>Bits</b> = Physical.' }
+      ]
+    },
+
+    /* ---------- OSI vs TCP/IP ---------- */
+    tcpip: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'In the book’s TCP/IP model, which single layer covers the OSI layers 7, 6 and 5?', opts: ['Application', 'Transport', 'Internet', 'Network Access'], a: 0, why: 'حسب الرسمة (سلايد 9 والكتاب): <b>Application</b> = Application + Presentation + Session.' },
+        { q: 'The OSI Network layer corresponds to which TCP/IP layer?', opts: ['Internet', 'Transport', 'Application', 'Network Access'], a: 0, why: 'الـ <b>Internet</b> layer (اسمها Network في رسمة سلايد 9).' },
+        { q: 'The OSI Data Link and Physical layers correspond to which TCP/IP layer?', opts: ['Network Access (Network Interface)', 'Internet', 'Transport', 'Application'], a: 0, why: '<b>Network Access</b> (أو Network Interface في سلايد 9).' },
+        { q: 'How many layers does the TCP/IP model have in the book?', opts: ['4', '5', '6', '7'], a: 0, why: 'الكتاب: <b>4</b> (والسلايد L1 قال 5).' },
+        { q: 'How many layers does the OSI model have?', opts: ['7', '5', '4', '6'], a: 0, why: '<b>7</b>.' },
+        { q: 'Instead of the term “session”, TCP/IP uses the terms:', opts: ['socket and port', 'frame and packet', 'segment and datagram', 'header and trailer'], a: 0, why: '📖 الكتاب: <b>socket</b> و <b>port</b>.' },
+        { q: 'Which OSI layer corresponds directly to the TCP/IP Transport layer?', opts: ['Transport', 'Session', 'Network', 'Data Link'], a: 0, why: 'الـ <b>Transport</b> بتقابل Transport (السهم في رسمة سلايد 9).' }
+      ]
+    },
+
+    /* ---------- True / False traps ---------- */
+    traps: {
+      cols: 2,
+      opts: [{ t: 'صح ✔ (True)', cls: 't-ok' }, { t: 'غلط ✘ (False)', cls: 't-bad' }],
+      cards: [
+        { q: 'The seven layers of OSI are Application, Presentation, Session, Transport, Network, Data link and Physical.', a: 0, why: 'صح — سلايد 7.' },
+        { q: 'The Physical layer is layer 7 and the Application layer is layer 1.', a: 1, why: 'العكس: <b>Application = 7</b> و <b>Physical = 1</b>.' },
+        { q: 'The Transport layer provides end-to-end delivery, while the Data Link layer provides hop-by-hop delivery.', a: 0, why: 'صح — أهم فرق بينهم.' },
+        { q: 'The Data Link layer is the layer that provides end-to-end connections.', a: 1, why: 'ده الـ <b>Transport</b> (End-to-end Connections). الـ Data Link = Access to Media.' },
+        { q: 'The PDU of the network layer is called a frame.', a: 1, why: 'الـ network layer PDU = <b>packet</b>. الـ frame للـ Data Link.' },
+        { q: 'The PDU of the transport layer is called a segment.', a: 0, why: 'صح.' },
+        { q: 'The PDU of the physical layer is bits.', a: 0, why: 'صح.' },
+        { q: 'The data link layer adds both a header and a trailer to produce a frame.', a: 0, why: 'صح.' },
+        { q: 'The header added by the data link layer contains the hardware destination and source address.', a: 0, why: 'صح — سلايد 37.' },
+        { q: 'Routers are the network layer devices.', a: 0, why: 'صح — سلايد 34.' },
+        { q: 'The Presentation layer establishes, maintains and synchronizes the interaction between communicating devices.', a: 1, why: 'ده الـ <b>Session</b>.' },
+        { q: 'Translation, encryption and compression are functions of the Presentation layer.', a: 0, why: 'صح.' },
+        { q: 'TCP and UDP are the two protocols used in the transport layer.', a: 0, why: 'صح.' },
+        { q: 'IP and IPv6 are network layer protocols.', a: 0, why: 'صح.' },
+        { q: 'The application layer is the application itself, such as the web browser.', a: 1, why: 'السلايد بيقول: <b>An application layer is not an application</b>.' },
+        { q: 'In reality, data are directly transferred from layer n on one machine to layer n on another machine.', a: 1, why: 'لأ — كل layer بتمرر الداتا للـ layer اللي تحتها لحد الـ physical medium. الاتصال بين نفس الـ layers <b>virtual</b>.' },
+        { q: 'A set of layers and protocols is called a network architecture.', a: 0, why: 'صح — سلايد 16.' },
+        { q: 'A service definition describes how the services are to be provided.', a: 1, why: 'بتوصف <b>إيه</b> الخدمات مش <b>إزاي</b>.' },
+        { q: 'Between each pair of adjacent layers there is an interface.', a: 0, why: 'صح.' },
+        { q: 'The TCP/IP model in the book has four layers: Application, Transport, Internet and Network Access.', a: 0, why: 'صح.' },
+        { q: 'The transport layer ensures messages are transmitted in the order in which they are sent and that there is no duplication of data.', a: 0, why: 'صح — سلايد 30.' },
+        { q: 'Network hardware operates at the physical, data link and network layers (book).', a: 0, why: 'صح — 📖 الكتاب.' },
+        { q: 'The network layer is responsible for segmentation and reassembly of data.', a: 1, why: 'الـ segmentation من شغل الـ <b>Transport</b>.' }
+      ]
+    },
+
+    /* ---------- MCQ ---------- */
+    mcq: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'Which OSI layer is responsible for translation, encryption and compression of data?', opts: ['Presentation', 'Session', 'Application', 'Transport'], a: 0, why: 'الـ <b>Presentation</b> (Data Representation).' },
+        { q: 'The PDU of the data link layer is called a:', opts: ['Frame', 'Packet', 'Segment', 'Bit'], a: 0, why: 'الـ <b>Frame</b> (header + trailer).' },
+        { q: 'Which layer provides end-to-end connections and breaks data into segments?', opts: ['Transport', 'Network', 'Data Link', 'Session'], a: 0, why: 'الـ <b>Transport</b>.' },
+        { q: 'Routers operate at which layer of the OSI model?', opts: ['Network', 'Data Link', 'Physical', 'Transport'], a: 0, why: 'الـ routers = <b>Network layer devices</b>.' },
+        { q: 'Which of the following is NOT a function of the data link layer?', opts: ['Best path determination (routing)', 'Organizing bits into frames', 'Hop-by-hop reliable transfer of frames', 'Using physical (MAC) addresses'], a: 0, why: 'الـ routing من شغل الـ <b>Network layer</b>.' },
+        { q: 'Which statement describes a service in a layered architecture?', opts: ['It defines what a layer provides to the layer above, not how it is provided', 'It defines the format of the PDUs exchanged between peer layers', 'It is the agreement between the communicating parties', 'It is the physical medium between two hosts'], a: 0, why: 'الـ <b>Service</b> = إيه مش إزاي. التانية: protocol / agreement.' },
+        { q: 'The OSI reference model was developed in 1984 by:', opts: ['ISO', 'IEEE', 'ITU-T', 'IETF'], a: 0, why: '<b>ISO</b> سنة 1984 (سلايد 2).' },
+        { q: 'How many layers does the TCP/IP model have in the course book?', opts: ['4', '5', '6', '7'], a: 0, why: 'الكتاب: <b>4</b> (Application, Transport, Internet, Network Access).' },
+        { q: 'Which layer establishes, manages and terminates sessions between communicating hosts?', opts: ['Session', 'Transport', 'Presentation', 'Application'], a: 0, why: 'الـ <b>Session</b>.' },
+        { q: 'Transmission modes (simplex, half-duplex, full-duplex) and the transmission of individual bits belong to the:', opts: ['Physical layer', 'Data Link layer', 'Network layer', 'Transport layer'], a: 0, why: 'الـ <b>Physical layer</b> (سلايد 40).' }
+      ]
+    }
+  },
+
+  /* ---------- flashcards ---------- */
+  flash: {
+    main: [
+      { f: 'مين عمل الـ <span class="en">OSI model</span> ومتى؟', b: '<span class="en">ISO (International Organisation for Standardisation)</span> سنة <span class="en">1984</span>.' },
+      { f: '<span class="en">OSI</span> اختصار إيه؟', b: '<span class="en">Open Systems Interconnection</span>' },
+      { f: 'الـ <span class="en">OSI model</span> بيقسّم المشكلة لكام جزء؟ وإيه اسم التقسيم؟', b: '<b>7</b> مشاكل أصغر وأسهل، والتقسيم اسمه <span class="en">layering</span>.' },
+      { f: 'فوايد الـ <span class="en">layering</span> (3 أساسية)', b: 'تقليل التعقيد وتسهيل التطوير · توافق بين hardware و software مختلفة · تغيير layer ما بيأثرش على الباقي.' },
+      { f: 'الـ 7 طبقات من فوق لتحت', b: '<span class="en">7 Application · 6 Presentation · 5 Session · 4 Transport · 3 Network · 2 Data link · 1 Physical</span>' },
+      { f: 'جملة الـ <span class="en">Application</span> المختصرة + وظيفتها', b: '<span class="en">Network Processes to Applications</span>. نافذة للمستخدمين لخدمات الشبكة: file transfer/access/management و mail services.' },
+      { f: 'هل الـ <span class="en">Application layer</span> هي الـ application نفسه؟', b: '<b>لأ.</b> هي بتؤدي وظايف الـ application layer وبتوفّر خدمات الشبكة للمستخدم النهائي.' },
+      { f: 'جملة الـ <span class="en">Presentation</span> المختصرة + وظايفها', b: '<span class="en">Data Representation</span>. <span class="en">Translation · Encryption · Compression</span>.' },
+      { f: 'إيه الـ <span class="en">Translation</span> في الـ <span class="en">Presentation layer</span>؟', b: 'تحويل من صيغة تعتمد على المرسل لصيغة مشتركة، وبعدين لصيغة تعتمد على المستقبل (علشان اختلاف الـ encoding).' },
+      { f: 'جملة الـ <span class="en">Session</span> المختصرة + وظيفتها', b: '<span class="en">Interhost Communication</span>. بتـ<span class="en">establish, manage, terminate</span> الجلسات وبتعمل <span class="en">synchronization</span>. مثال: client software للـ login.' },
+      { f: 'جملة الـ <span class="en">Transport</span> المختصرة + الـ <span class="en">PDU</span>', b: '<span class="en">End-to-end Connections</span> · الـ PDU = <span class="en">Segments</span>.' },
+      { f: 'وظايف الـ <span class="en">Transport layer</span>', b: '<span class="en">Segmentation and reassembly · flow control · error control · connection control</span> · ترتيب الرسايل ومن غير تكرار.' },
+      { f: 'بروتوكولات الـ <span class="en">Transport</span>', b: '<span class="en">TCP</span> (Transmission Control Protocol) و <span class="en">UDP</span> (User Datagram Protocol).' },
+      { f: '📖 <span class="en">TCP</span> ضد <span class="en">UDP</span>', b: '<span class="en">TCP</span>: connection-oriented، تسليم موثوق + flow/error control + multiplexing.<br><span class="en">UDP</span>: connectionless، أسرع، من غير ضمان تسليم.' },
+      { f: '📖 <span class="en">Multiplexing</span> و <span class="en">Demultiplexing</span>', b: 'تجميع داتا من تطبيقات كتير في header وإرسالها معاً (multiplexing)، وتوجيه الـ segments المستلمة لتطبيقاتها (demultiplexing) باستخدام <span class="en">port numbers</span>.' },
+      { f: 'جملة الـ <span class="en">Network</span> المختصرة + الـ <span class="en">PDU</span>', b: '<span class="en">Address and Best Path</span> · الـ PDU = <span class="en">Packets</span>.' },
+      { f: 'وظايف الـ <span class="en">Network layer</span>', b: '<span class="en">Logical addressing (IP address)</span> + <span class="en">best path determination (routing)</span>.' },
+      { f: 'أجهزة وبروتوكولات الـ <span class="en">Network layer</span>', b: '<span class="en">Routers</span>. البروتوكولات: <span class="en">IP و IPv6</span>. 📖 كمان: Gateways و RIP, OSPF, BGP.' },
+      { f: 'جملة الـ <span class="en">Data Link</span> المختصرة + الـ <span class="en">PDU</span>', b: '<span class="en">Access to Media</span> · الـ PDU = <span class="en">Frames</span>.' },
+      { f: 'وظايف الـ <span class="en">Data Link layer</span>', b: 'نقل frames من غير أخطاء <span class="en">hop by hop</span> · بتضيف <span class="en">header + trailer</span> · الـ header فيه عنوان الـ hardware (المصدر والوجهة) · قرارات على أساس عناوين فيزيائية (MAC).' },
+      { f: '📖 الـ <span class="en">sub-layers</span> بتاعة الـ <span class="en">Data Link</span>', b: '<span class="en">LLC (Logical Link Control)</span>: error detection + flow control.<br><span class="en">MAC (Media Access Control)</span>: التحكم في الوصول للوسط المشترك.' },
+      { f: 'جملة الـ <span class="en">Physical</span> المختصرة + الـ <span class="en">PDU</span>', b: '<span class="en">Binary Transmission</span> · الـ PDU = <span class="en">Bits</span>.' },
+      { f: 'وظايف الـ <span class="en">Physical layer</span>', b: 'نقل الـ bits الفردية من node لـ node · تحديد الـ <span class="en">transmission mode</span> (simplex / half-duplex / full-duplex) · أمثلة: UTP, coax, fiber optic.' },
+      { f: 'الـ <span class="en">PDU</span> بتاع كل طبقة', b: '<span class="en">7·6·5 = data · 4 = Segment · 3 = Packet · 2 = Frame · 1 = Bits</span>' },
+      { f: 'إيه هو الـ <span class="en">PDU</span>؟', b: '<span class="en">Protocol Data Unit</span>: المصطلح اللي بنوصف بيه الداتا وهي بتنتقل من layer لـ layer في الـ OSI.' },
+      { f: '<span class="en">Transport</span> ضد <span class="en">Data Link</span>', b: '<b>Transport = end-to-end</b> (الجهاز المصدر للوجهة) · <b>Data Link = hop-by-hop</b> (خطوة بخطوة على لينك واحد).' },
+      { f: 'ملخص وظايف الطبقات (L3 سلايد 6) — الـ 4 العليا', b: '<span class="en">Application: allow access to network resources · Presentation: translate, encrypt, compress · Session: establish, manage, terminate sessions · Transport: end-to-end message delivery and error recovery</span>' },
+      { f: 'ملخص وظايف الطبقات (L3 سلايد 6) — الـ 3 التحتانية', b: '<span class="en">Network: move packets from source to destination, internetworking · Data link: organize bits into frames, node-to-node delivery · Physical: transmit bits, mechanical and electrical specifications</span>' },
+      { f: 'العناصر التلاتة اللي لازم تتوحّد في كل layer', b: '<span class="en">Protocol specification · Service definition · Addressing (SAP)</span>' },
+      { f: 'إيه الـ <span class="en">Protocol</span> (في سياق الـ layers)؟', b: 'اتفاق بين الأطراف المتواصلة على إزاي الاتصال هيمشي. بيحدد format الـ PDUs ومعنى الحقول والتسلسل المسموح. بين كيانين في <b>نفس الـ layer</b> في نظامين مختلفين.' },
+      { f: 'إيه الـ <span class="en">Service definition</span>؟', b: 'وصف وظيفي لـ <b>إيه</b> الخدمات اللي كل layer بتقدّمها للي فوقها، مش <b>إزاي</b> بتتنفذ.' },
+      { f: 'إيه الـ <span class="en">Interface</span>؟ وإيه الـ <span class="en">SAP</span>؟', b: '<b>Interface</b>: بين كل layer ولاصقتها، وبيحدد الـ primitive operations والخدمات المتاحة.<br><b>SAP</b>: بيحدد كيانات الـ layer الأعلى اللي بتستخدم الخدمة (<span class="en">NSAP</span> = transport entity).' },
+      { f: 'الاتصال الافتراضي ضد الفعلي بين الـ layers', b: 'مفيش داتا بتتنقل مباشرة بين layer n و layer n. كل layer بتبعت للي تحتها لحد الـ physical medium. الخط المتقطع = <span class="en">virtual</span>، المتصل = <span class="en">physical</span>.' },
+      { f: 'إيه الـ <span class="en">network architecture</span>؟', b: 'مجموعة الـ layers والـ protocols.' },
+      { f: 'طبقات الـ <span class="en">TCP/IP</span> (الكتاب)', b: '<span class="en">Application · Transport · Internet · Network Access</span> (4). الـ Application فيها 7+6+5. ⚠️ سلايد L1 قال 5 طبقات.' },
+      { f: '📖 الـ <span class="en">hardware</span> ضد الـ <span class="en">software</span> في الـ OSI (الكتاب)', b: 'الـ hardware في طبقات 1 و 2 و 3 (<span class="en">Physical, Data link, Network</span>). أغلب الـ software في 4 لـ 7.' }
+    ]
+  },
+
+  /* ---------- essay model answers ---------- */
+  essays: {
+    e1: {
+      model:
+        '<table class="tbl" style="margin:0" dir="ltr"><tr><th>Layer</th><th>Main function</th><th>PDU</th></tr>' +
+        '<tr><td>7 Application</td><td class="en plain">Window for users and application processes to access network services: file transfer, access and management; mail services.</td><td>data</td></tr>' +
+        '<tr><td>6 Presentation</td><td class="en plain">Data representation: translation between encoding formats, encryption for privacy, and compression to reduce the number of bits.</td><td>data</td></tr>' +
+        '<tr><td>5 Session</td><td class="en plain">Establishes, manages/maintains, synchronizes and terminates sessions between communicating hosts.</td><td>data</td></tr>' +
+        '<tr><td>4 Transport</td><td class="en plain">End-to-end connections: segmentation and reassembly, flow control, error control and connection control; ordered, non-duplicated delivery (TCP, UDP).</td><td>segment</td></tr>' +
+        '<tr><td>3 Network</td><td class="en plain">Logical addressing (IP address) and best path determination (routing); routers; IP and IPv6.</td><td>packet</td></tr>' +
+        '<tr><td>2 Data Link</td><td class="en plain">Reliable, error-free transfer of frames hop by hop; adds a header and a trailer; physical (MAC) addresses.</td><td>frame</td></tr>' +
+        '<tr><td>1 Physical</td><td class="en plain">Transmits individual bits between nodes; defines the transmission mode (simplex, half-duplex, full-duplex) and the media (UTP, coaxial, fiber).</td><td>bits</td></tr></table>',
+      points: [
+        'All seven layers named in the right order (Application → Physical)',
+        'Application — network services (file transfer, mail)',
+        'Presentation — translation, encryption, compression',
+        'Session — establish, manage, terminate sessions',
+        'Transport — end-to-end, segmentation, flow/error control, segments',
+        'Network — logical addressing and best path (routing), packets',
+        'Data Link — frames, header and trailer, hop by hop, MAC',
+        'Physical — bits, transmission modes, media'
+      ]
+    },
+    e2: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px">Three elements of standardization are required at each layer:</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>1. Protocol specification</b>: two entities at the same layer in different systems cooperate by means of a protocol. Because two different open systems are involved, the protocol must be specified precisely: the format of the protocol data units (PDUs) exchanged, the semantics of all fields, and the allowable sequence of PDUs.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>2. Service definition</b>: the services each layer provides to the next higher layer. It is typically a functional description that defines <i>what</i> services are provided, but not <i>how</i> they are provided.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>3. Addressing</b>: entities at the next higher layer are referenced by means of a service access point (SAP); e.g. a network service access point (NSAP) indicates a transport entity that is a user of the network service.</p>' +
+        '<p dir="ltr" style="margin:0"><b>Service vs protocol</b>: a protocol is an agreement between the communicating parties on how communication is to proceed (horizontal, between peer layers). A service is what a layer provides to the layer above it (vertical, through the interface).</p>',
+      points: [
+        'Protocol specification — peer entities, format of PDUs, semantics, allowable sequence',
+        'Service definition — what, not how',
+        'Addressing — service access point (SAP / NSAP)',
+        'Protocol = agreement on how communication proceeds (horizontal)',
+        'Service = what a layer provides to the layer above (vertical)'
+      ]
+    },
+    e3: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Advantages of the OSI layered model</b>:</p>' +
+        '<ul dir="ltr" style="margin:0 0 8px;padding-left:20px"><li>Helps network administrators determine the required hardware and software to build their network.</li><li>Encourages hardware manufacturers to create networking products that can communicate with each other.</li><li>Provides a teaching tool to understand the communication process between networking components.</li><li>Separates a complex function into simpler components.</li><li>Makes troubleshooting easier: look in the layer that is causing the issue rather than in the entire network.</li><li>Prevents changes in one layer from affecting the other layers; allows different hardware and software to communicate.</li></ul>' +
+        '<p dir="ltr" style="margin:0"><b>Transport vs Data Link</b>: the transport layer is the end-to-end layer (segments; reliability, flow control, error control; TCP/UDP) between the source and destination hosts, whereas the data link layer provides reliable frame transfer across a single physical link, hop by hop (frames with header and trailer; physical/MAC addresses).</p>',
+      points: [
+        'At least four OSI advantages listed (administrators, manufacturers, teaching, simpler components, troubleshooting)',
+        'Changes in one layer do not affect the others',
+        'Transport — end-to-end, segments, reliability/flow/error control, TCP/UDP',
+        'Data Link — hop by hop, frames, header + trailer, MAC addresses'
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ---------- layer explorer + order game ---------- */
+(function () {
+  var LY = [
+    { n: 7, name: 'Application', c: 'ph-plan', one: 'Network Processes to Applications', pdu: 'data',
+      fn: ['نافذة (window) للمستخدمين وعمليات التطبيقات عشان توصل لخدمات الشبكة.', '<span class="en">File transfer, access and management</span> + <span class="en">Mail services</span>.', 'مش الـ application نفسه.'],
+      ex: ['Email', 'Web browsers'], bk: '📖 HTTP · FTP · SMTP · DNS' },
+    { n: 6, name: 'Presentation', c: 'ph-plan', one: 'Data Representation', pdu: 'data',
+      fn: ['<span class="en">Translation</span>: بتحوّل بين صيغ الـ encoding.', '<span class="en">Encryption</span>: للخصوصية.', '<span class="en">Compression</span>: بتقلّل عدد الـ bits.'],
+      ex: ['encoded, encrypted, compressed data'], bk: '📖 encoding/decoding · compression/decompression · encryption/decryption' },
+    { n: 5, name: 'Session', c: 'ph-plan', one: 'Interhost Communication', pdu: 'data',
+      fn: ['بتـ<span class="en">establish / manage / terminate</span> الجلسات بين جهازين.', 'بتعمل <span class="en">synchronization</span> للتفاعل.'],
+      ex: ['Client software (used for logging in)'], bk: '📖 network coordination between two applications in a session' },
+    { n: 4, name: 'Transport', c: 'ph-ana', one: 'End-to-end Connections', pdu: 'segment',
+      fn: ['<span class="en">Segmentation and reassembly</span>.', 'نقل موثوق: <span class="en">flow control + error control + connection control</span>.', 'ترتيب الرسايل ومن غير تكرار.', 'اسمها <span class="en">end-to-end layer</span>.'],
+      ex: ['TCP', 'UDP'], bk: '📖 multiplexing/demultiplexing بالـ port numbers · Stop-and-wait و Sliding window' },
+    { n: 3, name: 'Network', c: 'ph-des', one: 'Address and Best Path', pdu: 'packet',
+      fn: ['<span class="en">Logical addressing</span> (IP address).', '<span class="en">Best path determination</span> (routing).', 'أجهزتها: <span class="en">Routers</span>.'],
+      ex: ['IP', 'IPv6', 'Router'], bk: '📖 Gateways · RIP · OSPF · BGP' },
+    { n: 2, name: 'Data Link', c: 'ph-imp', one: 'Access to Media', pdu: 'frame',
+      fn: ['نقل موثوق من غير أخطاء للـ frames <span class="en">hop by hop</span>.', 'بتضيف <span class="en">header + trailer</span>.', 'عناوين فيزيائية (غالباً <span class="en">MAC</span>).'],
+      ex: ['MAC address'], bk: '📖 sub-layers: LLC و MAC' },
+    { n: 1, name: 'Physical', c: 't-warn', one: 'Binary Transmission', pdu: 'bits',
+      fn: ['نقل الـ <span class="en">bits</span> من node لـ node.', 'بتحدد <span class="en">transmission mode</span>: simplex / half-duplex / full-duplex.'],
+      ex: ['UTP', 'Coaxial (like cable TV)', 'Fiber optic'], bk: '📖 encoding/decoding · modulation · DSL · Wi-Fi PHY · Bluetooth PHY' }
+  ];
+  var stack = document.getElementById('stack'), dtl = document.getElementById('dtl');
+  if (!stack) return;
+  function show(i) {
+    var L = LY[i];
+    Array.prototype.forEach.call(stack.children, function (b, k) { b.classList.toggle('on', k === i); });
+    dtl.className = 'card dtl ' + L.c;
+    dtl.innerHTML =
+      '<h3>' + L.n + ' · ' + L.name + '</h3>' +
+      '<div class="one">' + L.one + '</div>' +
+      '<ul>' + L.fn.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +
+      '<p><b>PDU:</b> <span class="chip en ' + L.c + '">' + L.pdu + '</span></p>' +
+      '<p><b>أمثلة:</b> ' + L.ex.map(function (x) { return '<span class="chip en ' + L.c + '">' + x + '</span>'; }).join('') + '</p>' +
+      '<p class="muted" style="margin:0">' + L.bk + '</p>';
+  }
+  LY.forEach(function (L, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'lyr ' + L.c;
+    b.innerHTML = '<span class="no">' + L.n + '</span><span><b>' + L.name + '</b><small>' + L.one + '</small></span>';
+    b.addEventListener('click', function () { show(i); });
+    stack.appendChild(b);
+  });
+  show(0);
+
+  /* ---- order game ---- */
+  var slots = document.getElementById('slots'), pool = document.getElementById('pool'), msg = document.getElementById('ordMsg');
+  var cur = 0, mistakes = 0;
+  function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function build() {
+    cur = 0; mistakes = 0;
+    slots.innerHTML = ''; pool.innerHTML = '';
+    LY.forEach(function (L, i) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="n">' + L.n + '</span><span class="v">' + (i === 0 ? '⬅ هنا' : '') + '</span>';
+      if (i === 0) li.className = 'next';
+      slots.appendChild(li);
+    });
+    shuf(LY.map(function (_, i) { return i; })).forEach(function (i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = LY[i].name; b.dataset.i = i;
+      b.addEventListener('click', function () { pick(b, i); });
+      pool.appendChild(b);
+    });
+    msg.textContent = 'دوس على الطبقة اللي المفروض تيجي في الخانة اللي عليها السهم (من فوق: رقم 7).';
+  }
+  function pick(b, i) {
+    if (i === cur) {
+      var li = slots.children[cur];
+      li.className = 'fill ' + LY[cur].c;
+      li.querySelector('.v').textContent = LY[cur].name;
+      b.disabled = true; cur++;
+      if (cur < LY.length) {
+        slots.children[cur].classList.add('next');
+        slots.children[cur].querySelector('.v').textContent = '⬅ هنا';
+        msg.textContent = 'تمام ✔ كمّل.';
+      } else {
+        msg.innerHTML = '🎉 ممتاز! ترتيب صح ' + (mistakes === 0 ? 'من غير ولا غلطة 🔥' : 'بـ ' + mistakes + ' غلطة. جرّب تاني وحاول من غير أخطاء.');
+      }
+    } else {
+      mistakes++;
+      b.classList.add('bad');
+      setTimeout(function () { b.classList.remove('bad'); }, 500);
+      msg.textContent = '✘ مش دي. فكّر: الخانة رقم ' + LY[cur].n + ' بتبقى مين؟';
+    }
+  }
+  document.getElementById('ordReset').addEventListener('click', build);
+  build();
+})();
+
+/* ---------- PDU stepper ---------- */
+(function () {
+  var L = [
+    { t: 'User data', f: 'Layers 7 · 6 · 5', pdu: 'data', n: 'التطبيق بيدّي <b>data</b> المستخدم. في الطبقات العليا بنسمّيها <b>data</b> (<span class="en">L7/L6/L5 data</span>).',
+      v: '<span class="d">data</span>' },
+    { t: 'Segment', f: 'Layer 4 Transport · بيضيف H4', pdu: 'segment', n: 'الـ <b>Transport</b> بيضيف <b>H4</b> فبتتكوّن <b>Segment</b>.',
+      v: '<span class="h4">H4</span><span class="d">data</span>' },
+    { t: 'Packet', f: 'Layer 3 Network · بيضيف H3', pdu: 'packet', n: 'الـ <b>Network</b> بيضيف <b>H3</b> على الـ <span class="en">L4 data</span> فبتتكوّن <b>Packet</b>.',
+      v: '<span class="h3">H3</span><span class="h4">H4</span><span class="d">data</span>' },
+    { t: 'Frame', f: 'Layer 2 Data Link · بيضيف H2 و T2', pdu: 'frame', n: 'الـ <b>Data Link</b> بيضيف <b>header (H2)</b> و <b>trailer (T2)</b> فبتتكوّن <b>Frame</b>.',
+      v: '<span class="h2">H2</span><span class="h3">H3</span><span class="h4">H4</span><span class="d">data</span><span class="h2">T2</span>' },
+    { t: 'Bits', f: 'Layer 1 Physical', pdu: 'bits', n: 'الـ <b>Physical</b> بيحوّل الـ frame لسلسلة <b>bits</b> (0 و 1) وبيبعتها على الـ medium.',
+      v: '<span class="bits">0101010101101010100001 …</span>' }
+  ];
+  var ol = document.getElementById('stg');
+  if (!ol) return;
+  var cur = -1;
+  L.forEach(function (x, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="n">' + (i + 1) + '</span><div><b class="en">' + x.t + '</b><small class="en plain">' + x.f + '</small></div>';
+    ol.appendChild(li);
+  });
+  var next = document.getElementById('stepNext'), reset = document.getElementById('stepReset'), note = document.getElementById('stepNote'), vis = document.getElementById('pduVis');
+  function draw() {
+    Array.prototype.forEach.call(ol.children, function (li, i) {
+      li.classList.toggle('on', i === cur);
+      li.classList.toggle('past', i < cur);
+    });
+    vis.innerHTML = cur < 0 ? '' : L[cur].v;
+    note.innerHTML = cur < 0 ? 'دوس «الخطوة التالية» عشان تبدأ.' : '<b>' + (cur + 1) + '.</b> ' + L[cur].n;
+    next.disabled = cur >= L.length - 1;
+  }
+  next.addEventListener('click', function () { if (cur < L.length - 1) { cur++; draw(); } });
+  reset.addEventListener('click', function () { cur = -1; draw(); });
+  draw();
+})();
+
+/* ---------- OSI <-> TCP/IP map ---------- */
+(function () {
+  var w = document.getElementById('mapw');
+  if (!w) return;
+  var OSI = ['Application', 'Presentation', 'Session', 'Transport', 'Network', 'Data Link', 'Physical'];
+  var M = {
+    '4': [
+      { n: 'Application', r: [1, 3], hit: [0, 1, 2], note: 'الـ <b>Application</b> في TCP/IP بتغطي <b>7 + 6 + 5</b> (Application و Presentation و Session).' },
+      { n: 'Transport', r: [4, 4], hit: [3], note: 'الـ <b>Transport</b> = Transport (4).' },
+      { n: 'Internet', r: [5, 5], hit: [4], note: 'الـ <b>Internet</b> = Network (3). الـ IP.' },
+      { n: 'Network Access', r: [6, 7], hit: [5, 6], note: 'الـ <b>Network Access</b> (Network Interface في سلايد 9) = <b>Data Link + Physical</b> (2 + 1).' }
+    ],
+    '5': [
+      { n: 'Application', r: [1, 3], hit: [0, 1, 2], note: 'الـ <b>Application</b> = 7 + 6 + 5.' },
+      { n: 'Transport', r: [4, 4], hit: [3], note: 'الـ <b>Transport</b> = Transport (4).' },
+      { n: 'Internet', r: [5, 5], hit: [4], note: 'الـ <b>Internet</b> = Network (3).' },
+      { n: 'Network Access', r: [6, 6], hit: [5], note: 'في نسخة الـ 5 طبقات: <b>Network Access</b> = Data Link (2).' },
+      { n: 'Physical', r: [7, 7], hit: [6], note: 'في نسخة الـ 5 طبقات: <b>Physical</b> = Physical (1).' }
+    ]
+  };
+  var mode = '4', note = document.getElementById('mapNote');
+  function draw() {
+    w.innerHTML = '';
+    OSI.forEach(function (n, i) {
+      var d = document.createElement('div');
+      d.className = 'o'; d.style.gridColumn = '1'; d.style.gridRow = String(i + 1);
+      d.innerHTML = '<i>' + (7 - i) + '</i>' + n;
+      w.appendChild(d);
+    });
+    M[mode].forEach(function (t, k) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 't'; b.textContent = t.n;
+      b.style.gridColumn = '2'; b.style.gridRow = t.r[0] + ' / ' + (t.r[1] + 1);
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call(w.querySelectorAll('.t'), function (x) { x.classList.toggle('on', x === b); });
+        Array.prototype.forEach.call(w.querySelectorAll('.o'), function (x, i) { x.classList.toggle('hi', t.hit.indexOf(i) >= 0); });
+        note.innerHTML = t.note;
+      });
+      w.appendChild(b);
+    });
+    note.innerHTML = 'اضغط على طبقة من التانية جنب وشوف بتقابل أنهي طبقات في الـ OSI.';
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#mapSeg button'), function (b) {
+    b.addEventListener('click', function () {
+      mode = b.dataset.m;
+      Array.prototype.forEach.call(document.querySelectorAll('#mapSeg button'), function (x) { x.classList.toggle('on', x === b); });
+      draw();
+    });
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

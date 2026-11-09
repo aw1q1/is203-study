@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Lecture 4 — Collision Detection, Error Detection and Flow Control</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+  .stg{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .stg li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);opacity:.45;transition:.25s}
+  .stg li.on{opacity:1;border-color:var(--accent);background:rgba(var(--accent-rgb),.14);transform:translateX(-4px)}
+  .stg li.past{opacity:.85}
+  .stg .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--card);border:1px solid var(--line)}
+  .stg li.on .n{background:var(--accent);color:var(--on-accent);border-color:transparent}
+  .stg small{display:block;color:var(--muted)}
+  svg.dg{width:100%;max-width:560px;height:auto;display:block;margin:6px auto}
+  svg.dg .ln{stroke:var(--accent);stroke-width:3;fill:none}
+  svg.dg .nd{fill:var(--card2);stroke:var(--accent);stroke-width:2}
+  svg.dg .hl{fill:rgba(var(--accent-rgb),.22);stroke:var(--accent);stroke-width:2}
+  svg.dg text{fill:var(--text);font:600 13px "Segoe UI",sans-serif;text-anchor:middle}
+  svg.dg text.sm{font-size:11.5px;font-weight:500;fill:var(--muted)}
+  .chkrow{display:flex;gap:10px;flex-wrap:wrap;direction:ltr;margin:6px 0}
+  .chkrow label{display:flex;gap:6px;align-items:center;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);font:700 14px "Segoe UI",sans-serif;cursor:pointer}
+  .chkrow input{accent-color:var(--accent)}
+  .logbox{direction:rtl;max-height:230px;overflow:auto;padding:10px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:14.5px;line-height:1.9}
+  .logbox div{border-bottom:1px dashed var(--line);padding:2px 0}
+  .logbox .bad{color:var(--bad)}.logbox .good{color:var(--ok)}
+  .bitrow{display:flex;gap:6px;direction:ltr;justify-content:center;flex-wrap:wrap;margin:8px 0}
+  .bitrow button{width:40px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:800 18px Consolas,monospace;cursor:pointer;position:relative}
+  .bitrow button.one{border-color:var(--accent);background:rgba(var(--accent-rgb),.22)}
+  .bitrow button.par{outline:2px dashed var(--warn)}
+  .bitrow button.flip{border-color:var(--bad);background:rgba(var(--bad-rgb),.25)}
+  .bitrow small{display:block;text-align:center;color:var(--muted);font-size:11px;direction:rtl}
+  .mono{direction:ltr;text-align:left;font:600 15px/1.5 Consolas,monospace;white-space:pre;overflow-x:auto;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+  .mono .k{color:var(--accent)}
+  .in{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:600 16px Consolas,monospace;direction:ltr;width:100%;max-width:340px}
+  .in:focus{outline:2px solid var(--accent)}
+  .macb{display:flex;gap:6px;direction:ltr;flex-wrap:wrap;margin:8px 0}
+  .macb span{padding:8px 10px;border-radius:10px;border:1px solid var(--line);font:700 16px Consolas,monospace;background:var(--card2)}
+  .macb span.oui{border-color:var(--c-plan);background:rgba(var(--c-plan-rgb),.2)}
+  .macb span.dev{border-color:var(--c-ana);background:rgba(var(--c-ana-rgb),.2)}
+  .swg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;direction:ltr;margin:8px 0}
+  .swg div{padding:10px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card2);text-align:center;font:700 14px "Segoe UI",sans-serif;transition:.2s}
+  .swg div small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .swg div.snd{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+  .swg div.rcv{border-color:var(--c-plan);background:rgba(var(--c-plan-rgb),.22)}
+  .swg div.no{opacity:.55}
+  .sel{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .sel label{display:flex;gap:6px;align-items:center;font-weight:600}
+  .sel select{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font:inherit}
+  .tl{direction:ltr;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font:600 14px "Segoe UI",sans-serif;margin:8px 0;min-height:30px}
+  .tl .h{color:var(--muted);text-align:center;font-weight:800}
+  .tl .a{padding:6px 10px;border-radius:8px;background:rgba(var(--c-plan-rgb),.22);border:1px solid var(--c-plan)}
+  .tl .b{padding:6px 10px;border-radius:8px;background:rgba(var(--ok-rgb),.2);border:1px solid var(--ok);text-align:right}
+  .tl .e{visibility:hidden}
+</style>
+</head>
+<body data-lecture="l4">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Lecture 4</b><small class="en plain">Collision Detection, Error Detection and Flow Control</small></div>
+  <div class="prog"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0/12</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<div class="layout">
+<nav class="nav" id="nav" aria-label="محطات المحاضرة"></nav>
+<main>
+
+<!-- =====================================================  1 · BIG PICTURE -->
+<section class="station" data-icon="🗺️" data-title="الصورة الكبيرة">
+  <h2>الصورة الكبيرة 🗺️</h2>
+  <p class="lead">المحاضرة دي بتشرح <b>إزاي الداتا بتوصل صح</b> على لينك واحد: مين يبعت (الـ collision)، والأجهزة، والأخطاء، والتحكم في السرعة. <span class="muted">(⏱️ ٤ دقايق)</span></p>
+
+  <div class="card">
+    <div class="story">
+      <div class="beat"><div class="emo">🚦</div><b>مين يبعت دلوقتي؟</b><span><span class="en">CSMA/CD</span></span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🧮</div><b>وصلت سليمة؟</b><span><span class="en">Parity · CRC</span></span></div>
+      <div class="arrow">⬅</div>
+      <div class="beat"><div class="emo">🚰</div><b>المستقبل بيلحق؟</b><span><span class="en">Flow control</span></span></div>
+    </div>
+    <p class="punch">الـ <span class="en">Data link control</span> = <b>Line discipline</b> (مين يبعت) + <b>Flow control</b> (كام داتا) + <b>Error control</b> (إصلاح الأخطاء).</p>
+  </div>
+
+  <h3 class="sec">خريطة المحاضرة <small>(اضغط على أي مربع تروحله)</small></h3>
+  <div class="grid g3">
+    <button type="button" class="tile ph-plan" data-go="2"><span class="emo">🚦</span><b class="en">CSMA/CD</b><small>Collision ⭐</small></button>
+    <button type="button" class="tile ph-ana" data-go="3"><span class="emo">🆔</span><b class="en">MAC Address</b><small>48 bits</small></button>
+    <button type="button" class="tile ph-des" data-go="4"><span class="emo">🔀</span><b>Switch ضد Router</b><small>جدول المقارنة ⭐</small></button>
+    <button type="button" class="tile ph-imp" data-go="5"><span class="emo">📶</span><b>Bandwidth · Latency · Throughput</b><small>تعريفات ⭐</small></button>
+    <button type="button" class="tile ph-plan" data-go="6"><span class="emo">⚠️</span><b>الأخطاء + Parity</b><small><span class="en">Single-bit · Burst</span></small></button>
+    <button type="button" class="tile ph-ana" data-go="7"><span class="emo">➗</span><b class="en">CRC</b><small>حاسبة + اختبار</small></button>
+    <button type="button" class="tile ph-des" data-go="8"><span class="emo">🚰</span><b class="en">Flow Control</b><small><span class="en">Stop-and-Wait</span> ⭐</small></button>
+  </div>
+
+  <div class="card">
+    <h4>🎯 بعد المحاضرة دي المفروض تقدر:</h4>
+    <ul style="margin:0;padding-inline-start:22px">
+      <li>تشرح الـ <span class="en">collision</span> وخطوات الـ <span class="en">CSMA/CD</span> وخطوات الـ <span class="en">collision resolution</span>.</li>
+      <li>تعرّف الـ <span class="en">MAC address</span> وتفرّق بين الـ <span class="en">switch</span> والـ <span class="en">router</span>.</li>
+      <li>تفرّق بين <span class="en">bandwidth / latency / throughput / data rate / error rate</span>.</li>
+      <li>تفرّق بين <span class="en">single-bit</span> و <span class="en">burst errors</span> وتطبّق الـ <span class="en">parity</span> وتشرح الـ <span class="en">CRC</span>.</li>
+      <li>تشرح الـ <span class="en">flow control</span> والـ <span class="en">Stop-and-Wait</span>.</li>
+    </ul>
+    <p class="hint" style="margin:8px 0 0">دي أهداف طلّعتها أنا من عناوين السلايدات (الكتاب مفيهوش قايمة Learning Outcomes مكتوبة).</p>
+  </div>
+
+  <div class="note">💡 <b>رموز:</b> 📖 = إضافة من الكتاب. 🧠 = حيلة أو توضيح مني (فهم عام). ⚠️ = تعارض أو حاجة تحتاج انتباه.</div>
+</section>
+
+<!-- =====================================================  2 · CSMA/CD -->
+<section class="station" data-icon="🚦" data-title="CSMA/CD ⭐">
+  <h2><span class="en">Collision Detection</span> و <span class="en">CSMA/CD</span> ⭐</h2>
+  <p class="lead">لما أكتر من جهاز يبعتوا في نفس الوقت على قناة مشتركة. <span class="muted">(⏱️ ١٠ دقايق)</span></p>
+
+  <div class="card">
+    <h3>💥 الـ <span class="en">Collision</span></h3>
+    <p>في شبكة <b class="en">half duplex Ethernet</b>: الـ collision هو نتيجة إن <b>جهازين على نفس شبكة الـ Ethernet بيحاولوا يبعتوا داتا في نفس اللحظة بالظبط</b>.</p>
+    <h3>🚦 <span class="en">CSMA/CD</span></h3>
+    <p><b class="en">Carrier Sense Multiple Access with Collision Detection</b>: بروتوكول للإرسال بيشتغل في طبقة الـ <b class="en">Medium Access Control (MAC)</b>.</p>
+    <ul>
+      <li>بيسمع (<span class="en">senses</span>) القناة المشتركة: مشغولة ولا لأ؟ و<b>بيأجّل الإرسال لحد ما تفضى</b>.</li>
+      <li>الـ <b class="en">collision detection</b> بيكتشف الـ collisions عن طريق <b>الإحساس بإرسال من محطات تانية</b>.</li>
+      <li>كل محطة لازم <b>تسمع الوسيط الأول</b> (تتأكد من حالته) قبل ما تبعت. المبدأ: <b class="en">"sense before transmit"</b> أو <b class="en">"listen before talk"</b>.</li>
+    </ul>
+    <div class="note">📖 <b>الكتاب:</b> الـ hub عيبه إنه لو داتا جت من جهازين في نفس الوقت <b>هيحصل collision</b> (ده السياق اللي بيظهر فيه الـ CSMA/CD).</div>
+  </div>
+
+  <h3 class="sec">📋 خطوات الـ <span class="en">CSMA/CD</span> <small>(سلايد 4)</small></h3>
+  <ol class="steps ph-plan">
+    <li>لما الـ frame يبقى جاهز: المحطة تتأكد إن القناة <b class="en">idle</b> ولا <b class="en">busy</b>.</li>
+    <li>لو <b>busy</b>: المحطة <b>تستنى</b> لحد ما القناة تبقى idle.</li>
+    <li>لو <b>idle</b>: المحطة <b>تبدأ تبعت</b> وتفضل <b>تراقب القناة</b> باستمرار عشان تكتشف collision.</li>
+    <li>لو اكتشفت <b class="en">collision</b>: المحطة تبدأ <b class="en">collision resolution algorithm</b>.</li>
+    <li>المحطة <b>تصفّر عدّادات إعادة الإرسال</b> وتكمّل إرسال الـ frame (لما الإرسال ينجح).</li>
+  </ol>
+
+  <h3 class="sec">🛠️ خطوات الـ <span class="en">Collision Resolution</span> <small>(سلايد 5)</small></h3>
+  <ol class="steps ph-ana">
+    <li>المحطة <b>تكمّل إرسال الـ frame الحالي</b> لمدة محددة عشان <b>تضمن إن كل المحطات التانية اكتشفت الـ collision</b>.</li>
+    <li>المحطة <b>تزوّد عدّاد إعادة الإرسال</b> (<span class="en">retransmission counter</span>).</li>
+    <li>لو وصلنا <b>للحد الأقصى لمحاولات إعادة الإرسال</b> (<span class="en">maximum number of attempts</span>): المحطة <b class="en">aborts transmission</b>.</li>
+    <li>غير كده: المحطة <b>تستنى فترة <span class="en">backoff</span></b> (غالباً <b>دالة في عدد الـ collisions</b>) وترجع تبدأ الخوارزمية الأساسية من الأول.</li>
+  </ol>
+
+  <h3 class="sec">🧪 محاكاة <span class="en">CSMA/CD</span> <small>(مني، لتوضيح الفكرة)</small></h3>
+  <div class="card" id="csCard">
+    <p style="margin-top:0">علّم المحطات اللي <b>جاهزة تبعت</b>، واختار حالة القناة، وبعدين دوس «جولة». كرّر الجولات وشوف الـ collision والـ backoff.</p>
+    <div class="chkrow" id="csHosts"></div>
+    <div class="sel">
+      <label>حالة القناة:
+        <select id="csChan"><option value="idle" selected>idle (فاضية)</option><option value="busy">busy (مشغولة)</option></select>
+      </label>
+      <label>أقصى محاولات:
+        <select id="csMax"><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+      </label>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="csGo">▶ جولة</button>
+      <button type="button" class="btn ghost" id="csReset">🔁 من الأول</button>
+    </div>
+    <div class="logbox" id="csLog"><div>علّم محطتين على الأقل وخلّي القناة idle عشان تشوف collision.</div></div>
+    <p class="hint" style="margin:6px 0 0">🧠 الـ backoff هنا بيتحسب عشوائياً في مدى بيكبر مع عدد الـ collisions: ده تبسيط مني، السلايد بيقول بس إنه «دالة في عدد الـ collisions».</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: الخطوة اللي بعد كده؟</h3>
+  <div data-deck="csma"></div>
+</section>
+
+<!-- =====================================================  3 · MAC -->
+<section class="station" data-icon="🆔" data-title="MAC Address">
+  <h2><span class="en">MAC Address</span> 🆔</h2>
+  <p class="lead">عنوان الجهاز الفيزيائي على الشبكة. <span class="muted">(⏱️ ٥ دقايق)</span></p>
+
+  <div class="card">
+    <ul style="margin:0">
+      <li>طوله <b class="en">48 bits</b>، ومتكتب كـ <b>12 رقم hexadecimal</b>. مثال السلايد: <b class="en">A34C.52BD.1234</b>.</li>
+      <li>متحفوظ ومحروق (<span class="en">burned</span>) في الـ <b class="en">ROM</b> بتاعة الـ <b class="en">NIC</b>.</li>
+      <li>كل <span class="en">NIC</span> ليه <b>MAC address فريد</b>.</li>
+      <li>ممكن يمثّل <b class="en">unicast</b> و <b class="en">broadcast</b> و <b class="en">multicast</b>.</li>
+    </ul>
+    <div class="note">📖 <b>الكتاب:</b> الـ MAC = <b>physical address</b> أو <span class="en">link address</span>، بيستخدمه الـ <b>data link layer</b> وهو أدنى مستوى عناوين. بيتكتب <b class="en">XX:XX:XX:YY:YY:YY</b> (كل 8 bits بـ : أو -). أول <b>24 bit</b> (<span class="en">XX:XX:XX</span>) بيحددهم الـ <b class="en">OUI (Organizationally Unique Identifier)</b> = هوية <b>المصنّع</b>. وتاني 24 bit (<span class="en">YY:YY:YY</span>) = هوية الجهاز، والمصنّع هو اللي بيحددها. مثال: <span class="en">00:80:48:5C:1A:52</span>. وبيفضل ثابت مهما اتنقلت لأي شبكة.</div>
+  </div>
+
+  <h3 class="sec">🔬 فكّك MAC address <small>(توضيح مني)</small></h3>
+  <div class="card">
+    <p style="margin-top:0">اكتب أي MAC (بنقط أو نقطتين أو شرطة) وشوف أجزاءه:</p>
+    <input class="in" id="macIn" value="A34C.52BD.1234" aria-label="MAC address" spellcheck="false">
+    <div class="macb" id="macOut"></div>
+    <div class="verdict" id="macV"></div>
+  </div>
+
+  <h3 class="sec">📖 <span class="en">Physical</span> ضد <span class="en">Logical</span> address <small>(الكتاب)</small></h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">MAC (physical)</th><th class="en">IP (logical)</th></tr>
+    <tr class="ph-plan"><td>الطول</td><td class="en">48 bits (hex)</td><td class="en">IPv4: 32 bits (decimal) · IPv6: 128 bits (hex)</td></tr>
+    <tr class="ph-ana"><td>مرتبط بـ</td><td>الـ hardware (NIC)، ثابت</td><td>بيتعيّن لما الجهاز يتوصل بشبكة، وممكن يتغيّر</td></tr>
+    <tr class="ph-des"><td>الطبقة</td><td class="en">Data link</td><td class="en">Network</td></tr>
+  </table>
+  <p class="hint">تفاصيل الـ IP addressing والـ subnetting (فصل 5 في الكتاب) مش في سلايدات الدكتور فمش بنغطيها هنا.</p>
+
+  <h3 class="sec">🎯 تدريب: MAC ولا IP؟</h3>
+  <div data-deck="macip"></div>
+</section>
+
+<!-- =====================================================  4 · SWITCH vs ROUTER -->
+<section class="station" data-icon="🔀" data-title="Switch ضد Router ⭐">
+  <h2><span class="en">Switch</span> ضد <span class="en">Router</span> ⭐</h2>
+  <p class="lead">جهازين بيتلخبطوا. الفرق: الطبقة، والعنوان، والوظيفة. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0">
+      <h4>🔀 <span class="en">Switch</span></h4>
+      <ul style="margin:0;padding-inline-start:20px">
+        <li>جهاز بيدّي إمكانية <b>مشاركة المعلومات والموارد</b> بتوصيل أجهزة مختلفة (computers, printers, servers) في شبكة صغيرة.</li>
+        <li>من غيره مش هتقدر تبني شبكة شركة صغيرة ولا توصّل أجهزة جوه مبنى أو campus.</li>
+      </ul>
+    </div>
+    <div class="card tint ph-ana" style="margin:0">
+      <h4>🌐 <span class="en">Router</span></h4>
+      <ul style="margin:0;padding-inline-start:20px">
+        <li>بيوصّل <b>عدة switches وشبكاتها</b> عشان تبني شبكة كبيرة.</li>
+        <li>جهاز <b>ذكي</b> مسؤول عن توجيه الـ data packets من المصدر للوجهة.</li>
+        <li>في البيت: بيوصّل الـ <span class="en">modem</span> بالأجهزة التانية عشان تتصل بالإنترنت.</li>
+        <li>بيوجّه الـ packets اللي ليها <b>IP address محدد</b> من شبكة لشبكة أو جوه الشبكة، وبيدّي <b>local IP address</b> لكل جهاز، وبيلاقي <b>أحسن وأسرع مسار</b>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="sec">⚖️ الفروق الأساسية <small>(سلايد 12–13)</small></h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">Switch</th><th class="en">Router</th></tr>
+    <tr class="ph-plan"><td>الوظيفة الأساسية</td><td>يوصّل الـ <b>end devices</b> (computers, printers…)</td><td>يوصّل <b>شبكتين مختلفتين</b></td></tr>
+    <tr class="ph-ana"><td>الطبقة</td><td><b>Data link</b> layer</td><td><b>Network</b> layer</td></tr>
+    <tr class="ph-des"><td>الغرض</td><td>يحدد عنوان الوجهة للـ received packet ويبعته ليه</td><td>يلاقي <b>أصغر وأحسن مسارات</b> للـ packets (من الـ <b>routing table</b>)</td></tr>
+    <tr class="ph-imp"><td>الجدول</td><td>بيخزّن <b>MAC addresses</b> في <b class="en">lookup table / CAM table</b></td><td>بيخزّن <b>IP addresses</b> في الـ <b class="en">routing table</b></td></tr>
+  </table>
+  <div class="note">📖 <b>الكتاب:</b> الـ switch بيستخرج عنوان الوجهة من الـ packet ويدوّر عليه في جدول عشان يعرف يبعته لإيه، فبيبعت لأجهزة مختارة بدل الكل (<b>بعكس الـ hub</b>)، وبيقدر <b>يبعت أكتر من packet في نفس الوقت</b>. بيحتفظ بـ <b class="en">MAC table</b> (أنهي جهاز على أنهي port). وبيرفض الإشارات التالفة ويطلب إعادة إرسالها. وفيه <span class="en">Layer 2 switches</span> (Ethernet switches، رخيصة) و <span class="en">Multi-layer switches</span> (layers 2 و 3 و 4، بتعمل switching و routing). والـ router بيوصّل الـ LAN بالإنترنت وممكن يكون wired أو wireless، والـ <b class="en">Gateway</b> بيوصّل شبكات بـ protocols مختلفة.</div>
+
+  <h3 class="sec">🧪 <span class="en">Hub</span> ضد <span class="en">Switch</span> <small>(محاكاة مني)</small></h3>
+  <div class="card">
+    <div class="seg" id="swSeg" style="margin-bottom:8px">
+      <button type="button" data-m="hub">Hub</button>
+      <button type="button" data-m="switch" class="on">Switch</button>
+    </div>
+    <div class="sel">
+      <label>المرسل: <select id="swFrom"><option>A</option><option selected>B</option><option>C</option><option>D</option></select></label>
+      <label>الوجهة (MAC): <select id="swTo"><option selected>A</option><option>B</option><option>C</option><option>D</option></select></label>
+    </div>
+    <div class="swg" id="swg"></div>
+    <div class="verdict" id="swV"></div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Switch ولا Router ولا Hub؟</h3>
+  <div data-deck="swrt"></div>
+</section>
+
+<!-- =====================================================  5 · BANDWIDTH -->
+<section class="station" data-icon="📶" data-title="Bandwidth · Latency · Throughput ⭐">
+  <h2><span class="en">Bandwidth · Latency · Throughput</span> ⭐</h2>
+  <p class="lead">مصطلحات بتتلخبط في الأسئلة. اعرف تعريف كل واحد. <span class="muted">(⏱️ ٧ دقايق)</span></p>
+
+  <div class="card">
+    <h3>📘 التعريفات (سلايد 14–16)</h3>
+    <div class="grid g3">
+      <div class="flip ph-plan"><div class="f"><span class="emo">🛣️</span><b class="en">Channel capacity</b><small>اضغط</small></div><div class="b">أقصى معدل ممكن ينتقل بيه داتا عبر مسار اتصال (قناة) <b>تحت ظروف معينة</b>.</div></div>
+      <div class="flip ph-ana"><div class="f"><span class="emo">⚡</span><b class="en">Data rate</b><small>اضغط</small></div><div class="b">المعدل بالـ <b class="en">bits per second (bps)</b> اللي ينفع الداتا تتنقل بيه.</div></div>
+      <div class="flip ph-des"><div class="f"><span class="emo">❌</span><b class="en">Error rate</b><small>اضغط</small></div><div class="b">المعدل اللي بتحصل بيه الأخطاء. <b>الخطأ</b> = استقبال <b>1</b> لما اتبعت <b>0</b> أو استقبال <b>0</b> لما اتبعت <b>1</b>.</div></div>
+      <div class="flip ph-imp"><div class="f"><span class="emo">📶</span><b class="en">Bandwidth</b><small>اضغط</small></div><div class="b">بتتقاس بـ <b>كمية الداتا</b> اللي تنتقل من نقطة لنقطة جوه الشبكة في <b>وقت محدد</b>. (<b>Bandwidth vs speed:</b> الـ bandwidth = كام معلومة بتستقبلها كل ثانية، والـ <span class="en">speed</span> = بتتستقبل أو بتتحمّل <b>بسرعة قد إيه</b>.)</div></div>
+      <div class="flip ph-plan"><div class="f"><span class="emo">⏳</span><b class="en">Latency</b><small>اضغط</small></div><div class="b">بيتسمى كمان <b class="en">delay rate</b>. هو <b>التأخير</b> اللي بتحس بيه وإنت مستني حاجة تتحمّل. لو الـ bandwidth = كمية المعلومات في الثانية، فالـ latency = <b>الوقت</b> اللي بتاخده المعلومة من المصدر لحد ما توصلك.</div></div>
+      <div class="flip ph-ana"><div class="f"><span class="emo">📦</span><b class="en">Throughput</b><small>اضغط</small></div><div class="b">كام معلومة <b>بتتسلّم فعلاً</b> في وقت معين. لو الـ bandwidth = أقصى كمية داتا، فالـ throughput = كام منها <b>بيوصل فعلاً</b> للوجهة <b>بعد حساب</b> الـ latency وسرعة الشبكة والـ packet loss وعوامل تانية.</div></div>
+    </div>
+  </div>
+
+  <div class="note">🧠 <b>تشبيه (فهم عام مني):</b> طريق سريع: <b>Bandwidth</b> = عدد الحارات · <b>Latency</b> = الوقت اللي العربية تاخده من أول الطريق لآخره · <b>Throughput</b> = عدد العربيات اللي <b>وصلت فعلاً</b> في الساعة (بعد الزحمة والحوادث).</div>
+
+  <h3 class="sec">🧮 حاسبة تبسيطية <small>(مني، مش معادلة من الكتاب)</small></h3>
+  <div class="card calc" id="bwCard">
+    <div class="calc-top">
+      <label>الـ bandwidth <input type="number" id="bwB" value="100" min="1" step="1"> <span class="en plain">Mbps</span></label>
+      <label>فقد الـ packets <input type="number" id="bwL" value="10" min="0" max="99" step="1"> <span class="en plain">%</span></label>
+      <label>حجم الملف <input type="number" id="bwS" value="100" min="1" step="1"> <span class="en plain">MB</span></label>
+      <label>الـ latency <input type="number" id="bwD" value="20" min="0" step="1"> <span class="en plain">ms</span></label>
+    </div>
+    <div class="res-row">
+      <div class="res"><small>Bandwidth (الأقصى)</small><b id="bwO1"></b></div>
+      <div class="res neg"><small>Throughput (الفعلي) = الـ bandwidth × (1 − الفقد)</small><b id="bwO2"></b></div>
+      <div class="res"><small>وقت نقل الملف = latency + الحجم ÷ throughput</small><b id="bwO3"></b></div>
+    </div>
+    <p class="muted" style="margin:10px 0 0">لاحظ: الـ <b>throughput</b> أقل من الـ <b>bandwidth</b> لما فيه فقد. والـ <b>latency</b> بتضيف وقت ثابت مهما كان حجم الملف.</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده تعريف إيه؟</h3>
+  <div data-deck="bw"></div>
+</section>
+
+<!-- =====================================================  6 · ERRORS + PARITY -->
+<section class="station" data-icon="⚠️" data-title="الأخطاء + Parity">
+  <h2>الأخطاء والـ <span class="en">Parity</span> ⚠️</h2>
+  <p class="lead">إزاي نعرف إن bit اتغيّر في الطريق؟ <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <h3>🧩 أنواع الأخطاء (سلايد 17–18)</h3>
+    <p>في أنظمة الإرسال الرقمي، الـ <b>error</b> بيحصل لما <b>bit بيتغيّر</b> بين الإرسال والاستقبال: 1 اتبعت و0 اتستقبل، أو العكس. نوعين:</p>
+    <div class="grid g2">
+      <div class="card tint ph-plan" style="margin:0"><h4 class="en">Single-bit error</h4><p style="margin:0">حالة خطأ <b>معزولة</b> بتغيّر <b>bit واحد</b> ومبتأثرش على اللي جنبه.</p></div>
+      <div class="card tint ph-ana" style="margin:0"><h4 class="en">Burst error</h4><p style="margin:0">طوله <b>B</b> = تسلسل متصل من <b>B bits</b>، <b>أول bit وآخر bit وأي عدد من الـ bits اللي في النص</b> اتستقبلوا غلط.</p></div>
+    </div>
+  </div>
+  <div data-deck="err"></div>
+
+  <div class="card">
+    <h3>🔎 مبدأ اكتشاف الأخطاء (سلايد 19–22)</h3>
+    <ol class="steps ph-des">
+      <li>لأي frame من bits، المرسل <b>بيضيف bits إضافية</b> هي <b class="en">error-detecting code</b>.</li>
+      <li>الكود ده بيتحسب <b>كدالة في باقي الـ bits</b> المبعوتة.</li>
+      <li>لو الداتا <b>k bits</b>، الخوارزمية بتطلّع كود طوله <b>n − k</b> bits، حيث <b>(n − k) &lt; k</b>.</li>
+      <li>الكود (اسمه كمان <b class="en">check bits</b>) بيتضاف على الداتا فيتكوّن <b>frame من n bits</b> ويتبعت.</li>
+      <li>المستقبل يفصل الـ frame لـ <b>k bits داتا</b> + <b>bits الكود</b>، ويعمل <b>نفس الحساب</b> على الداتا ويقارن النتيجة بالكود اللي وصل.</li>
+      <li>الخطأ بيتكشف <b>لو وفقط لو فيه عدم تطابق (mismatch)</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>✅ الـ <span class="en">Parity Check</span> (سلايد 23–25)</h3>
+    <ul>
+      <li><b>أبسط</b> طريقة لاكتشاف الأخطاء: بنضيف <b class="en">parity bit</b> في آخر block الداتا.</li>
+      <li>مثال: إرسال الحروف: parity bit بيتضاف لكل حرف <b class="en">IRA</b> (<span class="en">International Reference Alphabet</span>) من <b>7 bits</b>.</li>
+      <li>قيمة الـ bit بتتختار بحيث الحرف يبقى فيه <b>عدد زوجي من الـ 1s</b> (<b class="en">even parity</b>) أو <b>عدد فردي</b> (<b class="en">odd parity</b>).</li>
+      <li><b>الـ parity البسيط بيكتشف كل الـ single-bit errors</b>. وبيكتشف الـ <b>burst errors</b> بس <b>لو إجمالي عدد الأخطاء في كل data unit فردي (odd)</b>.</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🧪 جرّب الـ <span class="en">Parity</span> بنفسك <small>(محاكاة مني)</small></h3>
+  <div class="card" id="parCard">
+    <p style="margin-top:0">① دوس على الـ 7 bits تغيّرها. ② اختار even/odd. ③ شوف الـ parity bit. ④ دوس على bits في الـ frame المبعوت «تبوّظها» وشوف المستقبل هيكتشف ولا لأ.</p>
+    <div class="seg" id="parSeg" style="margin-bottom:6px"><button type="button" data-m="even" class="on">Even parity</button><button type="button" data-m="odd">Odd parity</button></div>
+    <p class="muted" style="margin:4px 0">الداتا (7 bits):</p>
+    <div class="bitrow" id="parData"></div>
+    <p class="muted" style="margin:4px 0">الـ frame المبعوت (الأخير = parity bit) — دوس على أي bit تقلبه:</p>
+    <div class="bitrow" id="parFrame"></div>
+    <div class="verdict" id="parV"></div>
+  </div>
+  <div class="note">مثال السلايد: <span class="en">1100001</span> فيها تلات 1s، فـ even parity بتضيف <b>1</b> فتبقى <span class="en">11000011</span>.</div>
+
+  <h3 class="sec">🎯 تدريب: Parity ولا CRC؟</h3>
+  <div data-deck="parcrc"></div>
+</section>
+
+<!-- =====================================================  7 · CRC -->
+<section class="station" data-icon="➗" data-title="CRC">
+  <h2>الـ <span class="en">Cyclic Redundancy Check (CRC)</span> ➗</h2>
+  <p class="lead">من أقوى وأشهر أكواد اكتشاف الأخطاء. <span class="muted">(⏱️ ٨ دقايق)</span></p>
+
+  <div class="card">
+    <ol class="steps ph-plan">
+      <li>بالنسبة لـ <b>block من k bit</b> (الرسالة)، المرسل بيولّد تسلسل اسمه <b class="en">frame check sequence (FCS)</b>.</li>
+      <li>بحيث إن الـ frame الناتج (<b>n bits</b>) يكون <b>قابل للقسمة تماماً</b> على رقم معين متفق عليه من الأول (<span class="en">predetermined number</span>).</li>
+      <li>المستقبل <b>بيقسم الـ frame الوارد</b> على نفس الرقم، ولو <b>مفيش باقي (no remainder)</b> يفترض إن مفيش خطأ.</li>
+    </ol>
+    <div class="note ok">📌 من رسمة السلايد (CRC generator and checker): المرسل بيضيف <b>n أصفار</b> للداتا، وبيقسمها على الـ <b class="en">Divisor</b> (طوله <b>n + 1</b> bits)، والـ <b>remainder (n bits)</b> هو الـ <b class="en">CRC</b> اللي بيتحط بدل الأصفار. المستقبل يقسم (Data + CRC) على الـ divisor: <b>Zero = accept</b>، <b>Nonzero = reject</b>.</div>
+  </div>
+
+  <h3 class="sec">🧪 حاسبة <span class="en">CRC</span> <small>(مثال مني: القسمة modulo-2؛ الأرقام اخترتها أنا)</small></h3>
+  <div class="card" id="crcCard">
+    <div class="calc-top">
+      <label>الداتا (bits) <input class="in" id="crcD" value="100100" inputmode="numeric" style="max-width:200px"></label>
+      <label>الـ divisor (bits) <input class="in" id="crcV" value="1101" inputmode="numeric" style="max-width:160px"></label>
+    </div>
+    <div class="res-row">
+      <div class="res"><small>الـ CRC (الباقي)</small><b id="crcR"></b></div>
+      <div class="res pos"><small>الـ frame المبعوت (Data + CRC)</small><b id="crcF"></b></div>
+    </div>
+    <div class="mono" id="crcSteps"></div>
+    <p class="muted" style="margin:6px 0 4px">استقبال: دوس على bit تقلبه وشوف الباقي عند المستقبل:</p>
+    <div class="bitrow" id="crcBits"></div>
+    <div class="verdict" id="crcV2"></div>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: Parity ولا CRC؟ <small>(كمّل)</small></h3>
+  <div data-deck="parcrc2"></div>
+</section>
+
+<!-- =====================================================  8 · FLOW CONTROL -->
+<section class="station" data-icon="🚰" data-title="Flow Control ⭐">
+  <h2><span class="en">Flow Control</span> و <span class="en">Stop-and-Wait</span> ⭐</h2>
+  <p class="lead">الـ sender لازم يبعت بسرعة يلحقها الـ receiver. <span class="muted">(⏱️ ٧ دقايق)</span></p>
+
+  <div class="card">
+    <h3>🎛️ الـ <span class="en">Data link control</span> (L3 سلايد 7)</h3>
+    <div class="grid g3">
+      <div class="card tint ph-plan" style="margin:0"><h4 class="en">Line discipline</h4><p style="margin:0" class="en plain">Who should send now?</p></div>
+      <div class="card tint ph-ana" style="margin:0"><h4 class="en">Flow control</h4><p style="margin:0" class="en plain">How much data may be sent?</p></div>
+      <div class="card tint ph-des" style="margin:0"><h4 class="en">Error control</h4><p style="margin:0" class="en plain">How can errors be corrected?</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🚰 <span class="en">Flow control</span> (سلايد 29–30)</h3>
+    <ul>
+      <li>بينسّق <b>كمية الداتا اللي ينفع تتبعت قبل ما يوصل acknowledgment</b>، وهو من أهم واجبات الـ <b>data link layer</b>.</li>
+      <li>في أغلب الـ protocols هو <b>مجموعة إجراءات</b> بتقول للمرسل <b>كام داتا</b> يقدر يبعت قبل ما <b>يستنى acknowledgment</b> من المستقبل.</li>
+      <li>لازم <b>ماينفعش الداتا تغرق (overwhelm) المستقبل</b>. سرعة المعالجة عند المستقبل غالباً أبطأ من سرعة الإرسال.</li>
+      <li>عشان كده كل جهاز مستقبل عنده كتلة ذاكرة اسمها <b class="en">buffer</b> لتخزين الداتا الواردة لحد ما تتعالج.</li>
+      <li><b class="en">Error control</b>: بيسمح للمستقبل <b>يبلّغ المرسل بالـ frames الضايعة أو التالفة</b> وينسّق <b>إعادة إرسالها</b>.</li>
+    </ul>
+    <div class="note">📖 <b>الكتاب:</b> طريقتين أساسيتين للـ flow control: <b class="en">Stop-and-wait</b> و <b class="en">Sliding Window</b>. وفي الـ transport layer الـ error control بيتم <b>end to end</b> وتصحيح الأخطاء بـ <b>retransmission</b>. (الـ LLC sub-layer في الـ data link بتدير error detection و flow control.)</div>
+  </div>
+
+  <div class="card">
+    <h3>✋ <span class="en">Stop-and-Wait Protocol</span> (سلايد 31–34)</h3>
+    <ul>
+      <li>لو الـ frames وصلت للمستقبل <b>أسرع</b> من ما يعالجها، لازم تتخزّن. غالباً مفيش مساحة كفاية (خصوصاً لو بياخد من مصادر كتير)، فيحصل <b>تجاهل (discard) للـ frames</b> أو <b>denial of service</b>.</li>
+      <li>عشان كده لازم نقول للمرسل «بطّئ»: <b>لازم يكون فيه feedback من المستقبل للمرسل</b>.</li>
+      <li><b>الفكرة:</b> المرسل <b>يبعت frame واحد</b>، <b>يقف</b> لحد ما <b>يوصله تأكيد</b> من المستقبل (okay to go ahead)، وبعدين يبعت الـ frame اللي بعده.</li>
+    </ul>
+  </div>
+
+  <h3 class="sec">🎬 شغّل الـ <span class="en">Stop-and-Wait</span> <small>(محاكاة مني على رسمة سلايد 34)</small></h3>
+  <div class="card" id="swCard">
+    <div class="verdict" id="sawState">canSend = true</div>
+    <div class="tl" id="sawTl"><div class="h">Sender</div><div class="h">Receiver</div></div>
+    <div class="btnrow">
+      <button type="button" class="btn primary" id="sawSend">📤 Sender: ابعت Data</button>
+      <button type="button" class="btn" id="sawAck">📥 Receiver: ابعت ACK</button>
+      <button type="button" class="btn ghost" id="sawReset">🔁 من الأول</button>
+    </div>
+    <div class="note" id="sawNote">دوس «ابعت Data» عشان تبدأ. بعد أول frame جرّب تدوس «ابعت Data» تاني قبل الـ ACK.</div>
+  </div>
+  <div class="card">
+    <h4>📜 الـ algorithm (مختصر من سلايد 32–33)</h4>
+    <div class="mono"><span class="k">Sender</span>:                       <span class="k">Receiver</span>:
+canSend = true                  while (true)
+while (true) {                    WaitForEvent()
+  WaitForEvent()                  if (ArrivalNotification) {  // Data frame arrives
+  if (RequestToSend AND canSend){   ReceiveFrame()
+    GetData(); MakeFrame()          ExtractData()
+    SendFrame()                     Deliver(data)             // to network layer
+    canSend = false                 SendFrame()               // send an ACK frame
+  }                               }
+  WaitForEvent()
+  if (ArrivalNotification) {      // an ACK has arrived
+    ReceiveFrame()
+    canSend = true
+  }
+}</div>
+    <p class="hint" style="margin:0">الفكرة اللي تتحفظ: <b>canSend</b> بتبقى <b>false</b> بعد ما يبعت frame، ومبترجعش <b>true</b> إلا لما <b>الـ ACK يوصل</b>.</p>
+  </div>
+
+  <h3 class="sec">🎯 تدريب: ده Line discipline ولا Flow control ولا Error control؟</h3>
+  <div data-deck="flow"></div>
+</section>
+
+<!-- =====================================================  9 · TRAPS -->
+<section class="station" data-icon="⚠️" data-title="فخاخ الامتحان">
+  <h2>فخاخ الامتحان ⚠️</h2>
+  <p class="lead">الجمل دي هي اللي بتتعمل منها <span class="en">True/False</span>. قرر: صح ولا غلط؟ (⏱️ ٤ دقايق)</p>
+  <div data-deck="traps"></div>
+</section>
+
+<!-- =====================================================  10 · FLASHCARDS -->
+<section class="station" data-icon="🧠" data-title="Flashcards">
+  <h2>Flashcards 🧠</h2>
+  <p class="lead">فكّر في الإجابة الأول، وبعدين اقلب الكارت. علّم اللي عرفته ✅ واللي لسه 🔁 — وراجع الأخير بس. (⏱️ ٦ دقايق)</p>
+  <div data-flash="main"></div>
+  <p class="hint" style="text-align:center;margin-top:10px">⌨️ مسطرة (Space) تقلب · الأسهم تنقل بين الكروت</p>
+</section>
+
+<!-- =====================================================  11 · QUIZ -->
+<section class="station" data-icon="📝" data-title="الكويز النهائي">
+  <h2>الكويز النهائي 📝</h2>
+  <p class="lead">10 أسئلة <span class="en">MCQ</span> بتصحيح فوري، وبعدها 3 أسئلة <span class="en">Essay</span> تكتب إجابتك وتقارنها بالنموذجية. (⏱️ ٨ دقايق)</p>
+
+  <h3 class="sec">① MCQ</h3>
+  <div data-deck="mcq"></div>
+
+  <h3 class="sec">② Essay</h3>
+  <div class="card essay" data-essay="e1">
+    <h3>سؤال 1</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Explain how CSMA/CD works, including the steps of the collision resolution algorithm.</p>
+    <textarea placeholder="اكتب إجابتك هنا (بتتحفظ في المتصفح بس)…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e2">
+    <h3>سؤال 2</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Compare a switch and a router (function, layer, purpose and the table each one stores).</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+  <div class="card essay" data-essay="e3">
+    <h3>سؤال 3</h3>
+    <p dir="auto" class="en plain" style="font-weight:600">Describe the types of errors in digital transmission and explain the error detection principle, parity check and CRC.</p>
+    <textarea placeholder="اكتب إجابتك هنا…"></textarea>
+    <button type="button" class="btn" data-show>📖 اعرض الإجابة النموذجية</button>
+    <div class="model" hidden><div class="mdl"></div><div class="pts"></div></div>
+  </div>
+</section>
+
+<!-- =====================================================  12 · SUMMARY -->
+<section class="station summary" data-icon="⚡" data-title="ملخص المراجعة">
+  <h2>ملخص المراجعة ⚡ <span class="en plain" style="font-size:18px">Lecture 4</span></h2>
+  <p class="lead noprint">ده اللي تراجعه الليلة اللي قبل الامتحان. <button type="button" class="btn" onclick="window.print()">🖨️ اطبع / احفظ PDF</button></p>
+
+  <h3 class="sec">🚦 CSMA/CD</h3>
+  <table class="tbl">
+    <tr><th>الخطوة</th><th>اللي بيحصل</th></tr>
+    <tr class="ph-plan"><td>1</td><td>الـ frame جاهز: افحص القناة idle ولا busy</td></tr>
+    <tr class="ph-plan"><td>2</td><td>busy → استنى لحد ما تبقى idle</td></tr>
+    <tr class="ph-plan"><td>3</td><td>idle → ابعت وراقب القناة باستمرار</td></tr>
+    <tr class="ph-ana"><td>4</td><td>collision → ابدأ collision resolution</td></tr>
+    <tr class="ph-ana"><td>5</td><td>كمّل إرسال الـ frame لمدة محددة (عشان كل المحطات تكتشف) ← زوّد retransmission counter ← لو وصلت الحد الأقصى: abort ← غير كده: استنى backoff (دالة في عدد الـ collisions) وارجع من الأول</td></tr>
+  </table>
+  <p class="muted">بيشتغل في طبقة الـ <span class="en">MAC</span> · المبدأ: <span class="en">sense before transmit / listen before talk</span> · collision = جهازين يبعتوا في نفس اللحظة على half duplex Ethernet.</p>
+
+  <h3 class="sec">🆔 MAC · Switch · Router</h3>
+  <table class="tbl">
+    <tr><th></th><th class="en">Switch</th><th class="en">Router</th></tr>
+    <tr><td>الوظيفة</td><td>يوصّل end devices</td><td>يوصّل شبكتين مختلفتين</td></tr>
+    <tr><td>الطبقة</td><td class="en">Data link</td><td class="en">Network</td></tr>
+    <tr><td>الجدول</td><td><span class="en">MAC addresses (lookup / CAM table)</span></td><td><span class="en">IP addresses (routing table)</span></td></tr>
+    <tr><td>الهدف</td><td>يبعت للوجهة</td><td>يلاقي أصغر وأحسن مسار</td></tr>
+  </table>
+  <div class="note"><b class="en">MAC</b> = 48 bits · 12 hex digits · محروق في ROM بتاعة الـ NIC · فريد · unicast / broadcast / multicast (📖 أول 24 bit = OUI المصنّع).</div>
+
+  <h3 class="sec">📶 المصطلحات</h3>
+  <table class="tbl">
+    <tr><th>المصطلح</th><th>المعنى</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Channel capacity</span></td><td>أقصى معدل لنقل الداتا عبر قناة تحت ظروف معينة</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Data rate</span></td><td>المعدل بالـ bps اللي ينفع الداتا تتنقل بيه</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Error rate</span></td><td>معدل حدوث الأخطاء (استقبال 1 بدل 0 أو العكس)</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">Bandwidth</span></td><td>كمية الداتا اللي تنتقل في وقت محدد (كام معلومة كل ثانية)</td></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Latency</span></td><td>التأخير: الوقت اللي المعلومة بتاخده من المصدر لحد ما توصل</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Throughput</span></td><td>كام داتا بتتسلّم فعلاً (بعد حساب latency, speed, packet loss)</td></tr>
+  </table>
+
+  <h3 class="sec">⚠️ الأخطاء واكتشافها</h3>
+  <table class="tbl">
+    <tr><th></th><th>المعنى</th></tr>
+    <tr class="ph-plan"><td><span class="dot"></span><span class="en">Single-bit error</span></td><td>معزول، بيغيّر bit واحد ومبيأثرش على اللي جنبه</td></tr>
+    <tr class="ph-ana"><td><span class="dot"></span><span class="en">Burst error (length B)</span></td><td>B bits متصلة: أول وآخر bit وأي عدد من اللي في النص غلط</td></tr>
+    <tr class="ph-des"><td><span class="dot"></span><span class="en">Error detection</span></td><td>داتا k bits + كود (n − k) bits ← frame n bits ← المستقبل يحسب نفس الكود ويقارن ← mismatch = error. (n − k) &lt; k</td></tr>
+    <tr class="ph-imp"><td><span class="dot"></span><span class="en">Parity</span></td><td>أبسط طريقة: bit زيادة (even / odd) لكل حرف 7-bit IRA. يكتشف كل single-bit errors، وburst بس لو عدد الأخطاء فردي</td></tr>
+    <tr class="t-warn"><td><span class="dot"></span><span class="en">CRC</span></td><td>المرسل يولّد FCS بحيث الـ frame (n bits) يتقسم تماماً على رقم متفق عليه؛ المستقبل يقسم: مفيش باقي = مفيش خطأ</td></tr>
+  </table>
+
+  <h3 class="sec">🚰 Flow control</h3>
+  <table class="tbl">
+    <tr><th></th><th>السؤال</th></tr>
+    <tr><td><span class="en">Line discipline</span></td><td class="en plain">Who should send now?</td></tr>
+    <tr><td><span class="en">Flow control</span></td><td class="en plain">How much data may be sent?</td></tr>
+    <tr><td><span class="en">Error control</span></td><td class="en plain">How can errors be corrected?</td></tr>
+  </table>
+  <div class="note"><b class="en">Stop-and-Wait</b>: المرسل يبعت frame واحد ويقف لحد ما يجيله ACK، وبعدين يبعت اللي بعده (canSend = false بعد الإرسال، true لما ACK يوصل). الـ <b>buffer</b> = ذاكرة المستقبل لتخزين الداتا لحد ما تتعالج. 📖 الطرق: Stop-and-wait و Sliding Window.</div>
+
+  <h3 class="sec">📖 الكتاب ضد السلايدات</h3>
+  <table class="tbl">
+    <tr><th>الموضوع</th><th>السلايدات</th><th>الكتاب 📖</th></tr>
+    <tr><td>MAC</td><td>48 bits، 12 hex، ROM، unicast/broadcast/multicast</td><td>+ OUI (أول 24 bit للمصنّع)، فرق physical/logical، شكل XX:XX:XX:YY:YY:YY</td></tr>
+    <tr><td>Switch</td><td>CAM table، data link</td><td>+ MAC table، يبعت لأجهزة مختارة، أكتر من packet معاً، L2 / multi-layer</td></tr>
+    <tr><td>Router</td><td>routing table، network layer، أحسن مسار</td><td>+ يوصّل LAN بالإنترنت، wired/wireless · Gateway</td></tr>
+    <tr><td>Collision</td><td>CSMA/CD وخطواته</td><td>الـ hub بيعمل collision (فصل 2)</td></tr>
+    <tr><td>Flow control</td><td>Stop-and-Wait فقط</td><td>+ Sliding Window · الـ LLC في الـ data link</td></tr>
+  </table>
+
+  <h3 class="sec">⚠️ الفخاخ</h3>
+  <div class="note bad">
+    ❌ CSMA/CD في الـ Network layer (هو MAC) &nbsp;·&nbsp; ❌ busy → يبعت على طول (يستنى) &nbsp;·&nbsp; ❌ MAC في RAM (ROM) &nbsp;·&nbsp; ❌ Switch = network layer / Router = data link (العكس) &nbsp;·&nbsp; ❌ throughput = bandwidth دايماً (الفعلي أقل) &nbsp;·&nbsp; ❌ burst error = أول وآخر bit بس (وأي عدد في النص) &nbsp;·&nbsp; ❌ parity بيكتشف أي burst (بس لو عدد الأخطاء فردي) &nbsp;·&nbsp; ❌ even parity = عدد فردي من الـ 1s (زوجي) &nbsp;·&nbsp; ❌ Stop-and-Wait: يبعت الـ frame اللي بعده قبل الـ ACK (لأ)
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+window.DATA = {
+  decks: {
+    /* ---------- CSMA/CD next-step ---------- */
+    csma: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'A frame is ready for transmission. What does the station check first?', opts: ['Whether the channel is idle or busy', 'Whether the receiver has enough buffer', 'The CRC remainder', 'The MAC table'], a: 0, why: 'أول خطوة في CSMA/CD: <b>تتأكد القناة idle ولا busy</b>.' },
+        { q: 'The channel is busy. The station:', opts: ['Waits until the channel becomes idle', 'Transmits immediately', 'Aborts the transmission', 'Starts the collision resolution algorithm'], a: 0, why: 'لو busy: <b>تستنى لحد ما تبقى idle</b>.' },
+        { q: 'The channel is idle. The station:', opts: ['Starts transmitting and continually monitors the channel to detect a collision', 'Waits for a backoff period', 'Increments the retransmission counter', 'Aborts the transmission'], a: 0, why: 'لو idle: <b>تبدأ تبعت وتراقب القناة</b>.' },
+        { q: 'A collision is detected. The station:', opts: ['Starts the collision resolution algorithm', 'Resets the retransmission counters and completes the frame', 'Ignores it and continues', 'Switches to full duplex'], a: 0, why: 'اكتشاف collision ← <b>collision resolution algorithm</b>.' },
+        { q: 'In collision resolution, the station first continues transmission of the current frame for a specified time in order to:', opts: ['Ensure that all the other stations detect the collision', 'Send more data', 'Calculate the CRC', 'Update the MAC table'], a: 0, why: 'عشان <b>كل المحطات التانية تكتشف الـ collision</b>.' },
+        { q: 'Then the station increments the:', opts: ['Retransmission counter', 'Parity bit', 'Router table', 'Buffer'], a: 0, why: '<b>retransmission counter</b>.' },
+        { q: 'If the maximum number of retransmission attempts is reached, the station:', opts: ['Aborts transmission', 'Waits for a backoff period', 'Sends the frame again immediately', 'Resets the channel'], a: 0, why: '<b>aborts transmission</b>.' },
+        { q: 'Otherwise (maximum not reached) the station waits for a backoff period, which is generally a function of:', opts: ['The number of collisions', 'The frame size only', 'The MAC address', 'The bandwidth of the channel'], a: 0, why: 'الـ backoff <b>دالة في عدد الـ collisions</b> وبعدها بيرجع للخوارزمية الأساسية.' },
+        { q: 'CSMA/CD is a protocol that operates in which layer?', opts: ['Medium Access Control (MAC) layer', 'Network layer', 'Transport layer', 'Session layer'], a: 0, why: 'بيشتغل في طبقة الـ <b>MAC</b>.' },
+        { q: 'CSMA is based on the principle:', opts: ['“Sense before transmit” (listen before talk)', '“Transmit then sense”', '“Transmit and ignore collisions”', '“Wait for a router”'], a: 0, why: '<b>sense before transmit</b> أو <b>listen before talk</b>.' }
+      ]
+    },
+
+    /* ---------- MAC vs IP ---------- */
+    macip: {
+      cols: 2,
+      opts: [{ t: 'MAC address', cls: 'ph-plan' }, { t: 'IP address', cls: 'ph-ana' }],
+      cards: [
+        { q: '48 bits expressed as twelve hexadecimal digits', a: 0, why: '<b>MAC</b>.' },
+        { q: 'Burned into the ROM of the NIC', a: 0, why: '<b>MAC</b>.' },
+        { q: 'Each NIC has a unique one', a: 0, why: '<b>MAC</b>.' },
+        { q: 'Can represent unicast, broadcast and multicast', a: 0, why: '<b>MAC</b> (سلايد 7).' },
+        { q: '📖 Used by the data link layer; the physical address', a: 0, why: '<b>MAC</b>.' },
+        { q: '📖 The first 24 bits (OUI) identify the manufacturer', a: 0, why: '<b>MAC</b>.' },
+        { q: '📖 Logical addressing at the network layer', a: 1, why: '<b>IP</b>.' },
+        { q: '📖 Assigned when the device connects to a network and can change on another network', a: 1, why: '<b>IP</b>.' },
+        { q: '📖 IPv4 is 32 bits in decimal; IPv6 is 128 bits in hexadecimal', a: 1, why: '<b>IP</b>.' },
+        { q: '📖 Remains constant regardless of the network you connect to', a: 0, why: '<b>MAC</b>.' }
+      ]
+    },
+
+    /* ---------- switch / router / hub ---------- */
+    swrt: {
+      cols: 3,
+      opts: [{ t: 'Switch', cls: 'ph-plan' }, { t: 'Router', cls: 'ph-ana' }, { t: 'Hub', cls: 'ph-des' }],
+      cards: [
+        { q: 'Works on the data link layer of the OSI model', a: 0, why: '<b>Switch</b>.' },
+        { q: 'Works on the network layer of the OSI model', a: 1, why: '<b>Router</b>.' },
+        { q: 'Stores MAC addresses in a lookup table (CAM table)', a: 0, why: '<b>Switch</b>.' },
+        { q: 'Stores IP addresses in a routing table', a: 1, why: '<b>Router</b>.' },
+        { q: 'Main function: connect end devices such as computers and printers', a: 0, why: '<b>Switch</b>.' },
+        { q: 'Main function: connect two different networks', a: 1, why: '<b>Router</b>.' },
+        { q: 'Finds the smallest and best routes for packets to reach the destination', a: 1, why: '<b>Router</b>.' },
+        { q: 'Connects multiple switches and their networks to build a large network', a: 1, why: '<b>Router</b>.' },
+        { q: 'Without it, we cannot build a small business network or connect devices within a building or campus', a: 0, why: '<b>Switch</b> (سلايد 8).' },
+        { q: 'Connects the modem to other devices to allow communication with the Internet', a: 1, why: '<b>Router</b> (سلايد 10).' },
+        { q: '📖 Forwards data only to the intended device using MAC addresses', a: 0, why: '<b>Switch</b>.' },
+        { q: '📖 Sends data arriving on one line out on all the other lines; collisions can occur', a: 2, why: '<b>Hub</b>.' }
+      ]
+    },
+
+    /* ---------- bandwidth terms ---------- */
+    bw: {
+      cols: 3,
+      opts: [{ t: 'Channel capacity', cls: 'ph-plan' }, { t: 'Data rate', cls: 'ph-ana' }, { t: 'Error rate', cls: 'ph-des' }, { t: 'Bandwidth', cls: 'ph-imp' }, { t: 'Latency', cls: 'ph-plan' }, { t: 'Throughput', cls: 'ph-ana' }],
+      cards: [
+        { q: 'The maximum rate at which data can be transmitted over a given communication path under given conditions', a: 0, why: '<b>Channel capacity</b>.' },
+        { q: 'The rate, in bits per second (bps), at which data can be transmitted', a: 1, why: '<b>Data rate</b>.' },
+        { q: 'The rate at which errors occur (reception of a 1 when a 0 was transmitted, or vice versa)', a: 2, why: '<b>Error rate</b>.' },
+        { q: 'The amount of data that can be transferred from one point to another within a network in a specific amount of time', a: 3, why: '<b>Bandwidth</b>.' },
+        { q: 'How much information you receive every second', a: 3, why: 'سلايد 15: <b>Bandwidth</b>.' },
+        { q: 'Sometimes referred to as delay rate; the lag you experience while waiting for something to load', a: 4, why: '<b>Latency</b>.' },
+        { q: 'The amount of time it takes information to get from its source to you', a: 4, why: '<b>Latency</b>.' },
+        { q: 'How much information actually gets delivered in a certain amount of time', a: 5, why: '<b>Throughput</b>.' },
+        { q: 'If bandwidth is the max amount of data, this is how much of that data makes it to its destination (taking latency, speed, packet loss into account)', a: 5, why: '<b>Throughput</b>.' }
+      ]
+    },
+
+    /* ---------- error types ---------- */
+    err: {
+      cols: 2,
+      opts: [{ t: 'Single-bit error', cls: 'ph-plan' }, { t: 'Burst error', cls: 'ph-ana' }],
+      cards: [
+        { q: 'An isolated error condition that alters one bit but does not affect nearby bits', a: 0, why: '<b>Single-bit error</b>.' },
+        { q: 'A contiguous sequence of B bits in which the first and last bits and any number of intermediate bits are received in error', a: 1, why: '<b>Burst error</b> of length B.' },
+        { q: 'In the slide figure: a single 0 changed to 1', a: 0, why: '<b>Single-bit</b>.' },
+        { q: 'In the slide figure: a length of burst error of 5 bits', a: 1, why: '<b>Burst</b>.' },
+        { q: 'Simple parity can detect all of these', a: 0, why: 'الـ parity البسيط بيكتشف <b>كل single-bit errors</b>.' },
+        { q: 'Simple parity detects these only if the total number of errors in each data unit is odd', a: 1, why: '<b>Burst</b>.' }
+      ]
+    },
+
+    /* ---------- parity vs CRC ---------- */
+    parcrc: {
+      cols: 2,
+      opts: [{ t: 'Parity check', cls: 'ph-plan' }, { t: 'CRC', cls: 'ph-ana' }],
+      cards: [
+        { q: 'The simplest error-detecting scheme: append a bit to the end of a block of data', a: 0, why: '<b>Parity</b>.' },
+        { q: 'A parity bit is attached to each 7-bit IRA character', a: 0, why: '<b>Parity</b>.' },
+        { q: 'The bit is chosen so that the character has an even (or odd) number of 1s', a: 0, why: '<b>Parity</b>: even / odd.' },
+        { q: 'One of the most common and most powerful error-detecting codes', a: 1, why: '<b>CRC</b>.' },
+        { q: 'The transmitter generates a frame check sequence (FCS) so that the n-bit frame is exactly divisible by a predetermined number', a: 1, why: '<b>CRC</b>.' },
+        { q: 'The receiver divides the incoming frame by that number; no remainder means no error', a: 1, why: '<b>CRC</b>.' },
+        { q: 'The receiver counts the 1 bits and checks whether the count is even', a: 0, why: '<b>Even parity</b> checker.' },
+        { q: 'Uses a divisor of n + 1 bits and an n-bit remainder', a: 1, why: '<b>CRC</b>.' }
+      ]
+    },
+    parcrc2: {
+      cols: 2,
+      opts: [{ t: 'Parity check', cls: 'ph-plan' }, { t: 'CRC', cls: 'ph-ana' }],
+      cards: [
+        { q: 'Receiver result “Zero” → accept; “Nonzero” → reject', a: 1, why: '<b>CRC</b>.' },
+        { q: 'Receiver result “Even?” yes → drop the parity bit and accept the data; no → reject', a: 0, why: '<b>Parity</b> (even parity).' },
+        { q: 'Appends n zeros to the data before dividing', a: 1, why: '<b>CRC</b>.' },
+        { q: 'Can detect all single-bit errors', a: 0, why: '<b>Parity</b> بيكتشف كل single-bit errors.' },
+        { q: 'Detects burst errors only if the number of errors in the data unit is odd', a: 0, why: '<b>Parity</b>.' },
+        { q: 'The check value is the remainder of a division', a: 1, why: '<b>CRC</b>.' }
+      ]
+    },
+
+    /* ---------- flow ---------- */
+    flow: {
+      cols: 3,
+      opts: [{ t: 'Line discipline', cls: 'ph-plan' }, { t: 'Flow control', cls: 'ph-ana' }, { t: 'Error control', cls: 'ph-des' }],
+      cards: [
+        { q: 'Who should send now?', a: 0, why: '<b>Line discipline</b>.' },
+        { q: 'How much data may be sent?', a: 1, why: '<b>Flow control</b>.' },
+        { q: 'How can errors be corrected?', a: 2, why: '<b>Error control</b>.' },
+        { q: 'A set of procedures that tells the sender how much data it can transmit before it must wait for an acknowledgment', a: 1, why: '<b>Flow control</b>.' },
+        { q: 'Allows the receiver to inform the sender of any frames lost or damaged and coordinates retransmission', a: 2, why: '<b>Error control</b>.' },
+        { q: 'Must not allow the flow of data to overwhelm the receiver; uses a buffer', a: 1, why: '<b>Flow control</b>.' },
+        { q: 'The sender sends one frame, stops until it receives confirmation, then sends the next', a: 1, why: '<b>Stop-and-Wait</b> وهو أسلوب <b>flow control</b>.' }
+      ]
+    },
+
+    /* ---------- True / False traps ---------- */
+    traps: {
+      cols: 2,
+      opts: [{ t: 'صح ✔ (True)', cls: 't-ok' }, { t: 'غلط ✘ (False)', cls: 't-bad' }],
+      cards: [
+        { q: 'In a half duplex Ethernet network, a collision is the result of two devices attempting to transmit data at exactly the same time.', a: 0, why: 'صح.' },
+        { q: 'CSMA/CD is a protocol that operates in the Network layer.', a: 1, why: 'بيشتغل في طبقة الـ <b>MAC</b>.' },
+        { q: 'CSMA is based on the principle “sense before transmit” or “listen before talk”.', a: 0, why: 'صح.' },
+        { q: 'If the channel is busy, the station transmits immediately and detects the collision later.', a: 1, why: 'لو busy: <b>تستنى</b> لحد ما تبقى idle.' },
+        { q: 'After detecting a collision, the station continues transmitting for a specified time to make sure all other stations detect the collision.', a: 0, why: 'صح — أول خطوة في collision resolution.' },
+        { q: 'If the maximum number of retransmission attempts is reached, the station aborts transmission.', a: 0, why: 'صح.' },
+        { q: 'A MAC address is 48 bits long and expressed as twelve hexadecimal digits.', a: 0, why: 'صح.' },
+        { q: 'MAC addresses are burned into the RAM of the NIC.', a: 1, why: 'في الـ <b>ROM</b>.' },
+        { q: 'Each NIC has a unique MAC address.', a: 0, why: 'صح.' },
+        { q: 'A MAC address can represent unicast, broadcast and multicast.', a: 0, why: 'صح.' },
+        { q: 'A switch works on the network layer, while a router works on the data link layer.', a: 1, why: 'العكس: <b>Switch = data link</b>، <b>Router = network</b>.' },
+        { q: 'A switch stores MAC addresses in a lookup (CAM) table, while routers store IP addresses in the routing table.', a: 0, why: 'صح.' },
+        { q: 'The main function of a router is to connect end devices such as computers and printers.', a: 1, why: 'ده الـ <b>switch</b>. الـ router بيوصّل شبكتين مختلفتين.' },
+        { q: 'Bandwidth is measured as the amount of data that can be transferred from one point to another within a network in a specific amount of time.', a: 0, why: 'صح.' },
+        { q: 'Latency is the amount of time it takes information to get from its source to you.', a: 0, why: 'صح.' },
+        { q: 'Throughput is always equal to bandwidth.', a: 1, why: 'الـ throughput = اللي <b>بيوصل فعلاً</b> بعد حساب latency وpacket loss، فهو أقل أو يساوي الـ bandwidth.' },
+        { q: 'A single-bit error alters one bit but does not affect nearby bits.', a: 0, why: 'صح.' },
+        { q: 'In a burst error, only the first and last bits are in error; the intermediate bits are always correct.', a: 1, why: 'أول وآخر bit <b>وأي عدد من الـ bits اللي في النص</b>.' },
+        { q: 'For a data block of k bits, the error-detecting code has n − k bits where (n − k) < k.', a: 0, why: 'صح.' },
+        { q: 'A detected error occurs if and only if there is a mismatch between the receiver’s calculated code and the incoming code.', a: 0, why: 'صح.' },
+        { q: 'Simple parity check can detect all single-bit errors.', a: 0, why: 'صح.' },
+        { q: 'Simple parity check can detect any burst error regardless of the number of errors.', a: 1, why: 'بيكتشفه بس لو <b>عدد الأخطاء فردي</b>.' },
+        { q: 'In even parity, the parity bit is chosen so that the character has an odd number of 1s.', a: 1, why: 'even parity = عدد <b>زوجي</b> من الـ 1s.' },
+        { q: 'In CRC, the receiver divides the incoming frame by a predetermined number; if there is no remainder it assumes there was no error.', a: 0, why: 'صح.' },
+        { q: 'In Stop-and-Wait, the sender sends one frame, stops until it receives confirmation from the receiver, and then sends the next frame.', a: 0, why: 'صح.' },
+        { q: 'Error control allows the receiver to inform the sender of lost or damaged frames and coordinates their retransmission.', a: 0, why: 'صح.' },
+        { q: 'Each receiving device has a buffer, a block of memory reserved for storing incoming data until it is processed.', a: 0, why: 'صح.' }
+      ]
+    },
+
+    /* ---------- MCQ ---------- */
+    mcq: {
+      cols: 1,
+      shuffleOpts: true,
+      cards: [
+        { q: 'CSMA/CD requires each station to ______ before sending.', opts: ['listen to the medium (check its state)', 'calculate the CRC', 'update its routing table', 'wait for an ACK'], a: 0, why: '<b>sense before transmit</b>.' },
+        { q: 'A MAC address is:', opts: ['48 bits written as 12 hexadecimal digits', '32 bits written in dotted decimal', '128 bits written in hexadecimal', '16 bits written in binary'], a: 0, why: '<b>48 bits / 12 hex digits</b>. الـ 32 bits = IPv4.' },
+        { q: 'Which device works at the data link layer and keeps MAC addresses in a lookup (CAM) table?', opts: ['Switch', 'Router', 'Repeater', 'Gateway'], a: 0, why: '<b>Switch</b>.' },
+        { q: 'Which device finds the best route using a routing table and works at the network layer?', opts: ['Router', 'Switch', 'Hub', 'NIC'], a: 0, why: '<b>Router</b>.' },
+        { q: 'Which term describes how much information actually gets delivered in a certain time, taking latency and packet loss into account?', opts: ['Throughput', 'Bandwidth', 'Channel capacity', 'Error rate'], a: 0, why: '<b>Throughput</b>.' },
+        { q: 'A burst error of length B is:', opts: ['A contiguous sequence of B bits whose first and last bits (and any intermediate bits) are in error', 'A single isolated altered bit', 'An error only in the parity bit', 'Loss of the whole frame'], a: 0, why: 'تعريف الـ <b>burst error</b>.' },
+        { q: 'Using even parity, which parity bit is appended to the 7-bit data 1100001?', opts: ['1', '0', 'Either one', 'None'], a: 0, why: 'فيها تلات 1s، فنضيف <b>1</b> عشان يبقى العدد 4 (زوجي).' },
+        { q: 'In CRC, the receiver divides the incoming frame by the predetermined number and finds no remainder. This means:', opts: ['No error is assumed', 'An error was detected', 'The frame is discarded', 'The frame must be retransmitted'], a: 0, why: 'مفيش باقي = <b>no error</b>.' },
+        { q: 'In the Stop-and-Wait protocol, after sending a frame the sender:', opts: ['Waits for an acknowledgment before sending the next frame', 'Immediately sends the next frame', 'Aborts transmission', 'Waits for a collision'], a: 0, why: '<b>يقف لحد ما يوصله تأكيد</b>.' },
+        { q: 'Which data link control function answers “How much data may be sent?”', opts: ['Flow control', 'Line discipline', 'Error control', 'Addressing'], a: 0, why: '<b>Flow control</b>.' }
+      ]
+    }
+  },
+
+  /* ---------- flashcards ---------- */
+  flash: {
+    main: [
+      { f: 'إيه هو الـ <span class="en">collision</span>؟', b: 'في half duplex Ethernet: جهازين على نفس الشبكة بيحاولوا يبعتوا داتا <b>في نفس اللحظة بالظبط</b>.' },
+      { f: '<span class="en">CSMA/CD</span> يعني إيه؟ وبيشتغل في أنهي طبقة؟', b: '<span class="en">Carrier Sense Multiple Access with Collision Detection</span>. بيشتغل في طبقة الـ <span class="en">MAC</span>.' },
+      { f: 'مبدأ الـ <span class="en">CSMA</span>', b: '<span class="en">"Sense before transmit"</span> أو <span class="en">"listen before talk"</span>: المحطة تسمع القناة الأول.' },
+      { f: 'خطوات الـ <span class="en">CSMA/CD</span> الرئيسية', b: '① الـ frame جاهز: افحص idle/busy ② busy: استنى ③ idle: ابعت وراقب ④ collision: ابدأ resolution ⑤ صفّر الـ counters وكمّل الإرسال.' },
+      { f: 'خطوات الـ <span class="en">Collision Resolution</span>', b: '① كمّل إرسال الـ frame لمدة محددة (عشان الكل يكتشف) ② زوّد retransmission counter ③ لو وصلت الحد الأقصى: abort ④ غير كده: استنى backoff وابدأ من الأول.' },
+      { f: 'الـ <span class="en">backoff period</span> بيعتمد على إيه؟', b: 'غالباً <b>دالة في عدد الـ collisions</b>.' },
+      { f: 'الـ <span class="en">MAC address</span>', b: '<span class="en">48 bits</span> = <span class="en">12 hex digits</span> (مثال A34C.52BD.1234). محروق في <span class="en">ROM</span> بتاعة الـ NIC. فريد. unicast / broadcast / multicast.' },
+      { f: '📖 أجزاء الـ <span class="en">MAC</span>', b: 'أول 24 bit = <span class="en">OUI</span> (هوية المصنّع). تاني 24 bit = هوية الجهاز (المصنّع بيحددها). الشكل: XX:XX:XX:YY:YY:YY.' },
+      { f: 'الـ <span class="en">Switch</span>', b: 'بيوصّل الأجهزة في شبكة صغيرة. بيشتغل في <b>data link layer</b>. بيخزّن <b>MAC addresses</b> في lookup/CAM table. بيوصّل end devices.' },
+      { f: 'الـ <span class="en">Router</span>', b: 'بيوصّل switches وشبكات مختلفة. بيشتغل في <b>network layer</b>. بيخزّن <b>IP addresses</b> في routing table. بيلاقي أحسن مسار.' },
+      { f: 'الفرق الجوهري: <span class="en">Switch</span> ضد <span class="en">Router</span> (4 نقط)', b: 'الوظيفة (end devices ضد شبكتين) · الطبقة (data link ضد network) · الغرض (يبعت للوجهة ضد يلاقي أحسن مسار) · الجدول (MAC/CAM ضد IP/routing).' },
+      { f: '📖 إيه الفرق بين الـ <span class="en">switch</span> والـ <span class="en">hub</span>؟', b: 'الـ hub بيبعت لكل الـ ports (وفيه collision). الـ switch بيبعت لجهاز الوجهة بس باستخدام MAC table، وبيقدر يبعت أكتر من packet في نفس الوقت.' },
+      { f: '<span class="en">Channel capacity</span>', b: 'أقصى معدل ينفع الداتا تتنقل بيه عبر قناة تحت ظروف معينة.' },
+      { f: '<span class="en">Data rate</span> و <span class="en">Error rate</span>', b: '<b>Data rate</b>: المعدل بالـ bps. <b>Error rate</b>: معدل حدوث الأخطاء (استقبال 1 بدل 0 أو العكس).' },
+      { f: '<span class="en">Bandwidth</span>', b: 'كمية الداتا اللي تتنقل من نقطة لنقطة في الشبكة في وقت محدد (كام معلومة تستقبلها كل ثانية).' },
+      { f: '<span class="en">Bandwidth</span> ضد <span class="en">speed</span>', b: 'Bandwidth = <b>كام</b> معلومة كل ثانية. Speed = <b>بسرعة قد إيه</b> بتتحمّل.' },
+      { f: '<span class="en">Latency</span>', b: 'بيتسمى كمان <span class="en">delay rate</span>: الوقت اللي المعلومة بتاخده من المصدر لحد ما توصلك (التأخير اللي بتحس بيه).' },
+      { f: '<span class="en">Throughput</span>', b: 'كام معلومة بتتسلّم <b>فعلاً</b> في وقت معين (بعد حساب latency, speed, packet loss). أقل من الـ bandwidth الأقصى.' },
+      { f: 'أنواع الأخطاء', b: '<span class="en">Single-bit error</span>: bit واحد معزول. <span class="en">Burst error (length B)</span>: B bits متصلة، أول وآخر bit وأي عدد في النص غلط.' },
+      { f: 'مبدأ اكتشاف الأخطاء', b: 'داتا k bits + كود (n − k) bits حيث (n − k) < k ← frame n bits. المستقبل يحسب نفس الكود ويقارن. الخطأ بيتكشف لو وفقط لو فيه mismatch.' },
+      { f: 'الـ <span class="en">Parity check</span>', b: 'أبسط طريقة: parity bit في آخر الـ block. لكل حرف IRA من 7 bits. <span class="en">Even</span> = عدد زوجي من الـ 1s، <span class="en">Odd</span> = فردي.' },
+      { f: 'الـ <span class="en">Parity</span> بيكتشف إيه؟', b: 'كل الـ <b>single-bit errors</b>. وبيكتشف الـ <b>burst</b> بس لو إجمالي عدد الأخطاء في الـ data unit <b>فردي</b>.' },
+      { f: 'مثال parity: 1100001 بـ even parity', b: 'تلات 1s ← نضيف <b>1</b> ← 11000011 (4 واحدات: زوجي).' },
+      { f: 'الـ <span class="en">CRC</span>', b: 'المرسل يولّد <span class="en">FCS</span> بحيث الـ frame (n bits) يتقسم تماماً على رقم متفق عليه. المستقبل يقسم: مفيش باقي = مفيش خطأ.' },
+      { f: 'خطوات الـ <span class="en">CRC</span> من الرسمة', b: 'نضيف n أصفار للداتا ← نقسم على الـ divisor (n+1 bits) ← الـ remainder (n bits) = CRC ← نبعت Data + CRC ← المستقبل يقسم: Zero = accept، Nonzero = reject.' },
+      { f: 'مكونات الـ <span class="en">Data link control</span>', b: '<span class="en">Line discipline (Who should send now?) · Flow control (How much data may be sent?) · Error control (How can errors be corrected?)</span>' },
+      { f: 'الـ <span class="en">Flow control</span>', b: 'مجموعة إجراءات بتقول للمرسل كام داتا يقدر يبعت قبل ما يستنى acknowledgment. الهدف: ماتغرقش المستقبل.' },
+      { f: 'الـ <span class="en">buffer</span>', b: 'كتلة ذاكرة عند المستقبل لتخزين الداتا الواردة لحد ما تتعالج.' },
+      { f: 'الـ <span class="en">Error control</span>', b: 'بيسمح للمستقبل يبلّغ المرسل بالـ frames الضايعة أو التالفة وينسّق إعادة إرسالها.' },
+      { f: 'الـ <span class="en">Stop-and-Wait</span>', b: 'المرسل يبعت frame واحد، يقف لحد ما يوصله تأكيد (ACK)، وبعدين يبعت اللي بعده. (canSend = false بعد الإرسال، true لما ACK يوصل)' },
+      { f: 'ليه محتاجين <span class="en">Stop-and-Wait</span>؟', b: 'لو الـ frames وصلت أسرع من المعالجة هتتخزّن، ولو مفيش مساحة هيحصل discard أو denial of service. لازم feedback من المستقبل.' },
+      { f: '📖 طرق الـ <span class="en">flow control</span> (الكتاب)', b: '<span class="en">Stop-and-wait</span> و <span class="en">Sliding Window</span>.' },
+      { f: '📖 دور الـ <span class="en">LLC</span> و الـ <span class="en">MAC</span> sub-layers', b: '<b>LLC</b>: error detection + flow control. <b>MAC</b>: التحكم في الوصول للوسط المشترك ومنع الـ collisions.' }
+    ]
+  },
+
+  /* ---------- essay model answers ---------- */
+  essays: {
+    e1: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>CSMA/CD</b> (Carrier Sense Multiple Access with Collision Detection) is a protocol operating in the MAC layer. It senses whether the shared channel is busy and defers transmission until it is free; based on “sense before transmit” (listen before talk). Steps:</p>' +
+        '<ol dir="ltr" style="margin:0 0 8px;padding-left:20px"><li>When a frame is ready, the station checks whether the channel is idle or busy.</li><li>If busy, it waits until the channel becomes idle.</li><li>If idle, it starts transmitting and continually monitors the channel to detect a collision.</li><li>If a collision is detected, it starts the collision resolution algorithm.</li><li>The station resets the retransmission counters and completes frame transmission.</li></ol>' +
+        '<p dir="ltr" style="margin:0 0 4px"><b>Collision resolution</b>:</p>' +
+        '<ol dir="ltr" style="margin:0;padding-left:20px"><li>Continue transmitting the current frame for a specified time so that all other stations detect the collision.</li><li>Increment the retransmission counter.</li><li>If the maximum number of retransmission attempts is reached, abort the transmission.</li><li>Otherwise wait for a backoff period (generally a function of the number of collisions) and restart the main algorithm.</li></ol>',
+      points: [
+        'CSMA/CD at the MAC layer; sense before transmit',
+        'Busy → wait; idle → transmit and monitor',
+        'Collision → collision resolution',
+        'Continue transmission for a specified time',
+        'Increment retransmission counter; abort at the maximum',
+        'Otherwise backoff (function of the number of collisions) and restart'
+      ]
+    },
+    e2: {
+      model:
+        '<table class="tbl" style="margin:0" dir="ltr"><tr><th></th><th>Switch</th><th>Router</th></tr>' +
+        '<tr><td>Main function</td><td class="en plain">Connects end devices such as computers and printers.</td><td class="en plain">Connects two different networks.</td></tr>' +
+        '<tr><td>Layer</td><td class="en plain">Data link layer of the OSI model.</td><td class="en plain">Network layer of the OSI model.</td></tr>' +
+        '<tr><td>Purpose</td><td class="en plain">Determines the destination address of the received packet and forwards it to that destination.</td><td class="en plain">Finds the smallest and best routes for packets to reach the destination, using the routing table.</td></tr>' +
+        '<tr><td>Table</td><td class="en plain">Stores MAC addresses in the lookup (CAM) table.</td><td class="en plain">Stores IP addresses in the routing table.</td></tr></table>',
+      points: [
+        'Main function — end devices vs two different networks',
+        'Layer — data link vs network',
+        'Purpose — forward to destination vs best route',
+        'Table — MAC/CAM vs IP/routing table'
+      ]
+    },
+    e3: {
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Types of errors</b>: an error occurs when a bit is altered between transmission and reception. A <i>single-bit error</i> is an isolated condition that alters one bit without affecting nearby bits. A <i>burst error of length B</i> is a contiguous sequence of B bits in which the first and last bits and any number of intermediate bits are received in error.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>Error detection principle</b>: for a data block of k bits the transmitter adds an error-detecting code (check bits) of n − k bits (n − k &lt; k), calculated as a function of the data, giving an n-bit frame. The receiver separates the data and the code, performs the same calculation on the data and compares it with the incoming code; an error is detected if and only if there is a mismatch.</p>' +
+        '<p dir="ltr" style="margin:0 0 8px"><b>Parity check</b>: the simplest scheme; a parity bit is appended (e.g. to each 7-bit IRA character) so that the number of 1s is even (even parity) or odd (odd parity). It detects all single-bit errors and detects burst errors only if the total number of errors in each data unit is odd.</p>' +
+        '<p dir="ltr" style="margin:0"><b>CRC</b>: one of the most common and powerful codes. Given a k-bit message, the transmitter generates a frame check sequence (FCS) so that the resulting n-bit frame is exactly divisible by a predetermined number. The receiver divides the incoming frame by that number; if there is no remainder it assumes there was no error.</p>',
+      points: [
+        'Single-bit vs burst error definitions',
+        'Principle: k data bits + (n − k) check bits, compare at receiver, mismatch = error',
+        'Parity — even/odd, detects all single-bit, burst only if odd number of errors',
+        'CRC — FCS, frame divisible by a predetermined number, no remainder = no error'
+      ]
+    }
+  }
+};
+</script>
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ---------- CSMA/CD simulator ---------- */
+(function () {
+  var hostsEl = document.getElementById('csHosts');
+  if (!hostsEl) return;
+  var N = ['A', 'B', 'C', 'D'];
+  var log = document.getElementById('csLog'), chan = document.getElementById('csChan'), maxSel = document.getElementById('csMax');
+  var ready = {}, counter = 0, round = 0;
+  N.forEach(function (n, i) {
+    var l = document.createElement('label');
+    l.innerHTML = '<input type="checkbox" data-h="' + n + '"' + (i < 2 ? ' checked' : '') + '> ' + n;
+    hostsEl.appendChild(l);
+  });
+  function sel() { return N.filter(function (n) { return hostsEl.querySelector('[data-h=' + n + ']').checked; }); }
+  function add(t, c) { var d = document.createElement('div'); if (c) d.className = c; d.innerHTML = t; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+  function reset() { counter = 0; round = 0; log.innerHTML = '<div>علّم محطتين على الأقل وخلّي القناة idle عشان تشوف collision.</div>'; }
+  function go() {
+    if (round === 0) log.innerHTML = '';
+    var rd = sel();
+    round++;
+    if (!rd.length) return add('جولة ' + round + ': مفيش محطة جاهزة تبعت.');
+    if (chan.value === 'busy') return add('جولة ' + round + ': القناة <b>busy</b> ← كل المحطات (' + rd.join(', ') + ') <b>بتستنى</b> لحد ما تبقى idle (carrier sense).');
+    if (rd.length === 1) { counter = 0; return add('جولة ' + round + ': القناة idle والمحطة <b>' + rd[0] + '</b> لوحدها ← بتبعت وبتراقب ← <b>نجح الإرسال</b> ✔ (الـ counters اتصفّرت).', 'good'); }
+    counter++;
+    add('جولة ' + round + ': القناة idle و <b>' + rd.join(' و ') + '</b> بدأوا مع بعض ← 💥 <b>collision</b>. كل محطة <b>تكمّل إرسال الـ frame مدة محددة</b> عشان الكل يكتشف، وبتزوّد الـ retransmission counter (= ' + counter + ').', 'bad');
+    var max = +maxSel.value;
+    if (counter >= max) { add('وصلنا للحد الأقصى (' + max + ') ← المحطات <b>abort transmission</b> ✘.', 'bad'); counter = 0; round = 0; return; }
+    var range = Math.pow(2, counter), w = {}, min = 1e9, who = [];
+    rd.forEach(function (n) { w[n] = Math.floor(Math.random() * range); if (w[n] < min) min = w[n]; });
+    rd.forEach(function (n) { if (w[n] === min) who.push(n); });
+    add('<b>backoff</b>: ' + rd.map(function (n) { return n + ' = ' + w[n]; }).join('، ') + ' (مدى 0–' + (range - 1) + ').');
+    if (who.length === 1) {
+      add('<b>' + who[0] + '</b> خلّصت الانتظار الأول فبعتت ونجحت ✔. باقي المحطات بتحس إن القناة busy فبتستنى.', 'good');
+      var cb = hostsEl.querySelector('[data-h=' + who[0] + ']'); cb.checked = false;
+      if (sel().length <= 1) counter = 0;
+    } else add('اتنين خلّصوا الانتظار مع بعض (' + who.join(' و ') + ') ← هيحصل collision تاني في الجولة الجاية.');
+  }
+  document.getElementById('csGo').addEventListener('click', go);
+  document.getElementById('csReset').addEventListener('click', function () {
+    reset(); hostsEl.querySelectorAll('input').forEach(function (c, i) { c.checked = i < 2; }); chan.value = 'idle';
+  });
+})();
+
+/* ---------- MAC splitter ---------- */
+(function () {
+  var inp = document.getElementById('macIn');
+  if (!inp) return;
+  var out = document.getElementById('macOut'), v = document.getElementById('macV');
+  function upd() {
+    var raw = inp.value.trim().replace(/[.:\-\s]/g, '').toUpperCase();
+    out.innerHTML = '';
+    var ok = /^[0-9A-F]{12}$/.test(raw);
+    if (!ok) {
+      v.className = 'verdict neg';
+      v.innerHTML = '✘ مش MAC صحيح: لازم <b>12 رقم hexadecimal</b> (0-9 و A-F). المكتوب: ' + raw.length + ' رقم' + (/[^0-9A-F]/.test(raw) ? ' وفيه رموز غير hex.' : '.');
+      return;
+    }
+    for (var i = 0; i < 6; i++) {
+      var s = document.createElement('span');
+      s.textContent = raw.substr(i * 2, 2); s.className = i < 3 ? 'oui' : 'dev';
+      out.appendChild(s);
+    }
+    v.className = 'verdict pos';
+    v.innerHTML = '✔ MAC صحيح: 12 hex digits × 4 bits = <b>48 bits</b> (6 bytes). 📖 الأزرق = أول 24 bit (<b>OUI</b> = المصنّع): ' + raw.substr(0, 6) + ' · الأصفر = آخر 24 bit (هوية الجهاز): ' + raw.substr(6);
+  }
+  inp.addEventListener('input', upd);
+  upd();
+})();
+
+/* ---------- hub vs switch ---------- */
+(function () {
+  var g = document.getElementById('swg');
+  if (!g) return;
+  var S = ['A', 'B', 'C', 'D'], mode = 'switch';
+  var from = document.getElementById('swFrom'), to = document.getElementById('swTo'), V = document.getElementById('swV');
+  function draw() {
+    var f = from.value, t = to.value; g.innerHTML = '';
+    if (f === t) { V.className = 'verdict neg'; V.innerHTML = 'اختار وجهة مختلفة عن المرسل.'; S.forEach(function (s) { g.innerHTML += '<div class="' + (s === f ? 'snd' : '') + '">' + s + '<small>' + (s === f ? 'sender' : '') + '</small></div>'; }); return; }
+    S.forEach(function (s) {
+      var cls, sub;
+      if (s === f) { cls = 'snd'; sub = 'بيبعت'; }
+      else if (mode === 'hub') { cls = 'rcv'; sub = 'بيستقبل'; }
+      else if (s === t) { cls = 'rcv'; sub = 'بيستقبل (MAC متطابق)'; }
+      else { cls = 'no'; sub = 'مبيستقبلش'; }
+      g.innerHTML += '<div class="' + cls + '">' + s + '<small>' + sub + '</small></div>';
+    });
+    V.className = 'verdict pos';
+    V.innerHTML = mode === 'hub'
+      ? '🔀 <b>Hub</b>: بيبعت الـ bits لـ <b>كل الـ ports التانية</b>، فكل الأجهزة بتستقبل (📖 وممكن يحصل collision).'
+      : '🔀 <b>Switch</b>: بيدوّر على MAC الوجهة (<b>' + t + '</b>) في الـ <b>lookup / CAM table</b> ويبعت للـ port بتاعها بس (📖 باقي الأجهزة مبتستقبلش).';
+  }
+  from.addEventListener('change', draw); to.addEventListener('change', draw);
+  Array.prototype.forEach.call(document.querySelectorAll('#swSeg button'), function (b) {
+    b.addEventListener('click', function () {
+      mode = b.dataset.m;
+      Array.prototype.forEach.call(document.querySelectorAll('#swSeg button'), function (x) { x.classList.toggle('on', x === b); });
+      draw();
+    });
+  });
+  draw();
+})();
+
+/* ---------- bandwidth / throughput calculator ---------- */
+(function () {
+  var B = document.getElementById('bwB');
+  if (!B) return;
+  var L = document.getElementById('bwL'), S = document.getElementById('bwS'), D = document.getElementById('bwD');
+  function f(x, d) { return (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)); }
+  function upd() {
+    var b = Math.max(1, +B.value || 1), l = Math.min(99, Math.max(0, +L.value || 0)), s = Math.max(1, +S.value || 1), d = Math.max(0, +D.value || 0);
+    var thr = b * (1 - l / 100);
+    var t = d / 1000 + (s * 8) / thr;
+    document.getElementById('bwO1').textContent = f(b, 2) + ' Mbps';
+    document.getElementById('bwO2').textContent = f(thr, 2) + ' Mbps';
+    document.getElementById('bwO3').textContent = f(t, 2) + ' s';
+  }
+  [B, L, S, D].forEach(function (x) { x.addEventListener('input', upd); });
+  upd();
+})();
+
+/* ---------- parity demo ---------- */
+(function () {
+  var dEl = document.getElementById('parData');
+  if (!dEl) return;
+  var fEl = document.getElementById('parFrame'), V = document.getElementById('parV');
+  var data = [1, 1, 0, 0, 0, 0, 1], mode = 'even', flips = [];
+  function parBit() { var ones = data.reduce(function (a, b) { return a + b; }, 0); return mode === 'even' ? ones % 2 : 1 - (ones % 2); }
+  function draw() {
+    dEl.innerHTML = '';
+    data.forEach(function (b, i) {
+      var x = document.createElement('button'); x.type = 'button'; x.textContent = b; x.className = b ? 'one' : '';
+      x.addEventListener('click', function () { data[i] = 1 - data[i]; flips = []; draw(); });
+      dEl.appendChild(x);
+    });
+    var frame = data.concat([parBit()]);
+    fEl.innerHTML = '';
+    frame.forEach(function (b, i) {
+      var x = document.createElement('button'); x.type = 'button';
+      var fl = flips.indexOf(i) >= 0;
+      var shown = fl ? 1 - b : b;
+      x.textContent = shown; x.className = (shown ? 'one ' : '') + (i === 7 ? 'par ' : '') + (fl ? 'flip' : '');
+      x.addEventListener('click', function () { var k = flips.indexOf(i); if (k >= 0) flips.splice(k, 1); else flips.push(i); draw(); });
+      fEl.appendChild(x);
+    });
+    var rx = frame.map(function (b, i) { return flips.indexOf(i) >= 0 ? 1 - b : b; });
+    var ones = rx.reduce(function (a, b) { return a + b; }, 0);
+    var okRx = mode === 'even' ? ones % 2 === 0 : ones % 2 === 1;
+    var txt = 'الـ parity bit = <b>' + parBit() + '</b> (' + (mode === 'even' ? 'even: العدد الكلي للـ 1s زوجي' : 'odd: العدد الكلي للـ 1s فردي') + '). ';
+    if (!flips.length) { V.className = 'verdict pos'; V.innerHTML = txt + 'مفيش أخطاء: المستقبل بيعدّ ' + ones + ' واحد ← ' + (mode === 'even' ? 'زوجي' : 'فردي') + ' ✔ <b>يقبل</b>.'; }
+    else if (!okRx) { V.className = 'verdict pos'; V.innerHTML = txt + 'اتقلب <b>' + flips.length + '</b> bit ← المستقبل بيعدّ ' + ones + ' واحد ← <b>مش ' + (mode === 'even' ? 'زوجي' : 'فردي') + '</b> ← 🚨 <b>اكتشف الخطأ</b> ويرفض.'; }
+    else { V.className = 'verdict neg'; V.innerHTML = txt + 'اتقلب <b>' + flips.length + '</b> bits (عدد زوجي من الأخطاء) ← العدد بيرجع ' + (mode === 'even' ? 'زوجي' : 'فردي') + ' ← ⚠️ <b>الـ parity معرفش يكتشف الخطأ</b> (ده حد الـ parity: بيكتشف بس لو عدد الأخطاء فردي).'; }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#parSeg button'), function (b) {
+    b.addEventListener('click', function () {
+      mode = b.dataset.m; flips = [];
+      Array.prototype.forEach.call(document.querySelectorAll('#parSeg button'), function (x) { x.classList.toggle('on', x === b); });
+      draw();
+    });
+  });
+  draw();
+})();
+
+/* ---------- CRC calculator ---------- */
+(function () {
+  var dI = document.getElementById('crcD');
+  if (!dI) return;
+  var vI = document.getElementById('crcV'), rEl = document.getElementById('crcR'), fEl = document.getElementById('crcF'), sEl = document.getElementById('crcSteps'), bEl = document.getElementById('crcBits'), V = document.getElementById('crcV2');
+  var flips = [];
+  function mod2(bits, div, record) {
+    var a = bits.split('').map(Number), d = div.split('').map(Number), lines = [];
+    for (var i = 0; i <= a.length - d.length; i++) {
+      if (a[i] === 1) {
+        if (record) { lines.push(a.join('')); lines.push(new Array(i + 1).join(' ') + div); }
+        for (var j = 0; j < d.length; j++) a[i + j] ^= d[j];
+        if (record) lines.push(new Array(1).join('') + a.join('') + '   ← XOR عند الـ bit رقم ' + (i + 1));
+      }
+    }
+    return { rem: a.slice(a.length - (d.length - 1)).join(''), lines: lines };
+  }
+  function upd() {
+    var d = dI.value.replace(/[^01]/g, ''), v = vI.value.replace(/[^01]/g, '');
+    if (d.length < 1 || v.length < 2 || v[0] !== '1') {
+      rEl.textContent = '—'; fEl.textContent = '—'; sEl.textContent = 'اكتب داتا bits (0/1) و divisor بيبدأ بـ 1 وطوله 2 على الأقل.'; bEl.innerHTML = ''; V.className = 'verdict'; V.textContent = '';
+      return;
+    }
+    var n = v.length - 1, pad = d + new Array(n + 1).join('0');
+    var r = mod2(pad, v, true);
+    var frame = d + r.rem;
+    rEl.textContent = r.rem; fEl.textContent = frame;
+    sEl.textContent = 'الداتا + ' + n + ' أصفار = ' + pad + '\nالـ divisor = ' + v + '\n\n' + (r.lines.length ? r.lines.join('\n') : '(مفيش 1 في الأول: الباقي = الأصفار)') + '\n\nالـ remainder (CRC) = ' + r.rem + '\nالـ frame المبعوت = ' + d + ' + ' + r.rem + ' = ' + frame;
+    if (flips.length && flips.some(function (x) { return x >= frame.length; })) flips = [];
+    bEl.innerHTML = '';
+    frame.split('').forEach(function (c, i) {
+      var b = document.createElement('button'); b.type = 'button';
+      var fl = flips.indexOf(i) >= 0, shown = fl ? (c === '1' ? '0' : '1') : c;
+      b.textContent = shown; b.className = (shown === '1' ? 'one ' : '') + (fl ? 'flip' : '');
+      b.addEventListener('click', function () { var k = flips.indexOf(i); if (k >= 0) flips.splice(k, 1); else flips.push(i); upd(); });
+      bEl.appendChild(b);
+    });
+    var rx = frame.split('').map(function (c, i) { return flips.indexOf(i) >= 0 ? (c === '1' ? '0' : '1') : c; }).join('');
+    var rem = mod2(rx, v, false).rem, zero = /^0*$/.test(rem);
+    V.className = 'verdict ' + (zero ? 'pos' : 'neg');
+    V.innerHTML = 'المستقبل بيقسم <span class="en">' + rx + '</span> على <span class="en">' + v + '</span> ← الباقي = <b class="en">' + rem + '</b> ← ' + (zero ? (flips.length ? '⚠️ Zero رغم الأخطاء (CRC معرفش يكتشفها في الحالة دي)' : '✔ <b>Zero → accept</b> (مفيش خطأ)') : '🚨 <b>Nonzero → reject</b> (اكتشف الخطأ)');
+  }
+  [dI, vI].forEach(function (x) { x.addEventListener('input', function () { flips = []; upd(); }); });
+  upd();
+})();
+
+/* ---------- Stop-and-Wait simulator ---------- */
+(function () {
+  var send = document.getElementById('sawSend');
+  if (!send) return;
+  var ackB = document.getElementById('sawAck'), reset = document.getElementById('sawReset'), tl = document.getElementById('sawTl'), st = document.getElementById('sawState'), note = document.getElementById('sawNote');
+  var canSend = true, inflight = false, n = 0;
+  function head() { tl.innerHTML = '<div class="h">Sender</div><div class="h">Receiver</div>'; }
+  function state(msg) {
+    st.className = 'verdict ' + (canSend ? 'pos' : 'neg');
+    st.innerHTML = 'canSend = <b>' + canSend + '</b>';
+    if (msg) note.innerHTML = msg;
+  }
+  send.addEventListener('click', function () {
+    if (!canSend) return state('✘ <b>canSend = false</b>: الـ sender لسه <b>مستني الـ ACK</b> بتاع Frame ' + n + '، فمينفعش يبعت اللي بعده. (ده جوهر Stop-and-Wait.)');
+    n++; canSend = false; inflight = true;
+    tl.insertAdjacentHTML('beforeend', '<div class="a">Data ' + n + ' ➜</div><div class="e">.</div>');
+    state('Sender بعت <b>Data ' + n + '</b> وعمل <b>canSend = false</b> ووقف يستنى (WT = wait time).');
+  });
+  ackB.addEventListener('click', function () {
+    if (!inflight) return state('مفيش frame في الطريق عشان الـ Receiver يرد عليه. ابعت Data الأول.');
+    inflight = false; canSend = true;
+    tl.insertAdjacentHTML('beforeend', '<div class="e">.</div><div class="b">⬅ ACK ' + n + '</div>');
+    state('الـ Receiver استقبل ووصّل الداتا للـ network layer وبعت <b>ACK</b>. لما الـ ACK وصل للـ Sender عمل <b>canSend = true</b> ← يقدر يبعت الـ frame اللي بعده.');
+  });
+  reset.addEventListener('click', function () { canSend = true; inflight = false; n = 0; head(); state('دوس «ابعت Data» عشان تبدأ. بعد أول frame جرّب تدوس «ابعت Data» تاني قبل الـ ACK.'); });
+  state();
+})();
+</script>
+</body>
+</html>

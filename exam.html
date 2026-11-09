@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS203 · Mock Exam</title>
+<style>
+/* ==========================================================
+   IS203 study pages — shared design system
+   ========================================================== */
+:root{
+  --bg:#0d1220; --card:#172038; --card2:#1d2848; --line:#2a3862;
+  --text:#eaf0ff; --muted:#9fb0d8;
+  --accent:#7aa8ff; --accent-rgb:122,168,255; --on-accent:#0a1226;
+  --ok:#4ade80; --ok-rgb:74,222,128;
+  --bad:#ff7b8c; --bad-rgb:255,123,140;
+  --warn:#fbbf24; --warn-rgb:251,191,36;
+  --c-plan:#4cc9f0; --c-plan-rgb:76,201,240;
+  --c-ana:#fbbf24;  --c-ana-rgb:251,191,36;
+  --c-des:#b69cff;  --c-des-rgb:182,156,255;
+  --c-imp:#4ade80;  --c-imp-rgb:74,222,128;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --radius:18px;
+}
+[data-theme="light"]{
+  --bg:#f5f2ea; --card:#ffffff; --card2:#f6f3ec; --line:#ddd6c3;
+  --text:#1b2336; --muted:#5a6684;
+  --accent:#2f66e0; --accent-rgb:47,102,224; --on-accent:#ffffff;
+  --ok:#15803d; --ok-rgb:21,128,61;
+  --bad:#c0263d; --bad-rgb:192,38,61;
+  --warn:#a85d00; --warn-rgb:168,93,0;
+  --c-plan:#0b84a8; --c-plan-rgb:11,132,168;
+  --c-ana:#b86e00;  --c-ana-rgb:184,110,0;
+  --c-des:#6b44e0;  --c-des-rgb:107,68,224;
+  --c-imp:#17803d;  --c-imp-rgb:23,128,61;
+  --shadow:0 10px 26px rgba(70,55,20,.12);
+}
+
+/* colour helpers: put on any element, children read --c / --c-rgb */
+.ph-plan{--c:var(--c-plan);--c-rgb:var(--c-plan-rgb)}
+.ph-ana{--c:var(--c-ana);--c-rgb:var(--c-ana-rgb)}
+.ph-des{--c:var(--c-des);--c-rgb:var(--c-des-rgb)}
+.ph-imp{--c:var(--c-imp);--c-rgb:var(--c-imp-rgb)}
+.t-ok{--c:var(--ok);--c-rgb:var(--ok-rgb)}
+.t-warn{--c:var(--warn);--c-rgb:var(--warn-rgb)}
+.t-bad{--c:var(--bad);--c-rgb:var(--bad-rgb)}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font:17px/1.85 "Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  background:
+    radial-gradient(900px 480px at 85% -8%,rgba(var(--accent-rgb),.14),transparent 62%),
+    radial-gradient(700px 420px at 5% 14%,rgba(var(--c-des-rgb),.08),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+b,strong{font-weight:700}
+button{font-family:inherit}
+h2{font-size:32px;line-height:1.35;margin:0 0 6px}
+h3{font-size:20px;margin:0 0 10px}
+h4{font-size:17px;margin:0 0 8px}
+.sec{margin:30px 0 12px;font-size:21px}
+.sec small{color:var(--muted);font-weight:400;font-size:14px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:18px}
+.muted{color:var(--muted)}
+.en{direction:ltr;unicode-bidi:isolate;font-family:"Segoe UI",system-ui,sans-serif;font-weight:600}
+.en.plain{font-weight:400}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
+  padding:10px clamp(12px,3vw,28px);
+  background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.home,.icon-btn{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);
+  text-decoration:none;font-size:18px;cursor:pointer;flex:none;
+}
+.home:hover,.icon-btn:hover{border-color:var(--accent)}
+.ttl{display:flex;flex-direction:column;line-height:1.3}
+.ttl small{color:var(--muted);font-size:13px}
+.prog{margin-inline-start:auto;display:flex;align-items:center;gap:10px;min-width:150px;color:var(--muted);font-size:14px}
+.bar{flex:1;height:9px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .5s}
+
+/* ---------- layout + nav ---------- */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:26px;max-width:1160px;margin:0 auto;padding:24px clamp(12px,3vw,24px) 70px;align-items:start}
+.nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:6px}
+.nav button{
+  display:flex;align-items:center;gap:10px;text-align:start;width:100%;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 12px;border-radius:14px;cursor:pointer;font-size:15px;transition:.18s;
+}
+.nav button:hover{background:rgba(var(--accent-rgb),.08);color:var(--text)}
+.nav .num{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--card2);border:1px solid var(--line)}
+.nav .lbl{flex:1}
+.nav .tick{opacity:0;color:var(--ok);font-weight:800}
+.nav button.on{background:var(--card);border-color:var(--line);color:var(--text);box-shadow:var(--shadow)}
+.nav button.on .num{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.nav button.done .tick{opacity:1}
+
+/* ---------- stations ---------- */
+.station{display:none}
+.station.on{display:block;animation:rise .45s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.station-foot{display:flex;justify-content:space-between;gap:12px;margin-top:34px;padding-top:18px;border-top:1px dashed var(--line)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin:16px 0}
+.card.tint{border-top:4px solid var(--c)}
+.card.tint h4{color:var(--c)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:14px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;font-weight:600;
+  cursor:pointer;transition:.18s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.btn.good{background:rgba(var(--ok-rgb),.16);border-color:rgba(var(--ok-rgb),.55)}
+.btn.bad{background:rgba(var(--bad-rgb),.14);border-color:rgba(var(--bad-rgb),.5)}
+.btn.ghost{background:transparent}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin:4px;border-radius:999px;font-size:15px;line-height:1.7;
+  background:rgba(var(--c-rgb,var(--accent-rgb)),.14);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.45);
+}
+.chip.en{font-weight:600}
+.note{margin:14px 0;padding:12px 16px;border-radius:14px;background:rgba(var(--c-rgb,var(--accent-rgb)),.1);border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.38)}
+.note.warn{--c-rgb:var(--warn-rgb)}
+.note.ok{--c-rgb:var(--ok-rgb)}
+.note.bad{--c-rgb:var(--bad-rgb)}
+
+/* ---------- tabs / panes / segmented ---------- */
+.pane{display:none}
+.pane.on{display:block;animation:rise .35s ease}
+.seg{display:inline-flex;gap:6px;padding:5px;border-radius:16px;background:var(--card2);border:1px solid var(--line);flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px 18px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:.18s}
+.seg button.on{background:rgba(var(--c-rgb,var(--accent-rgb)),.2);color:var(--text);box-shadow:inset 0 0 0 1.5px rgba(var(--c-rgb,var(--accent-rgb)),.7)}
+
+/* ---------- big picture ---------- */
+.story{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.beat{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px;border-radius:16px;background:rgba(var(--bad-rgb),.1);border:1px solid rgba(var(--bad-rgb),.4)}
+.beat.ok{background:rgba(var(--ok-rgb),.12);border-color:rgba(var(--ok-rgb),.5)}
+.beat .emo{font-size:30px;line-height:1.3}
+.arrow{align-self:center;font-size:22px;color:var(--muted)}
+.punch{text-align:center;font-size:20px;font-weight:700;margin:16px 0 12px}
+.tile{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start;padding:18px;border-radius:18px;
+  border:1px solid rgba(var(--c-rgb),.45);background:linear-gradient(155deg,rgba(var(--c-rgb),.2),var(--card) 72%);
+  color:var(--text);cursor:pointer;transition:.2s;font-size:17px;
+}
+.tile:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.tile .emo{font-size:30px;line-height:1.3}
+.tile small{color:var(--muted);font-size:14.5px}
+
+/* ---------- translator diagram ---------- */
+.trans{display:flex;align-items:center;justify-content:center;gap:8px;direction:ltr;flex-wrap:wrap;margin-bottom:16px}
+.trans>*{direction:rtl}
+.tnode{
+  display:flex;flex-direction:column;align-items:center;gap:0;min-width:160px;padding:14px 18px;border-radius:18px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.1);color:var(--text);cursor:pointer;transition:.2s;font-size:16px;
+}
+.tnode .emo{font-size:30px;line-height:1.3}
+.tnode.on{background:rgba(var(--c-rgb),.24);border-color:var(--c);transform:translateY(-3px);box-shadow:0 8px 22px rgba(var(--c-rgb),.25)}
+.tlink{font-size:26px;color:var(--muted)}
+.bigq{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bigq .chip{font:800 20px/1.5 "Segoe UI",sans-serif;padding:6px 20px}
+
+/* ---------- flip cards (roles) ---------- */
+.flip{perspective:1000px;cursor:pointer;outline:none}
+.flip-in{display:grid;min-height:170px;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.flip .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;
+  border:1px solid rgba(var(--c-rgb,var(--accent-rgb)),.5);
+  background:linear-gradient(155deg,rgba(var(--c-rgb,var(--accent-rgb)),.2),var(--card) 75%);
+}
+.flip .front .emo{font-size:32px;line-height:1.3}
+.flip .front b{font-size:18px}
+.flip .front small{color:var(--muted)}
+.flip .back{transform:rotateY(180deg);background:var(--card2);font-size:16px;line-height:1.75}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:18px}
+.hint{color:var(--muted);font-size:13px}
+
+/* ---------- step path ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;direction:ltr;margin:6px 0 18px}
+.node{
+  position:relative;direction:rtl;display:flex;flex-direction:column;align-items:center;gap:2px;padding:16px 10px;border-radius:20px;
+  border:1.5px solid rgba(var(--c-rgb),.4);background:rgba(var(--c-rgb),.09);color:var(--text);cursor:pointer;transition:.22s;text-align:center;font-size:15px;
+}
+.node i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 24px/1 "Segoe UI",sans-serif;font-style:normal;background:rgba(var(--c-rgb),.25);color:var(--c);margin-bottom:4px;transition:.22s}
+.node b{font-size:18px;font-family:"Segoe UI",sans-serif}
+.node small{color:var(--muted);font-size:13.5px;line-height:1.4}
+.node:not(:last-child)::after{content:"➜";position:absolute;right:-22px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.node.on{background:rgba(var(--c-rgb),.22);border-color:var(--c);transform:translateY(-4px);box-shadow:0 12px 26px rgba(var(--c-rgb),.28)}
+.node.on i{background:var(--c);color:var(--bg)}
+.node b,.node small,.ph-head .q,.tile b.en{direction:ltr;unicode-bidi:isolate}
+.mnemo{text-align:center;font-size:19px;margin:0 0 14px;color:var(--muted)}
+.mnemo b{color:var(--text)}
+.panel{background:var(--card);border:1px solid rgba(var(--c-rgb),.5);border-top:5px solid var(--c);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+.ph-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.ph-head .q{font:800 24px/1.3 "Segoe UI",sans-serif;color:var(--c);padding:4px 16px;border-radius:12px;background:rgba(var(--c-rgb),.15)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0}
+.steps li{counter-increment:s;position:relative;padding:6px 0;padding-inline-start:50px;margin:6px 0}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:6px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(var(--c-rgb),.2);color:var(--c)}
+.deliv{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+
+/* ---------- BPM ---------- */
+.cycle{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;direction:ltr}
+.cycle>div{direction:rtl;padding:14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:15.5px;line-height:1.65}
+.cycle .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:800;margin-bottom:6px}
+.loopnote{text-align:center;color:var(--muted);margin:10px 0 0}
+.range-wrap{direction:ltr;padding:6px 6px 0}
+.range-wrap input{width:100%;height:10px;accent-color:var(--accent);cursor:pointer}
+.ticks{display:flex;justify-content:space-between;direction:ltr;font:800 16px "Segoe UI",sans-serif;margin-top:8px}
+.ticks span{cursor:pointer;padding:4px 14px;border-radius:10px;color:var(--muted);transition:.18s}
+.ticks span.on{background:rgba(var(--c-rgb),.22);color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0 8px}
+.metric small{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px}
+.meter{direction:ltr;position:relative;height:12px;border-radius:99px;background:linear-gradient(90deg,var(--ok),var(--warn),var(--bad));overflow:hidden}
+.meter i{position:absolute;top:0;bottom:0;right:0;width:100%;background:var(--card2);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- decks (games / quiz) ---------- */
+.deck{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.deck-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:15px}
+.cnt,.fc-count{direction:ltr;unicode-bidi:isolate}
+.deck-bar{flex:1;height:8px;border-radius:99px;background:rgba(var(--accent-rgb),.16);overflow:hidden}
+.deck-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--c-imp));transition:width .4s}
+.deck-q{font-size:21px;font-weight:600;line-height:1.7;margin:4px 0 16px;min-height:56px}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opt{
+  text-align:start;padding:13px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:17px;cursor:pointer;transition:.18s;line-height:1.6;
+}
+.opt.ph-plan,.opt.ph-ana,.opt.ph-des,.opt.ph-imp,.opt.t-ok,.opt.t-warn,.opt.t-bad{border-color:rgba(var(--c-rgb),.55);background:rgba(var(--c-rgb),.1);font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(var(--ok-rgb),.2)}
+.opt.wrong{border-color:var(--bad);background:rgba(var(--bad-rgb),.2)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:14px;animation:rise .3s ease}
+.fb.ok{background:rgba(var(--ok-rgb),.13);border:1px solid rgba(var(--ok-rgb),.5)}
+.fb.no{background:rgba(var(--bad-rgb),.12);border:1px solid rgba(var(--bad-rgb),.5)}
+.fb .btn{margin-top:10px}
+.deck-end{text-align:center;padding:12px 0}
+.deck-end .big{font:800 56px/1.2 "Segoe UI",sans-serif;color:var(--accent)}
+
+/* ---------- flashcards ---------- */
+.fc{background:transparent}
+.fc-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fc-top .seg{margin:0}
+.fc-card{perspective:1200px;cursor:pointer;outline:none;margin:10px 0 14px}
+.fc-in{display:grid;min-height:270px;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc-card.open .fc-in{transform:rotateY(180deg)}
+.fc-in .face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;padding:28px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  border:1px solid var(--line);font-size:23px;line-height:1.7;box-shadow:var(--shadow);
+}
+.fc-in .front{background:linear-gradient(160deg,rgba(var(--accent-rgb),.22),var(--card))}
+.fc-in .back{background:linear-gradient(160deg,rgba(var(--ok-rgb),.18),var(--card));transform:rotateY(180deg);font-size:19.5px}
+.fc-in small{color:var(--muted);font-size:13.5px}
+.fc-card:focus-visible .fc-in .front{outline:2px solid var(--accent)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.fc-stat{text-align:center;margin:8px 0 0}
+
+/* ---------- essay ---------- */
+.essay textarea{width:100%;min-height:110px;resize:vertical;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:16px/1.7 "Segoe UI",sans-serif;margin:8px 0 12px}
+.essay textarea:focus{outline:none;border-color:var(--accent)}
+.model{margin-top:14px;animation:rise .3s ease}
+.mdl{padding:14px 16px;border-radius:14px;background:rgba(var(--ok-rgb),.1);border:1px solid rgba(var(--ok-rgb),.4);margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:5px;accent-color:var(--ok);flex:none}
+.pts-sc{font-weight:700;margin-top:6px;color:var(--ok)}
+
+/* ---------- tables (summary) ---------- */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:15.5px;line-height:1.65;margin:8px 0 18px}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--card2);font-size:14.5px;color:var(--muted)}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:8px}
+
+/* ---------- calculators / inputs ---------- */
+.calc-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.calc-top label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.calc input[type=number]{width:100%;max-width:132px;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);color:var(--text);font:600 16px "Segoe UI",sans-serif;direction:ltr;text-align:right}
+.calc input[type=number]:focus{outline:none;border-color:var(--accent)}
+.calc-top input[type=number]{max-width:90px}
+.calc input[type=range]{accent-color:var(--accent);cursor:pointer;direction:ltr;width:170px}
+main{min-width:0}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:4px 0;direction:ltr}
+.ctbl{min-width:680px;direction:ltr;margin:0}
+.ctbl th,.ctbl td{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ctbl th:first-child,.ctbl td:first-child{text-align:left}
+.ctbl input[type=number]{min-width:112px}
+.tbl.ctbl td:first-child{white-space:nowrap}
+.ctbl.sm{min-width:0}
+.ctbl.sm input[type=number]{min-width:0}
+.ctbl.sm th,.ctbl.sm td{white-space:normal}
+.tbl.ctbl.sm td:first-child{white-space:nowrap}
+.ctbl .neg{color:var(--bad)}
+.ctbl .pos{color:var(--ok)}
+.ctbl tr.tot td{background:var(--card2);font-weight:700}
+.res-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}
+.res{padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.res small{display:block;color:var(--muted);font-size:14px}
+.res b{display:block;font:800 22px/1.5 "Segoe UI",sans-serif;direction:ltr;unicode-bidi:isolate;text-align:start}
+.res.pos{border-color:rgba(var(--ok-rgb),.6);background:rgba(var(--ok-rgb),.12)}
+.res.neg{border-color:rgba(var(--bad-rgb),.6);background:rgba(var(--bad-rgb),.12)}
+.verdict{margin-top:14px;padding:12px 16px;border-radius:14px;font-weight:700;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.verdict.pos{background:rgba(var(--ok-rgb),.14);border-color:rgba(var(--ok-rgb),.55)}
+.verdict.neg{background:rgba(var(--bad-rgb),.13);border-color:rgba(var(--bad-rgb),.55)}
+.checks{display:grid;gap:4px;margin-bottom:10px}
+.checks .chk{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);margin:0}
+.checks .chk:hover{border-color:var(--accent)}
+.formula{direction:ltr;unicode-bidi:isolate;text-align:center;font:700 19px/1.9 "Segoe UI",sans-serif;padding:12px 16px;border-radius:14px;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.4);margin:12px 0}
+.formula small{display:block;font:400 14px "Segoe UI",sans-serif;color:var(--muted)}
+
+/* ---------- share disclaimer (footer injected by core.js) ---------- */
+.disclaimer{max-width:1160px;margin:0 auto;padding:0 clamp(12px,3vw,24px) 46px}
+.disclaimer>div{padding:14px 18px;border-radius:16px;border:1px solid rgba(var(--warn-rgb),.5);background:rgba(var(--warn-rgb),.08);font-size:14.5px;line-height:1.85;color:var(--muted)}
+.disclaimer b{color:var(--text)}
+.disclaimer .d-en{direction:ltr;text-align:left;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(var(--warn-rgb),.4);font-family:"Segoe UI",system-ui,sans-serif;font-size:13.5px;line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .nav{position:sticky;top:60px;z-index:20;flex-direction:row;overflow-x:auto;gap:6px;padding:8px 2px;background:var(--bg)}
+  .nav{scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{width:auto;flex:none;padding:6px 10px}
+  .nav button:not(.on) .lbl{display:none}
+  .nav .tick{display:none}
+  .nav button.done .num{background:var(--ok);color:#06210f;border-color:transparent}
+  .ttl small{display:none}
+}
+@media (max-width:700px){
+  body{font-size:16px}
+  h2{font-size:26px}
+  .path{grid-template-columns:repeat(2,1fr);gap:12px}
+  .node::after{display:none!important}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .opts.c3{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
+  .prog{min-width:0}
+  .tbl{font-size:14px}
+  .tbl th,.tbl td{padding:8px 7px}
+  .tbl td:first-child{white-space:normal}
+  .prog .bar{min-width:50px}
+  .card.calc{padding:16px 10px}
+  .calc input[type=number]{padding:6px 4px;font-size:15px}
+  .ctbl.sm th,.ctbl.sm td{padding:8px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---------- print: only the summary station ---------- */
+@media print{
+  :root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--card:#fff;--card2:#f3f3f3;--line:#ccc;--text:#111;--muted:#444;--shadow:none}
+  body{background:#fff!important;font-size:12pt;line-height:1.55}
+  .topbar,.nav,.station-foot,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .station{display:none!important}
+  .station.summary{display:block!important}
+  .card,.panel{box-shadow:none;break-inside:avoid}
+  .tbl{break-inside:avoid}
+}
+
+</style>
+<style>
+/* ---------- Mock exam only ---------- */
+.xwrap{max-width:860px;margin:0 auto;padding:22px clamp(12px,3vw,24px) 40px}
+.timer{font:800 17px "Segoe UI",sans-serif;padding:6px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);direction:ltr;white-space:nowrap;flex:none}
+.timer.warn{color:var(--warn);border-color:var(--warn)}
+.timer.bad{color:var(--bad);border-color:var(--bad);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.55}}
+
+.hero2{text-align:center;margin:10px 0 22px}
+.hero2 h1{font-size:34px;line-height:1.35;margin:0 0 6px}
+.hero2 p{color:var(--muted);margin:0;font-size:18px}
+.rules{margin:0;padding-inline-start:22px;line-height:2}
+.big{font-size:18px;padding:13px 26px}
+.seg.tm button{min-width:96px}
+
+.part{margin:34px 0 8px;font-size:25px}
+.part small{color:var(--muted);font-size:15px;font-weight:400}
+.q{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin:14px 0;box-shadow:var(--shadow)}
+.q.answered{border-color:rgba(var(--accent-rgb),.55)}
+.qh{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.qn{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:800 15px "Segoe UI",sans-serif;background:rgba(var(--accent-rgb),.18);color:var(--accent);flex:none}
+.qt{font-size:19px;font-weight:600;line-height:1.7;margin:2px 0 12px}
+.qo{display:grid;gap:9px}
+.q .opt{display:flex;gap:10px;align-items:flex-start;width:100%}
+.q .opt .lt{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:800 13px "Segoe UI",sans-serif;background:var(--card);border:1px solid var(--line)}
+.q .opt.sel{border-color:var(--accent);background:rgba(var(--accent-rgb),.16)}
+.q .opt.sel .lt{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.q .opt .mine{margin-inline-start:auto;font:600 12px "Segoe UI",sans-serif;font-style:normal;padding:0 9px;border-radius:99px;background:var(--card);border:1px solid var(--line);white-space:nowrap;align-self:center}
+.q.ok{border-inline-start:6px solid var(--ok)}
+.q.no{border-inline-start:6px solid var(--bad)}
+.q.skip{border-inline-start:6px solid var(--warn)}
+.chip.lec{padding:0 12px;font:800 13px "Segoe UI",sans-serif;margin:0}
+.chip.lec.l1{--c-rgb:var(--c-plan-rgb)}
+.chip.lec.l2{--c-rgb:var(--c-ana-rgb)}
+.chip.lec.l3{--c-rgb:var(--c-des-rgb)}
+.chip.lec.l4{--c-rgb:var(--c-imp-rgb)}
+.chip.lec.l5{--c-rgb:var(--warn-rgb)}
+.chip.bk{--c-rgb:var(--ok-rgb);padding:0 12px;font-size:13px;margin:0}
+.rv{margin-top:8px;font-size:15px}
+.rv a{color:var(--accent);font-weight:700}
+.q.essay textarea{min-height:170px}
+.q.essay .qfb .model{margin-top:6px}
+
+.submitbar{margin:34px 0 10px;text-align:center}
+#confirmBox{text-align:start}
+#confirmBox .btn{margin:6px 6px 0 0}
+
+.rescard h2{margin:0 0 4px}
+.bigpct{font:800 64px/1.2 "Segoe UI",sans-serif;color:var(--accent);text-align:center;direction:ltr}
+.lrow{display:grid;grid-template-columns:96px 1fr 54px auto;gap:10px;align-items:center;margin:8px 0}
+.lrow .nm{font:700 15px "Segoe UI",sans-serif;direction:ltr;text-align:left}
+.lrow .lb{height:14px;border-radius:99px;background:rgba(var(--c-rgb),.14);overflow:hidden;direction:ltr}
+.lrow .lb i{display:block;height:100%;border-radius:99px;background:var(--c);transition:width .6s}
+.lrow b{direction:ltr;text-align:center;font-family:"Segoe UI",sans-serif}
+.lrow a{color:var(--accent);font-weight:700;font-size:14.5px;white-space:nowrap}
+.exam-only-wrong .q.ok{display:none}
+
+@media (max-width:700px){
+  .bigpct{font-size:52px}
+  .lrow{grid-template-columns:78px 1fr 44px;gap:8px}
+  .lrow a{grid-column:1/-1}
+  .hero2 h1{font-size:28px}
+  .q{padding:16px 13px}
+  .timer{font-size:15px;padding:5px 10px}
+}
+</style>
+</head>
+<body data-lecture="exam">
+
+<header class="topbar">
+  <a class="home" href="index.html" title="القائمة الرئيسية">🏠</a>
+  <div class="ttl"><b>IS203 · Mock Exam</b><small class="en plain">MCQ · Essay</small></div>
+  <div class="prog" id="progBox" hidden><div class="bar"><i id="xBar"></i></div><span id="xTxt">0/22</span></div>
+  <div class="timer" id="timer" hidden>⏱ <span id="tmTxt">--:--</span></div>
+  <button id="themeBtn" class="icon-btn" type="button" title="فاتح / داكن">☀️</button>
+</header>
+
+<main class="xwrap">
+
+<!-- =====================================================  START -->
+<section id="vStart">
+  <div class="hero2">
+    <h1><span class="en">Mock Exam</span> 🎓</h1>
+    <p>امتحان تجريبي على شكل بطاقة الامتحان: <span class="en">20 MCQ + Essay (10 marks)</span></p>
+  </div>
+
+  <div id="resume" class="note ok" hidden></div>
+
+  <div class="grid g2">
+    <div class="card tint ph-plan" style="margin:0"><h4><span class="en">Part A</span> — <span class="en">MCQ</span></h4><p style="margin:0"><b class="en">20</b> سؤال (٤ من كل محاضرة)</p></div>
+    <div class="card tint ph-ana" style="margin:0"><h4><span class="en">Part B</span> — <span class="en">Essay</span></h4><p style="margin:0"><b class="en">2</b> أسئلة (<b class="en">10</b> درجات إجمالاً)</p></div>
+  </div>
+
+  <div class="card">
+    <h4>📋 قبل ما تبدأ</h4>
+    <ul class="rules">
+      <li>بطاقة الامتحان بتقول: <span class="en">Essay</span> بـ ١٠ درجات و<span class="en">MCQ</span> ٢٠ سؤال، وباقي التفاصيل <b>مش محددة</b>. فأنا عملت: ٢٠ <span class="en">MCQ</span> (٤ من كل محاضرة من <span class="en">L1</span> لـ <span class="en">L5</span>) + سؤالين <span class="en">Essay</span> (٥ درجات لكل واحد). <b>ده تقدير مني</b> مش شكل الامتحان الحقيقي.</li>
+      <li>الأسئلة من السلايدات، واللي عليها علامة <b>📖 الكتاب</b> (بتظهر بعد التسليم) مبنية على معلومة موجودة في الكتاب بس. الكتاب مفيهوش أسئلة <span class="en">Assessment</span> فكل الأسئلة من صياغتي.</li>
+      <li><b>مفيش تصحيح فوري</b> زي الامتحان الحقيقي: تقدر تغيّر إجابتك لحد ما تدوس <b>سلّم</b>، وبعدها تشوف الصح والشرح ولينك المحطة اللي تراجعها.</li>
+      <li>الـ <span class="en">Essay</span> بتكتبه في الصفحة، وبعد التسليم بتقارن بالإجابة النموذجية وتعلّم بنفسك النقط اللي غطّيتها (<b>تقييم ذاتي</b>، فكن صادق مع نفسك 😉).</li>
+      <li>التقدير: درجة لكل <span class="en">MCQ</span> + ٥ لكل <span class="en">Essay</span> = <span class="en">30</span> إجمالاً. الامتحان الحقيقي ممكن يختلف.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <h4>⏱ التايمر</h4>
+    <div class="seg tm" id="tmSeg">
+      <button type="button" data-min="45">٤٥ دقيقة</button>
+      <button type="button" data-min="60" class="on">٦٠ دقيقة</button>
+      <button type="button" data-min="0">من غير تايمر</button>
+    </div>
+    <div><button type="button" class="btn primary big" id="btnStart">▶ ابدأ الامتحان</button></div>
+  </div>
+</section>
+
+<!-- =====================================================  EXAM -->
+<section id="vExam" hidden></section>
+
+</main>
+
+<script>
+/* ==========================================================
+   QUESTION BANK
+   l = lecture · st = station number in that lecture's page (for the "review" link)
+   bk = 1 → needs information that is only in the book · bk = 0 → from the lecture slides
+   ========================================================== */
+var STN = {
+  1: { 2: 'الشبكة ومعاييرها', 3: 'مكونات الشبكة', 4: 'أنواع الاتصال والشبكات', 5: 'الـ Protocols', 6: 'Communications Model', 7: 'الاستخدامات و Client-Server' },
+  2: { 2: 'ليه Layers؟', 3: 'الـ 7 طبقات', 4: 'الطبقات 7·6·5', 5: 'الطبقات 4·3', 6: 'الطبقات 2·1', 7: 'Service · Protocol · Interface', 8: 'OSI ضد TCP/IP + PDUs' },
+  3: { 2: 'Encapsulation', 3: 'أوضاع الإرسال + Hub', 4: 'LAN والـ Server', 5: 'Twisted pair و Coaxial', 6: 'Fiber optic + المقارنة', 7: 'LAN Topologies' },
+  4: { 2: 'CSMA/CD', 3: 'MAC Address', 4: 'Switch ضد Router', 5: 'Bandwidth · Latency · Throughput', 6: 'الأخطاء + Parity', 7: 'CRC', 8: 'Flow Control' },
+  5: { 2: 'الشبكة المتبدّلة', 3: 'Circuit Switching', 4: 'Packet Switching', 5: 'Datagram ضد Virtual Circuit', 6: 'Packet Size', 7: 'جدول المقارنة', 8: 'X.25 · Frame Relay' }
+};
+
+var BANK = {
+  /* ---------------------------------------------------- Part A: MCQ (4 per lecture) */
+  mcq: [
+    /* ---- Lecture 1 ---- */
+    { id: 'm1', l: 1, st: 5, bk: 0,
+      q: 'A sender transmits at 1 Gbps to a receiver that can process only 100 Mbps, so data is lost. Which key element of a protocol is concerned with this problem?',
+      opts: ['Timing', 'Syntax', 'Semantics', 'Topology'], a: 0,
+      why: 'السرعة وإمتى تتبعت الداتا = <b>Timing</b>. (Syntax = الصيغة، Semantics = المعنى.)' },
+    { id: 'm2', l: 1, st: 4, bk: 0,
+      q: 'A university links the LANs of its campuses, all located in the same city, into one network. This network is best described as a:',
+      opts: ['MAN', 'PAN', 'LAN', 'WAN'], a: 0,
+      why: 'شبكة بتغطي <b>مدينة كاملة</b> أو بتربط LANs في المدينة = <b>MAN</b>.' },
+    { id: 'm3', l: 1, st: 6, bk: 0,
+      q: 'In the communications model Workstation → Modem → Public telephone network → Modem → Server, the second modem acts as the:',
+      opts: ['Receiver', 'Transmitter', 'Source', 'Transmission system'], a: 0,
+      why: 'الـ modem التاني بيحوّل الإشارة لشكل يفهمه الـ Server = <b>Receiver</b>. الأول = Transmitter.' },
+    { id: 'm4', l: 1, st: 7, bk: 0,
+      q: 'Which of the following is an advantage of the client-server model compared with peer-to-peer?',
+      opts: ['Security and administration are handled centrally', 'Lower setup cost', 'Each computer manages its own data', 'There is no single point of failure'], a: 0,
+      why: 'الميزة الأساسية للـ <b>Client-Server</b>: تحكم وأمان <b>مركزي</b>. الباقي مميزات/خصائص الـ P2P.' },
+
+    /* ---- Lecture 2 ---- */
+    { id: 'm5', l: 2, st: 8, bk: 0,
+      q: 'After the transport layer adds its header to the data, the resulting protocol data unit is called a:',
+      opts: ['Segment', 'Packet', 'Frame', 'Bit stream'], a: 0,
+      why: 'Transport → <b>Segment</b> · Network → Packet · Data Link → Frame · Physical → Bits.' },
+    { id: 'm6', l: 2, st: 4, bk: 0,
+      q: 'A file is compressed and encrypted before being sent. Which OSI layer is responsible for these functions?',
+      opts: ['Presentation', 'Session', 'Transport', 'Application'], a: 0,
+      why: 'الـ <b>Presentation</b>: Translation + Encryption + Compression.' },
+    { id: 'm7', l: 2, st: 5, bk: 0,
+      q: 'Which pair of layer and function is matched correctly?',
+      opts: ['Network layer — best path determination (routing)', 'Data link layer — logical (IP) addressing', 'Transport layer — physical (MAC) addressing', 'Session layer — segmentation and reassembly'], a: 0,
+      why: 'الـ <b>Network</b>: logical addressing + best path. الـ IP = network، الـ MAC = data link، الـ segmentation = transport.' },
+    { id: 'm8', l: 2, st: 7, bk: 0,
+      q: 'Which statement about a protocol and a service in a layered architecture is correct?',
+      opts: ['A protocol is an agreement between peer entities on how communication proceeds; a service is what a layer offers to the layer above', 'A service defines the format of the PDUs exchanged between peer entities; a protocol defines what the layer above may request', 'A protocol and a service are the same thing described at two layers', 'A service describes how a layer is implemented; a protocol describes where it is installed'], a: 0,
+      why: '<b>Protocol</b> = أفقي بين نفس الـ layer (format + semantics + التسلسل). <b>Service</b> = إيه اللي layer بتقدمه للي فوقها (إيه مش إزاي).' },
+
+    /* ---- Lecture 3 ---- */
+    { id: 'm9', l: 3, st: 2, bk: 0,
+      q: 'At the receiving station, the headers are stripped off at each layer to separate the communication protocols from the data units. This reverse operation is called:',
+      opts: ['Decapsulation', 'Encapsulation', 'Multiplexing', 'Segmentation'], a: 0,
+      why: 'العكس عند المستقبل = <b>Decapsulation</b>.' },
+    { id: 'm10', l: 3, st: 3, bk: 1,
+      q: 'According to the book, what is the limitation of an Ethernet hub when data from two devices arrives at the same time?',
+      opts: ['The data collide', 'The data are routed to the wrong network', 'The hub converts the data to analog', 'The hub drops the data and informs the router'], a: 0,
+      why: '📖 الكتاب: الـ hub بيبعت على كل الخطوط التانية، فلو جهازين بعتوا مع بعض <b>بيحصل collision</b>.' },
+    { id: 'm11', l: 3, st: 6, bk: 0,
+      q: 'According to the slide table, the maximum distance for reliable communication is up to 100 metres for twisted copper wire and ______ for fibre-optic cable.',
+      opts: ['over 2 kilometres', 'about 500 metres', 'up to 1 kilometre', 'about 200 metres'], a: 0,
+      why: 'سلايد 28: النحاس حتى <b>100 m</b>، والـ fibre <b>over 2 kilometres</b>.' },
+    { id: 'm12', l: 3, st: 7, bk: 0,
+      q: 'Which LAN topology consists of repeaters joined by unidirectional point-to-point links in a closed loop?',
+      opts: ['Ring', 'Bus', 'Tree', 'Star'], a: 0,
+      why: '<b>Ring</b>: repeaters + point-to-point unidirectional links + closed loop.' },
+
+    /* ---- Lecture 4 ---- */
+    { id: 'm13', l: 4, st: 2, bk: 0,
+      q: 'In CSMA/CD, a station that detects a collision starts the collision resolution algorithm. What is its first step?',
+      opts: ['Continue transmitting the current frame for a specified time so all stations detect the collision', 'Wait for a backoff period immediately', 'Abort the transmission immediately', 'Reset the retransmission counter and finish the frame'], a: 0,
+      why: 'أول خطوة: <b>تكمّل إرسال الـ frame مدة محددة</b> عشان كل المحطات تكتشف الـ collision، وبعدين تزوّد الـ counter وتتعامل مع الـ backoff.' },
+    { id: 'm14', l: 4, st: 4, bk: 0,
+      q: 'Which statement correctly distinguishes a router from a switch?',
+      opts: ['A router works at the network layer and keeps IP addresses in a routing table; a switch works at the data link layer and keeps MAC addresses in a CAM table', 'A router works at the data link layer and keeps MAC addresses; a switch works at the network layer and keeps IP addresses', 'Both work at the network layer, but only the router connects computers', 'A switch connects two different networks, whereas a router connects end devices'], a: 0,
+      why: '<b>Switch</b> = data link + MAC/CAM table + يوصّل end devices. <b>Router</b> = network + IP/routing table + يوصّل شبكتين.' },
+    { id: 'm15', l: 4, st: 6, bk: 0,
+      q: 'Even parity is used for the 7-bit data 0110101. Which parity bit must be appended?',
+      opts: ['0', '1', 'Either 0 or 1', 'No parity bit is needed'], a: 0,
+      why: 'الداتا 0110101 فيها <b>أربع 1s</b> (عدد زوجي أصلاً) فالـ parity bit = <b>0</b> عشان العدد الكلي يفضل زوجي.' },
+    { id: 'm16', l: 4, st: 8, bk: 0,
+      q: 'In the Stop-and-Wait protocol, what allows the sender to transmit the next frame?',
+      opts: ['The arrival of an acknowledgment for the previous frame', 'The expiry of a fixed backoff period', 'A request from the network layer only', 'The detection of a collision'], a: 0,
+      why: 'بعد الإرسال <b>canSend = false</b> ومبترجعش true إلا لما <b>الـ ACK يوصل</b>.' },
+
+    /* ---- Lecture 5 ---- */
+    { id: 'm17', l: 5, st: 3, bk: 0,
+      q: 'A user stays logged on to a database server for hours but sends data only occasionally, so the line is idle most of the time. Which technique is least efficient for this connection?',
+      opts: ['Circuit switching', 'Datagram packet switching', 'Virtual-circuit packet switching', 'Packet switching in general'], a: 0,
+      why: 'عيب الـ <b>circuit switching</b>: الخط idle أغلب الوقت مع الـ data connections فمش efficient.' },
+    { id: 'm18', l: 5, st: 5, bk: 0,
+      q: 'Packets of the same message follow different routes and may arrive out of sequence at the destination. This describes:',
+      opts: ['Datagram packet switching', 'Virtual-circuit packet switching', 'Circuit switching', 'The X.25 link level'], a: 0,
+      why: '<b>Datagram</b>: كل packet مستقلة وعليها عنوان الوجهة كامل، والـ nodes بتختار المسار.' },
+    { id: 'm19', l: 5, st: 6, bk: 0,
+      q: 'A 40-octet message with a 3-octet header per packet is sent over a virtual circuit through two intermediate nodes. Among sending it as 1, 2, 5 or 10 packets, which gives the smallest total transmission time?',
+      opts: ['5 packets (77 octet-times)', '1 packet (129 octet-times)', '2 packets (92 octet-times)', '10 packets (84 octet-times)'], a: 0,
+      why: 'الزمن = (p + 2) × (40/p + 3): <b>129 · 92 · 77 · 84</b> لـ 1 · 2 · 5 · 10. الأقل هو <b>5 packets</b>.' },
+    { id: 'm20', l: 5, st: 7, bk: 0,
+      q: 'According to the comparison table, which statement is true for virtual-circuit packet switching?',
+      opts: ['The route is established for the entire conversation (with a call setup delay)', 'A dedicated transmission path is reserved', 'Bandwidth is fixed', 'The route is established for each packet'], a: 0,
+      why: 'الـ <b>VC</b>: route للمحادثة كلها + call setup + packet delay. الـ dedicated path والـ fixed bandwidth للـ circuit، والـ route لكل packet للـ datagram.' }
+  ],
+
+  /* ---------------------------------------------------- Part B: Essay (5 marks each) */
+  essay: [
+    { id: 'e1', l: 2, st: 3, bk: 0,
+      q: 'Describe the seven layers of the OSI reference model, stating the main function and the PDU of each layer. Then explain briefly how encapsulation takes place at the sending station.',
+      model:
+        '<table class="tbl" style="margin:0 0 8px" dir="ltr"><tr><th>Layer</th><th>Main function</th><th>PDU</th></tr>' +
+        '<tr><td>7 Application</td><td class="en plain">Window for users/applications to access network services (file transfer, mail).</td><td>data</td></tr>' +
+        '<tr><td>6 Presentation</td><td class="en plain">Translation, encryption and compression of data.</td><td>data</td></tr>' +
+        '<tr><td>5 Session</td><td class="en plain">Establishes, manages and terminates sessions; synchronization.</td><td>data</td></tr>' +
+        '<tr><td>4 Transport</td><td class="en plain">End-to-end connections: segmentation and reassembly, flow, error and connection control; TCP/UDP.</td><td>segment</td></tr>' +
+        '<tr><td>3 Network</td><td class="en plain">Logical addressing (IP) and best path determination (routing); routers.</td><td>packet</td></tr>' +
+        '<tr><td>2 Data Link</td><td class="en plain">Reliable frame transfer hop by hop; header + trailer; physical (MAC) addresses.</td><td>frame</td></tr>' +
+        '<tr><td>1 Physical</td><td class="en plain">Transmits bits; transmission mode (simplex/half/full duplex); media.</td><td>bits</td></tr></table>' +
+        '<p dir="ltr" style="margin:0"><b>Encapsulation</b>: each layer adds a header with the information required for peer-to-peer communication, forming a PDU at each layer (segment, packet); the data link layer also adds a trailer (FCS) to make a frame, which is transmitted as bits over the physical medium. The receiver performs decapsulation, stripping the headers layer by layer.</p>',
+      points: [
+        'Seven layers named in the correct order',
+        'Application — access to network services',
+        'Presentation — translation, encryption, compression',
+        'Session — establish / manage / terminate sessions',
+        'Transport — end-to-end, segmentation, flow/error control — segment',
+        'Network — logical addressing and routing — packet',
+        'Data Link — frames hop by hop, header + trailer, MAC',
+        'Physical — bits, transmission modes, media',
+        'Encapsulation: each layer adds a header (PDU at each layer)',
+        'Data link adds trailer → frame; decapsulation at the receiver'
+      ] },
+    { id: 'e2', l: 5, st: 7, bk: 0,
+      q: 'Compare circuit switching, datagram packet switching and virtual-circuit packet switching. Mention the phases and shortcomings of circuit switching, and explain with the 40-octet example (3-octet header) how packet size affects the transmission time.',
+      model:
+        '<p dir="ltr" style="margin:0 0 8px"><b>Circuit switching</b>: dedicated path with three phases — circuit establishment, data transfer, circuit disconnect. Capacity is reserved on each link before data is sent. Shortcomings: the line is idle much of the time with data connections (inefficient), and the constant data rate forces both devices to use the same rate.</p>' +
+        '<table class="tbl" style="margin:0 0 8px" dir="ltr"><tr><th></th><th>Circuit</th><th>Datagram</th><th>Virtual circuit</th></tr>' +
+        '<tr><td>Path</td><td>Dedicated</td><td>No dedicated path</td><td>No dedicated path</td></tr>' +
+        '<tr><td>Route</td><td>Entire conversation</td><td>For each packet</td><td>Entire conversation</td></tr>' +
+        '<tr><td>Delay</td><td>Call setup; negligible transmission delay</td><td>Packet transmission delay</td><td>Call setup + packet transmission delay</td></tr>' +
+        '<tr><td>Bandwidth</td><td>Fixed</td><td>Dynamic</td><td>Dynamic</td></tr>' +
+        '<tr><td>Overhead</td><td>None after setup</td><td>In each packet</td><td>In each packet</td></tr></table>' +
+        '<p dir="ltr" style="margin:0"><b>Packet size</b> (X → a → b → Y): one 43-octet packet takes 43 × 3 = 129 octet-times; two packets overlap the transmission and take 92; five packets take 77; but using more and smaller packets eventually increases the delay (e.g. 10 packets) because of header overhead, and the example ignores processing and queuing delays.</p>',
+      points: [
+        'Circuit switching — dedicated path, three phases',
+        'Circuit shortcomings — idle line (inefficient), constant data rate',
+        'Datagram — route for each packet, packets independent, out of sequence',
+        'Virtual circuit — route for the entire conversation, call setup',
+        'Circuit: fixed bandwidth, no overhead after setup — packet: dynamic bandwidth, overhead in each packet',
+        'Packet size: 1 packet = 129 octet-times',
+        'Packet size: 2 packets = 92, 5 packets = 77',
+        'Too many small packets increase delay'
+      ] }
+  ]
+};
+</script>
+
+<script>
+/* ==========================================================
+   IS203 study pages — shared interactive engine
+   Reads window.DATA = { decks:{}, flash:{}, essays:{} }
+   ========================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const shuffle = (a) => {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  const DATA = window.DATA || {};
+  const KEY = 'is203:' + (document.body.dataset.lecture || 'x');
+  let S = {};
+  try { S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { S = {}; }
+  S.done = S.done || {}; S.best = S.best || {}; S.fc = S.fc || {}; S.essay = S.essay || {};
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  /* ---------- theme ---------- */
+  const TK = 'is203:theme';
+  let theme = 'dark';
+  try { theme = localStorage.getItem(TK) || 'dark'; } catch (e) {}
+  const themeBtn = $('#themeBtn');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem(TK, t); } catch (e) {}
+  }
+  applyTheme(theme);
+  if (themeBtn) themeBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+  /* ---------- stations ---------- */
+  const stations = $$('.station');
+  const nav = $('#nav');
+  const navBtns = [];
+  let cur = -1;
+
+  stations.forEach((st, i) => {
+    if (nav) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = `<span class="num">${i + 1}</span><span class="lbl">${st.dataset.icon || ''} ${st.dataset.title || ''}</span><span class="tick">✓</span>`;
+      b.addEventListener('click', () => go(i));
+      nav.appendChild(b);
+      navBtns.push(b);
+    }
+    const last = i === stations.length - 1;
+    const f = document.createElement('div');
+    f.className = 'station-foot noprint';
+    f.innerHTML =
+      `<button type="button" class="btn ghost" data-prev${i === 0 ? ' style="visibility:hidden"' : ''}>→ السابق</button>` +
+      (last
+        ? `<a class="btn primary" href="index.html" data-finish>خلّصت المحاضرة 🏁</a>`
+        : `<button type="button" class="btn primary" data-next>التالي ←</button>`);
+    st.appendChild(f);
+    const p = $('[data-prev]', f), n = $('[data-next]', f), fin = $('[data-finish]', f);
+    if (p) p.addEventListener('click', () => go(i - 1));
+    if (n) n.addEventListener('click', () => go(i + 1));
+    if (fin) fin.addEventListener('click', () => { S.done[i] = true; save(); });
+  });
+
+  function refresh() {
+    navBtns.forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('done', !!S.done[k]);
+    });
+    const n = stations.filter((_, k) => S.done[k]).length;
+    const pb = $('#progBar'), pt = $('#progTxt');
+    if (pb) pb.style.width = (n / stations.length * 100) + '%';
+    if (pt) pt.textContent = n + '/' + stations.length;
+  }
+
+  function go(i, init) {
+    i = Math.max(0, Math.min(stations.length - 1, i));
+    if (!init && cur >= 0 && i > cur) S.done[cur] = true;
+    cur = i;
+    stations.forEach((s, k) => s.classList.toggle('on', k === i));
+    S.last = i; save(); refresh();
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+    if (!init) window.scrollTo({ top: 0, behavior: 'smooth' });
+    const nb = navBtns[i];
+    if (nb && nav && nav.scrollWidth > nav.clientWidth) nb.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+
+  $$('[data-go]').forEach((e) => e.addEventListener('click', () => go(parseInt(e.dataset.go, 10) - 1)));
+
+  /* ---------- flip cards ---------- */
+  $$('.flip').forEach((el) => {
+    const f = $('.f', el), b = $('.b', el);
+    if (!f || !b) return;
+    const inn = document.createElement('div');
+    inn.className = 'flip-in';
+    f.className = 'face front'; b.className = 'face back';
+    inn.append(f, b); el.append(inn);
+    el.tabIndex = 0;
+    el.addEventListener('click', () => el.classList.toggle('open'));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); }
+    });
+  });
+
+  /* ---------- tabs ---------- */
+  $$('[data-tabs]').forEach((root) => {
+    const btns = $$('[data-tab]', root), panes = $$('[data-pane]', root);
+    const set = (id) => {
+      btns.forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === id));
+    };
+    btns.forEach((b) => b.addEventListener('click', () => set(b.dataset.tab)));
+    set(root.dataset.tabs || (btns[0] && btns[0].dataset.tab));
+  });
+
+  /* ---------- deck (quiz / sorting / true-false) ---------- */
+  function Deck(root, cfg) {
+    let cards = shuffle(cfg.cards), i = 0, score = 0, locked = false, order = [];
+    root.classList.add('deck');
+    root.innerHTML =
+      `<div class="deck-head"><span class="cnt"></span><div class="deck-bar"><i></i></div><span class="sc"></span></div><div class="deck-body"></div>`;
+    const body = $('.deck-body', root), cnt = $('.cnt', root), bar = $('.deck-bar i', root), sc = $('.sc', root);
+
+    function render() {
+      if (i >= cards.length) return end();
+      const c = cards[i];
+      locked = false;
+      cnt.textContent = (i + 1) + ' / ' + cards.length;
+      bar.style.width = (i / cards.length * 100) + '%';
+      sc.textContent = '⭐ ' + score;
+      const opts = c.opts || cfg.opts;
+      const cols = cfg.cols ? ' c' + cfg.cols : '';
+      body.innerHTML = `<div class="deck-q" dir="auto">${c.q}</div><div class="opts${cols}"></div><div class="fbwrap"></div>`;
+      const wrap = $('.opts', body);
+      // cfg.shuffleOpts: mix the answer order of per-card MCQ options so position never gives the answer away
+      order = opts.map((_, k) => k);
+      if (cfg.shuffleOpts && c.opts) order = shuffle(order);
+      order.forEach((oi, k) => {
+        const o = opts[oi];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (typeof o === 'object' && o.cls ? ' ' + o.cls : '');
+        b.setAttribute('dir', 'auto');
+        b.innerHTML = typeof o === 'string' ? o : o.t;
+        b.addEventListener('click', () => pick(k));
+        wrap.appendChild(b);
+      });
+    }
+
+    function pick(k) {
+      if (locked) return;
+      locked = true;
+      const c = cards[i], ok = order[k] === c.a;
+      if (ok) score++;
+      $$('.opt', body).forEach((b, j) => {
+        b.disabled = true;
+        if (order[j] === c.a) b.classList.add('right');
+        else if (j === k) b.classList.add('wrong');
+      });
+      sc.textContent = '⭐ ' + score;
+      const fb = $('.fbwrap', body);
+      fb.innerHTML =
+        `<div class="fb ${ok ? 'ok' : 'no'}"><b>${ok ? '✔ تمام!' : '✘ لأ — راجع الشرح'}</b><div dir="auto">${c.why || ''}</div>` +
+        `<button type="button" class="btn primary nxt">${i === cards.length - 1 ? 'شوف النتيجة' : 'التالي ←'}</button></div>`;
+      const nx = $('.nxt', fb);
+      nx.addEventListener('click', () => { i++; render(); });
+      nx.focus({ preventScroll: true });
+    }
+
+    function end() {
+      bar.style.width = '100%';
+      const pct = Math.round(score / cards.length * 100);
+      const best = Math.max(S.best[cfg.id] || 0, pct);
+      S.best[cfg.id] = best; save();
+      const msg = pct === 100 ? 'ممتاز! 🔥 الجزء ده تمام' : pct >= 70 ? 'كويس جداً 👏 راجع الغلطات بس' : 'لسه محتاج مراجعة — ارجع للشرح وجرّب تاني 💪';
+      sc.textContent = '⭐ ' + score;
+      cnt.textContent = 'خلصت';
+      body.innerHTML =
+        `<div class="deck-end"><div class="big">${pct}%</div><p>${score} من ${cards.length} — ${msg}</p>` +
+        `<p class="muted">أحسن نتيجة ليك: ${best}%</p><button type="button" class="btn primary again">🔁 العب تاني</button></div>`;
+      $('.again', body).addEventListener('click', () => { cards = shuffle(cfg.cards); i = 0; score = 0; render(); });
+      if (cfg.onDone) cfg.onDone(pct);
+    }
+    render();
+  }
+
+  /* ---------- flashcards ---------- */
+  function Flash(root, cards, id) {
+    let mode = 'all', pos = 0, list = [], timer;
+    root.classList.add('fc');
+    root.innerHTML =
+      `<div class="fc-top"><div class="seg"><button type="button" data-m="all" class="on">كل الكروت</button><button type="button" data-m="review">اللي لسه مش حافظها</button></div><span class="fc-count muted"></span></div>` +
+      `<div class="fc-card" tabindex="0"><div class="fc-in"><div class="face front"></div><div class="face back"></div></div></div>` +
+      `<div class="fc-actions"><button type="button" class="btn" data-a="prev">→ اللي قبلها</button><button type="button" class="btn bad" data-a="r">🔁 لسه مش حافظها</button><button type="button" class="btn good" data-a="k">✅ عرفتها</button><button type="button" class="btn" data-a="next">اللي بعدها ←</button></div>` +
+      `<div class="deck-bar"><i></i></div><p class="fc-stat muted"></p>`;
+    const card = $('.fc-card', root), front = $('.front', root), back = $('.back', root);
+    const cnt = $('.fc-count', root), bar = $('.deck-bar i', root), stat = $('.fc-stat', root);
+    const key = (n) => id + ':' + n;
+
+    function stats() {
+      const k = cards.filter((_, n) => S.fc[key(n)] === 'k').length;
+      stat.textContent = 'عرفت ' + k + ' من ' + cards.length;
+      bar.style.width = (k / cards.length * 100) + '%';
+    }
+    function show() {
+      list = cards.map((_, n) => n).filter((n) => mode === 'all' || S.fc[key(n)] !== 'k');
+      stats();
+      clearTimeout(timer);
+      if (!list.length) {
+        card.classList.remove('open');
+        front.innerHTML = '<div dir="auto">🎉 خلصت كل الكروت!</div><small>ارجع لـ "كل الكروت" لو عايز تراجع تاني</small>';
+        back.innerHTML = '';
+        cnt.textContent = '0 / 0';
+        return;
+      }
+      pos = ((pos % list.length) + list.length) % list.length;
+      const c = cards[list[pos]];
+      const fill = () => {
+        front.innerHTML = `<small>السؤال</small><div dir="auto">${c.f}</div><small>👆 اضغط عشان تقلب الكارت</small>`;
+        back.innerHTML = `<small>الإجابة</small><div dir="auto">${c.b}</div>`;
+      };
+      if (card.classList.contains('open')) { card.classList.remove('open'); timer = setTimeout(fill, 230); } else fill();
+      cnt.textContent = (pos + 1) + ' / ' + list.length;
+    }
+
+    root.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-a]');
+      if (a) {
+        const act = a.dataset.a;
+        if (act === 'next') pos++;
+        else if (act === 'prev') pos--;
+        else {
+          S.fc[key(list[pos])] = act; save();
+          if (!(mode === 'review' && act === 'k')) pos++;
+        }
+        show();
+        return;
+      }
+      const m = e.target.closest('[data-m]');
+      if (m) {
+        mode = m.dataset.m; pos = 0;
+        $$('[data-m]', root).forEach((x) => x.classList.toggle('on', x === m));
+        show();
+        return;
+      }
+      if (e.target.closest('.fc-card')) card.classList.toggle('open');
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('open'); }
+    });
+    show();
+  }
+
+  /* ---------- essay ---------- */
+  $$('.essay').forEach((el) => {
+    const id = el.dataset.essay, d = (DATA.essays || {})[id];
+    if (!d) return;
+    const ta = $('textarea', el), btn = $('[data-show]', el), box = $('.model', el);
+    ta.value = S.essay[id] || '';
+    ta.addEventListener('input', () => { S.essay[id] = ta.value; save(); });
+    $('.mdl', box).innerHTML = d.model;
+    const pts = $('.pts', box);
+    pts.innerHTML =
+      '<h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      d.points.map((p) => `<label class="chk"><input type="checkbox"> <span dir="auto">${p}</span></label>`).join('') +
+      '<div class="pts-sc"></div>';
+    const sc = $('.pts-sc', pts);
+    const upd = () => {
+      const n = $$('input:checked', pts).length;
+      sc.textContent = 'غطّيت ' + n + ' من ' + d.points.length + (n === d.points.length ? ' 🔥' : '');
+    };
+    pts.addEventListener('change', upd); upd();
+    btn.addEventListener('click', () => {
+      box.hidden = !box.hidden;
+      btn.textContent = box.hidden ? '📖 اعرض الإجابة النموذجية' : '🙈 اخفي الإجابة';
+    });
+  });
+
+  /* ---------- keyboard for flashcards ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const st = stations[cur];
+    const fc = st && $('.fc', st);
+    if (!fc) return;
+    if (e.key === 'ArrowLeft') $('[data-a="next"]', fc).click();
+    else if (e.key === 'ArrowRight') $('[data-a="prev"]', fc).click();
+    else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('.fc-card', fc).classList.toggle('open'); }
+  });
+
+  /* ---------- init decks / flashcards ---------- */
+  const markDone = (el) => {
+    const i = stations.indexOf(el.closest('.station'));
+    if (i >= 0) { S.done[i] = true; save(); refresh(); }
+  };
+  $$('[data-deck]').forEach((el) => {
+    const c = (DATA.decks || {})[el.dataset.deck];
+    if (c) Deck(el, Object.assign({}, c, { id: el.dataset.deck, onDone: () => markDone(el) }));
+  });
+  $$('[data-flash]').forEach((el) => {
+    const c = (DATA.flash || {})[el.dataset.flash];
+    if (c) Flash(el, c, el.dataset.flash);
+  });
+
+  /* ---------- share disclaimer: ONE place, shows at the bottom of every page (index.src.html has its own copy) ---------- */
+  /* >>> EDIT PER SUBJECT: name the real sources (textbook, instructor, slides) <<< */
+  const SOURCES_AR = 'المصادر: سلايدات المحاضرات (أ.د. طارق مصطفى محمود، جامعة مدينة السادات — Computer Networks / IS203) بنسختيها: Lecture 1–5 القديمة (فيها محاضرة الـ OSI) وIS203_Lec_1–4 الجديدة بنفس المحتوى، وكتاب المادة Computer Networks Part 1 (أ.د. طارق محمود)، وملفَّي Extra 1 و Extra 2 (من النسخة القديمة للمجلد).';
+  const SOURCES_EN = 'Sources: lecture slides by Prof. Tarek Moustafa Mahmoud (National University of Sadat City, Computer Networks / IS203) in both versions: the earlier Lecture 1-5 files (including the OSI lecture) and the newer IS203_Lec_1-4 files with the same content, the course book "Computer Networks - Part 1" (Prof. Tarek M. Mahmoud), and the Extra 1 and Extra 2 handouts (from the earlier version of the folder).';
+  (function () {
+    const f = document.createElement('footer');
+    f.className = 'disclaimer';
+    f.innerHTML =
+      '<div dir="rtl"><b>⚠️ تنبيه مهم قبل ما تعتمد على الصفحات دي:</b> دي ملخصات ومراجعة شخصية من إعداد طالب لمساعدة زمايله، وهي <b>مش مادة رسمية</b> ومش معتمدة من الدكتور ولا من الكلية. ممكن يكون فيها أخطاء أو نقص، والأسئلة اللي فيها مش بالضرورة شبه الامتحان الحقيقي. ' +
+      '<b>ومبتغنيش أبداً عن الكتاب والمحاضرات (المصدر الأساسي)</b> — ذاكر منهم الأول، وارجع لهم عشان تتأكد من أي معلومة. أي اعتماد مباشر على الصفحات دي بيكون على مسئولية المستخدم نفسه، ومُعِدّ الملخص غير مسئول عن أي نتيجة أو خسارة درجات. ' +
+      '<span class="muted">' + SOURCES_AR + '</span>' +
+      '<div class="d-en"><b>Disclaimer:</b> Unofficial, student-made study notes shared to help classmates — not official course material and not endorsed by the instructor or the university. They may contain mistakes or omissions, and the practice questions may differ from the real exam. ' +
+      'These pages are <b>NOT a substitute for the textbook and the lectures</b> (the primary source): study those first and use them to verify anything written here. Anyone relying on these pages directly does so at their own risk; the author accepts no responsibility for any result or loss of marks. ' + SOURCES_EN + '</div></div>';
+    document.body.appendChild(f);
+  })();
+
+  /* ---------- start ---------- */
+  let start = parseInt((location.hash || '').slice(1), 10) - 1;
+  if (!(start >= 0 && start < stations.length)) start = Math.min(S.last || 0, stations.length - 1);
+  go(start, true);
+
+  window.Study = { go };
+})();
+
+</script>
+<script>
+/* ==========================================================
+   MOCK EXAM ENGINE
+   ========================================================== */
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var KEY = 'is203:examrun';
+  var LET = ['A', 'B', 'C', 'D'];
+  var LECS = [1, 2, 3, 4, 5];
+  var ESSAY_W = 5;                                  // estimated marks per essay
+  var MC = BANK.mcq, ES = BANK.essay;
+  var TOTAL_Q = MC.length + ES.length;
+  var MAX_PTS = MC.length + ES.length * ESSAY_W;
+
+  var vStart = $('#vStart'), vExam = $('#vExam');
+  var minutes = 60, timerId = null;
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var fmt = function (ms) { var s = Math.max(0, Math.round(ms / 1000)); return pad(Math.floor(s / 60)) + ':' + pad(s % 60); };
+
+  /* ---------- storage: { best, run } ---------- */
+  var store = {};
+  try { store = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { store = {}; }
+  store.best = store.best || 0;
+  var run = store.run || null;
+  function persist() {
+    store.run = run;
+    try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {}
+  }
+
+  function newRun(min) {
+    var perm = {};
+    MC.forEach(function (q) { perm[q.id] = shuffle([0, 1, 2, 3]); });
+    return { min: min, start: Date.now(), end: 0, ans: {}, perm: perm, essay: {}, pts: {}, submitted: false, auto: false };
+  }
+
+  /* ---------- build the exam DOM ---------- */
+  var head = function (n) { return '<div class="qh"><span class="qn">' + n + '</span><span class="qmeta"></span></div>'; };
+
+  function buildExam() {
+    var n = 0, h = '<div id="resBox" hidden></div>';
+
+    h += '<h2 class="part"><span class="en">Part A</span> — <span class="en">MCQ</span> <small>(' + MC.length + ' سؤال)</small></h2>';
+    MC.forEach(function (q) {
+      n++;
+      h += '<article class="q" id="q-' + q.id + '" data-id="' + q.id + '">' + head(n) +
+        '<div class="qt" dir="auto">' + q.q + '</div><div class="qo">';
+      run.perm[q.id].forEach(function (oi, k) {
+        h += '<button type="button" class="opt" dir="ltr" data-v="' + oi + '"><span class="lt">' + LET[k] + '</span><span>' + q.opts[oi] + '</span></button>';
+      });
+      h += '</div><div class="qfb" hidden></div></article>';
+    });
+
+    h += '<h2 class="part"><span class="en">Part B</span> — <span class="en">Essay</span> <small>(' + ES.length + ' أسئلة · ' + ESSAY_W + ' درجات تقديرية لكل واحد)</small></h2>';
+    ES.forEach(function (q) {
+      n++;
+      h += '<article class="q essay" id="q-' + q.id + '" data-id="' + q.id + '">' + head(n) +
+        '<div class="qt" dir="ltr">' + q.q + '</div>' +
+        '<textarea dir="auto" placeholder="اكتب إجابتك هنا… (بتتحفظ في المتصفح بس)"></textarea>' +
+        '<div class="qfb" hidden></div></article>';
+    });
+
+    h += '<div class="submitbar" id="submitBar">' +
+      '<button type="button" class="btn primary big" id="btnSubmit">✅ سلّم الامتحان</button>' +
+      '<div id="confirmBox" class="note warn" hidden></div></div>';
+    h += '<div class="submitbar" id="againBar" hidden><button type="button" class="btn primary big" id="btnAgain">🔁 ابدأ امتحان جديد</button></div>';
+
+    vExam.innerHTML = h;
+
+    // restore saved answers
+    MC.forEach(function (q) {
+      var a = run.ans[q.id];
+      if (typeof a !== 'number') return;
+      var el = $('#q-' + q.id);
+      $$('.opt', el).forEach(function (b) { b.classList.toggle('sel', parseInt(b.dataset.v, 10) === a); });
+      el.classList.add('answered');
+    });
+    ES.forEach(function (q) { $('#q-' + q.id + ' textarea').value = run.essay[q.id] || ''; });
+  }
+
+  /* ---------- progress ---------- */
+  function updateProg() {
+    var n = 0;
+    MC.forEach(function (q) { if (typeof run.ans[q.id] === 'number') n++; });
+    ES.forEach(function (q) { if ((run.essay[q.id] || '').trim()) n++; });
+    $('#xBar').style.width = (n / TOTAL_Q * 100) + '%';
+    $('#xTxt').textContent = n + '/' + TOTAL_Q;
+    return n;
+  }
+
+  /* ---------- timer ---------- */
+  function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+  function startTimer() {
+    stopTimer();
+    var box = $('#timer');
+    if (!run.min) { box.hidden = true; return; }
+    box.hidden = false;
+    var tick = function () {
+      var left = run.start + run.min * 60000 - Date.now();
+      if (left <= 0) { $('#tmTxt').textContent = '00:00'; submit(true); return; }
+      $('#tmTxt').textContent = fmt(left);
+      box.classList.toggle('warn', left < 10 * 60000 && left >= 5 * 60000);
+      box.classList.toggle('bad', left < 5 * 60000);
+    };
+    tick();
+    if (!run.submitted) timerId = setInterval(tick, 1000);
+  }
+
+  /* ---------- answering ---------- */
+  vExam.addEventListener('click', function (e) {
+    if (!run || run.submitted) return;
+    var o = e.target.closest('.opt');
+    if (!o) return;
+    var q = o.closest('.q');
+    if (!q) return;
+    run.ans[q.dataset.id] = parseInt(o.dataset.v, 10);
+    persist();
+    $$('.opt', q).forEach(function (b) { b.classList.toggle('sel', b === o); });
+    q.classList.add('answered');
+    updateProg();
+  });
+  vExam.addEventListener('input', function (e) {
+    if (!run || run.submitted || e.target.tagName !== 'TEXTAREA') return;
+    run.essay[e.target.closest('.q').dataset.id] = e.target.value;
+    persist();
+    updateProg();
+  });
+  vExam.addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.id === 'btnSubmit') {
+      var left = TOTAL_Q - updateProg(), box = $('#confirmBox');
+      if (left > 0) {
+        box.hidden = false;
+        box.innerHTML = 'لسه <b>' + left + '</b> سؤال من غير إجابة (الـ <span class="en">Essay</span> اللي مكتوبش فيه حاجة بيتحسب من غير إجابة). تسلّم برضه؟' +
+          '<br><button type="button" class="btn primary" id="btnYes">آه، سلّم</button><button type="button" class="btn" id="btnNo">لأ، أكمّل</button>';
+      } else submit(false);
+    } else if (b.id === 'btnYes') submit(false);
+    else if (b.id === 'btnNo') $('#confirmBox').hidden = true;
+    else if (b.id === 'btnAgain') { run = null; persist(); showStart(); }
+    else if (b.dataset.f) {
+      $$('[data-f]').forEach(function (x) { x.classList.toggle('on', x === b); });
+      vExam.classList.toggle('exam-only-wrong', b.dataset.f === 'wrong');
+    }
+  });
+  vExam.addEventListener('change', function (e) {
+    var c = e.target;
+    if (!c.matches || !c.matches('input[type=checkbox][data-e]')) return;
+    var id = c.dataset.e, q = ES.filter(function (x) { return x.id === id; })[0];
+    var arr = [];
+    $$('input[data-e="' + id + '"]').forEach(function (x, i) { arr[i] = x.checked; });
+    run.pts[id] = arr; persist();
+    var n = arr.filter(Boolean).length;
+    $('#q-' + id + ' .pts-sc').textContent = 'غطّيت ' + n + ' من ' + q.points.length + (n === q.points.length ? ' 🔥' : '');
+    renderResult();
+  });
+
+  /* ---------- submit + reveal ---------- */
+  function submit(auto) {
+    if (!run || run.submitted) return;
+    run.submitted = true; run.end = Date.now(); run.auto = !!auto;
+    persist(); stopTimer();
+    reveal();
+  }
+
+  function metaChips(q) {
+    return '<span class="chip lec l' + q.l + '">L' + q.l + '</span>' + (q.bk ? '<span class="chip bk">📖 الكتاب</span>' : '');
+  }
+  var rvLink = function (q) { return '<div class="rv">🔎 راجع: <a href="lecture' + q.l + '.html#' + q.st + '">Lecture ' + q.l + ' · ' + STN[q.l][q.st] + '</a></div>'; };
+
+  function markQ(q) {
+    var el = $('#q-' + q.id), correct = q.a;
+    var a = run.ans[q.id], has = typeof a === 'number', ok = has && a === correct;
+    el.classList.remove('answered');
+    el.classList.add(ok ? 'ok' : (has ? 'no' : 'skip'));
+    $$('.opt', el).forEach(function (b) {
+      var v = parseInt(b.dataset.v, 10);
+      b.disabled = true; b.classList.remove('sel');
+      if (v === correct) b.classList.add('right');
+      else if (has && v === a) b.classList.add('wrong');
+      if (has && v === a) b.insertAdjacentHTML('beforeend', '<em class="mine">إجابتك</em>');
+    });
+    $('.qmeta', el).innerHTML = metaChips(q);
+    var fb = $('.qfb', el);
+    fb.hidden = false;
+    fb.innerHTML = '<div class="fb ' + (ok ? 'ok' : 'no') + '"><b>' + (ok ? '✔ صح' : (has ? '✘ غلط' : '⚠ مجبتش على السؤال ده')) + '</b>' +
+      '<div dir="auto">' + q.why + '</div>' + rvLink(q) + '</div>';
+  }
+
+  function markEssay(q) {
+    var el = $('#q-' + q.id), arr = run.pts[q.id] || [];
+    $('textarea', el).readOnly = true;
+    $('.qmeta', el).innerHTML = metaChips(q);
+    var fb = $('.qfb', el);
+    fb.hidden = false;
+    fb.innerHTML = '<div class="model"><div class="mdl">' + q.model + '</div><div class="pts"><h4>✅ علّم على النقط اللي غطّيتها في إجابتك:</h4>' +
+      q.points.map(function (p, i) {
+        return '<label class="chk"><input type="checkbox" data-e="' + q.id + '" data-i="' + i + '"' + (arr[i] ? ' checked' : '') + '> <span dir="auto">' + p + '</span></label>';
+      }).join('') +
+      '<div class="pts-sc"></div></div>' + rvLink(q) + '</div>';
+    var n = arr.filter(Boolean).length;
+    $('.pts-sc', el).textContent = 'غطّيت ' + n + ' من ' + q.points.length + (n === q.points.length ? ' 🔥' : '');
+  }
+
+  function stats() {
+    var s = { mc: 0, by: {}, ess: [], essFrac: 0 };
+    LECS.forEach(function (l) { s.by[l] = 0; });
+    MC.forEach(function (q) { if (run.ans[q.id] === q.a) { s.mc++; s.by[q.l]++; } });
+    ES.forEach(function (q) {
+      var n = (run.pts[q.id] || []).filter(Boolean).length;
+      s.ess.push({ q: q, n: n });
+      s.essFrac += n / q.points.length;
+    });
+    s.pts = s.mc + s.essFrac * ESSAY_W;
+    s.pct = Math.round(s.pts / MAX_PTS * 100);
+    return s;
+  }
+
+  function renderResult() {
+    var s = stats(), box = $('#resBox');
+    if (s.pct > store.best) { store.best = s.pct; }
+    persist();
+    var per = {};
+    LECS.forEach(function (l) { per[l] = 0; });
+    MC.forEach(function (q) { per[q.l]++; });
+    var weakL = 1, weakV = 2;
+    LECS.forEach(function (l) { var v = s.by[l] / per[l]; if (v < weakV) { weakV = v; weakL = l; } });
+
+    var rows = LECS.map(function (l) {
+      var pc = Math.round(s.by[l] / per[l] * 100), t = pc >= 80 ? 't-ok' : (pc >= 60 ? 't-warn' : 't-bad');
+      return '<div class="lrow ' + t + '"><span class="nm">Lecture ' + l + '</span><div class="lb"><i style="width:' + pc + '%"></i></div><b>' + s.by[l] + '/' + per[l] + '</b>' +
+        '<a href="lecture' + l + '.html">راجع المحاضرة ←</a></div>';
+    }).join('');
+
+    var verdict, vcls;
+    if (s.pct >= 85) { verdict = '🔥 جاهز! مستواك عالي. راجع الغلطات (لو فيه) وخلاص.'; vcls = 'pos'; }
+    else if (s.pct >= 70) { verdict = '👏 كويس جداً. راجع الغلطات وكرّر الجزء الأضعف.'; vcls = 'pos'; }
+    else if (s.pct >= 50) { verdict = '💪 محتاج مراجعة مركزة على الجزء الأضعف، وبعدها جرّب امتحان تاني.'; vcls = ''; }
+    else { verdict = '📚 لسه المادة مش متثبتة. ارجع للمحاضرات (والكتاب الأول) وبعدين جرّب تاني.'; vcls = 'neg'; }
+
+    box.innerHTML =
+      '<div class="card rescard"><h2>📊 نتيجتك</h2>' +
+      (run.auto ? '<div class="note warn">⏰ الوقت خلص والامتحان اتسلّم تلقائياً.</div>' : '') +
+      '<div class="bigpct">' + s.pct + '%</div>' +
+      '<p style="text-align:center;margin:0" class="muted">تقدير: <b class="en">' + (Math.round(s.pts * 10) / 10) + ' / ' + MAX_PTS + '</b> · أحسن نتيجة ليك: <b class="en">' + store.best + '%</b> · الوقت: <b class="en">' + fmt((run.end || Date.now()) - run.start) + '</b></p>' +
+      '<div class="res-row">' +
+      '<div class="res"><small>Part A · <span class="en">MCQ</span></small><b>' + s.mc + ' / ' + MC.length + '</b></div>' +
+      '<div class="res"><small>Part B · <span class="en">Essay</span> (تقييم ذاتي)</small><b>' + (Math.round(s.essFrac * ESSAY_W * 10) / 10) + ' / ' + (ES.length * ESSAY_W) + '</b></div></div>' +
+      '<div class="verdict ' + vcls + '">' + verdict + '</div>' +
+      '<h3 class="sec" style="margin-top:22px">حسب المحاضرة <small>(الـ MCQ)</small></h3>' + rows +
+      '<div class="note" style="margin-top:14px">🎯 أضعف جزء عندك: <b class="en">Lecture ' + weakL + '</b>' + (weakV < 0.8 ? ' — ابدأ بيه.' : ' — كله كويس، بس ده الأقل.') + '</div>' +
+      '<div class="seg" style="margin-top:12px"><button type="button" data-f="all" class="on">كل الأسئلة</button><button type="button" data-f="wrong">الغلط والمتروك بس</button></div>' +
+      '<p class="muted" style="margin:0">⚠️ الـ <span class="en">Essay</span> تقييمه ذاتي (من اللي أنت علّمته)، والدرجات تقديرية — مش توقّع للدرجة الحقيقية.</p></div>';
+  }
+
+  function reveal() {
+    vExam.classList.add('locked');
+    $('#submitBar').hidden = true;
+    $('#againBar').hidden = false;
+    $('#timer').hidden = true;
+    MC.forEach(markQ);
+    ES.forEach(markEssay);
+    $('#resBox').hidden = false;
+    renderResult();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  /* ---------- views ---------- */
+  function enterExam() {
+    vStart.hidden = true; vExam.hidden = false;
+    $('#progBox').hidden = false;
+    vExam.classList.remove('exam-only-wrong', 'locked');
+    buildExam();
+    updateProg();
+    if (run.submitted) reveal(); else startTimer();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function showStart() {
+    stopTimer();
+    vExam.hidden = true; vStart.hidden = false;
+    $('#progBox').hidden = true; $('#timer').hidden = true;
+    var box = $('#resume'), h = '';
+    if (run && !run.submitted) {
+      var n = 0;
+      MC.forEach(function (q) { if (typeof run.ans[q.id] === 'number') n++; });
+      h = '▶ فيه امتحان لسه شغال (جاوبت <b class="en">' + n + '</b> من <b class="en">' + MC.length + '</b> سؤال اختيار). ' +
+        '<br><button type="button" class="btn primary" id="btnResume">كمّل الامتحان</button> <button type="button" class="btn" id="btnDrop">ابدأ من جديد</button>';
+    } else if (run && run.submitted) {
+      h = '📊 آخر محاولة اتسلّمت. أحسن نتيجة ليك: <b class="en">' + store.best + '%</b>. <br><button type="button" class="btn primary" id="btnReview">شوف المراجعة</button>';
+    } else if (store.best) {
+      h = '🏆 أحسن نتيجة ليك لحد دلوقتي: <b class="en">' + store.best + '%</b>';
+    }
+    box.hidden = !h; box.innerHTML = h;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  $('#resume').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.id === 'btnResume' || b.id === 'btnReview') enterExam();
+    else if (b.id === 'btnDrop') { run = null; persist(); showStart(); }
+  });
+  $('#tmSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    minutes = parseInt(b.dataset.min, 10);
+    $$('#tmSeg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+  });
+  $('#btnStart').addEventListener('click', function () {
+    run = newRun(minutes); persist(); enterExam();
+  });
+
+  showStart();
+})();
+</script>
+</body>
+</html>
